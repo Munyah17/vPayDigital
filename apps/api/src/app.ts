@@ -1,0 +1,680 @@
+// =============================================================================
+// vPay API Application
+// =============================================================================
+
+import 'express-async-errors';
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
+import { env } from './config/index.js';
+import { errorHandler, notFound } from './middleware/errorHandler.js';
+import { logger } from './utils/logger.js';
+import { cardRouter } from './routes/cards.js';
+import { walletRouter } from './routes/wallets.js';
+import { voucherRouter } from './routes/vouchers.js';
+import { handleFincraWebhook } from './webhooks/fincraWebhook.js';
+import { authenticate, requireAdmin, requireAgent, AuthenticatedRequest } from './middleware/auth.js';
+import { supabaseAdmin } from './utils/supabase.js';
+
+const app = express();
+
+app.set('trust proxy', 1);
+
+// ─── Security Headers ─────────────────────────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+    },
+  },
+  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+}));
+
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+app.use(cors({
+  origin: env.CORS_ORIGINS.split(','),
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+// ─── Rate Limiting ────────────────────────────────────────────────────────────
+const globalLimiter = rateLimit({
+  windowMs: env.RATE_LIMIT_WINDOW_MS,
+  max: env.RATE_LIMIT_MAX_REQUESTS,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many requests, please try again later.' },
+});
+
+const strictLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { success: false, error: 'Too many attempts. Please wait.' },
+});
+
+app.use('/api', globalLimiter);
+app.use('/api/auth', strictLimiter);
+
+// ─── Compression ──────────────────────────────────────────────────────────────
+app.use(compression());
+
+// ─── Webhooks — raw body BEFORE json parsing ──────────────────────────────────
+app.post(
+  '/webhooks/fincra',
+  express.raw({ type: 'application/json' }),
+  (req, _res, next) => {
+    (req as express.Request & { rawBody: string }).rawBody = req.body.toString();
+    req.body = JSON.parse(req.body.toString());
+    next();
+  },
+  handleFincraWebhook
+);
+
+// ─── Body Parsing ─────────────────────────────────────────────────────────────
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+// ─── Request Logging ──────────────────────────────────────────────────────────
+app.use((req, _res, next) => {
+  logger.info({ method: req.method, url: req.url }, 'Incoming request');
+  next();
+});
+
+// ─── Health Check ─────────────────────────────────────────────────────────────
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
+});
+
+// ─── API Routes ───────────────────────────────────────────────────────────────
+app.use('/api/cards', cardRouter);
+app.use('/api/wallets', walletRouter);
+app.use('/api/vouchers', voucherRouter);
+
+// ─── Profile Routes ───────────────────────────────────────────────────────────
+app.get('/api/profile', authenticate, async (req: AuthenticatedRequest, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('profiles')
+    .select('*, agent_profiles(*)')
+    .eq('id', req.user!.id)
+    .single();
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+app.patch('/api/profile', authenticate, async (req: AuthenticatedRequest, res) => {
+  const allowedFields = ['full_name', 'display_name', 'phone', 'date_of_birth', 'nationality', 'address', 'preferred_currency'];
+  const updates: Record<string, unknown> = {};
+  for (const field of allowedFields) {
+    if (field in req.body) updates[field] = (req.body as Record<string, unknown>)[field];
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('profiles')
+    .update(updates)
+    .eq('id', req.user!.id)
+    .select()
+    .single();
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+app.get('/api/notifications', authenticate, async (req: AuthenticatedRequest, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('notifications')
+    .select('*')
+    .eq('user_id', req.user!.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+app.patch('/api/notifications/:id/read', authenticate, async (req: AuthenticatedRequest, res) => {
+  await supabaseAdmin
+    .from('notifications')
+    .update({ read_at: new Date().toISOString() })
+    .eq('id', req.params.id)
+    .eq('user_id', req.user!.id);
+  res.json({ success: true });
+});
+
+// ─── Admin Routes ─────────────────────────────────────────────────────────────
+app.get('/api/admin/metrics', authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('vw_platform_metrics')
+    .select('*')
+    .single();
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+app.get('/api/admin/users', authenticate, requireAdmin, async (req, res) => {
+  const { page = '1', limit = '20', role, status } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+
+  let query = supabaseAdmin
+    .from('profiles')
+    .select('id, email, full_name, role, status, kyc_status, created_at', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+
+  if (role) query = query.eq('role', role);
+  if (status) query = query.eq('status', status);
+
+  const { data, count, error } = await query;
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+app.get('/api/admin/agents', authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('vw_agent_metrics')
+    .select('*');
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+app.patch('/api/admin/users/:id/status', authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  const { status } = req.body as { status: string };
+  const allowed = ['active', 'suspended', 'closed'];
+  if (!allowed.includes(status)) {
+    res.status(400).json({ success: false, error: 'Invalid status' });
+    return;
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('profiles')
+    .update({ status })
+    .eq('id', req.params.id)
+    .select()
+    .single();
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+
+  await supabaseAdmin.rpc('create_audit_log', {
+    p_actor_id: req.user!.id,
+    p_action: `user.status.${status}`,
+    p_resource_type: 'profile',
+    p_resource_id: req.params.id,
+    p_changes: { status },
+  });
+
+  res.json({ success: true, data });
+});
+
+// ─── Agent Routes ─────────────────────────────────────────────────────────────
+app.get('/api/agent/metrics', authenticate, requireAgent, async (req: AuthenticatedRequest, res) => {
+  const [vouchersRes, cardsRes, commissionsRes, floatRes] = await Promise.all([
+    supabaseAdmin.from('vouchers').select('id, status, amount', { count: 'exact' }).eq('issuer_id', req.user!.id),
+    supabaseAdmin.from('cards').select('id', { count: 'exact' }).eq('issued_by_agent', req.user!.id),
+    supabaseAdmin.from('commissions').select('amount, currency').eq('agent_id', req.user!.id).eq('status', 'completed'),
+    supabaseAdmin.from('wallets').select('balance, currency').eq('user_id', req.user!.id).eq('wallet_type', 'agent_float').single(),
+  ]);
+
+  const totalCommissions = (commissionsRes.data ?? []).reduce((s: number, c: { amount: number }) => s + Number(c.amount), 0);
+  const redeemed = (vouchersRes.data ?? []).filter((v: { status: string }) => v.status === 'redeemed').length;
+
+  res.json({
+    success: true,
+    data: {
+      total_vouchers_issued: vouchersRes.count ?? 0,
+      vouchers_redeemed: redeemed,
+      total_cards_issued: cardsRes.count ?? 0,
+      total_commissions_earned: totalCommissions,
+      float_balance: floatRes.data?.balance ?? 0,
+      currency: floatRes.data?.currency ?? 'USD',
+    },
+  });
+});
+
+app.get('/api/agent/customers', authenticate, requireAgent, async (req: AuthenticatedRequest, res) => {
+  const { page = '1', limit = '20' } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+
+  const { data: issuedCards } = await supabaseAdmin
+    .from('cards')
+    .select('user_id')
+    .eq('issued_by_agent', req.user!.id);
+
+  const customerIds = [...new Set((issuedCards ?? []).map((c: { user_id: string }) => c.user_id))];
+
+  if (customerIds.length === 0) {
+    res.json({ success: true, data: [], meta: { page: 1, limit: Number(limit), total: 0 } });
+    return;
+  }
+
+  const { data, count, error } = await supabaseAdmin
+    .from('profiles')
+    .select('id, full_name, email, status, kyc_status, created_at', { count: 'exact' })
+    .in('id', customerIds)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+// ─── KYC Routes ───────────────────────────────────────────────────────────────
+app.get('/api/kyc', authenticate, async (req: AuthenticatedRequest, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('kyc_documents')
+    .select('*')
+    .eq('user_id', req.user!.id)
+    .order('created_at', { ascending: false });
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+app.post('/api/kyc', authenticate, async (req: AuthenticatedRequest, res) => {
+  const { document_type, document_number, front_url, back_url, selfie_url, country_of_issue, expiry_date } =
+    req.body as Record<string, string>;
+
+  if (!document_type || !front_url) {
+    res.status(400).json({ success: false, error: 'document_type and front_url are required' });
+    return;
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('kyc_documents')
+    .upsert({ user_id: req.user!.id, document_type, document_number, front_url, back_url, selfie_url, country_of_issue, expiry_date, status: 'pending' },
+      { onConflict: 'user_id,document_type' })
+    .select()
+    .single();
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+
+  await supabaseAdmin
+    .from('profiles')
+    .update({ kyc_status: 'pending' })
+    .eq('id', req.user!.id);
+
+  res.status(201).json({ success: true, data });
+});
+
+// ─── Support Tickets (User) ───────────────────────────────────────────────────
+app.get('/api/support-tickets', authenticate, async (req: AuthenticatedRequest, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('support_tickets')
+    .select('*')
+    .eq('user_id', req.user!.id)
+    .order('created_at', { ascending: false });
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+app.post('/api/support-tickets', authenticate, async (req: AuthenticatedRequest, res) => {
+  const { subject, description, category, priority } = req.body as Record<string, string>;
+
+  if (!subject || !description || !category) {
+    res.status(400).json({ success: false, error: 'subject, description, and category are required' });
+    return;
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('support_tickets')
+    .insert({ user_id: req.user!.id, subject, description, category, priority: priority ?? 'normal', status: 'open' })
+    .select()
+    .single();
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.status(201).json({ success: true, data });
+});
+
+// ─── Admin: KYC Review ────────────────────────────────────────────────────────
+app.get('/api/admin/kyc', authenticate, requireAdmin, async (req, res) => {
+  const { page = '1', limit = '20', status } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+
+  let query = supabaseAdmin
+    .from('kyc_documents')
+    .select('*, profiles!kyc_documents_user_id_fkey(full_name, email, kyc_status)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+
+  if (status) query = query.eq('status', status);
+
+  const { data, count, error } = await query;
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+app.patch('/api/admin/kyc/:id/review', authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  const { status, rejection_reason } = req.body as { status: string; rejection_reason?: string };
+
+  if (!['approved', 'rejected'].includes(status)) {
+    res.status(400).json({ success: false, error: 'Status must be approved or rejected' });
+    return;
+  }
+
+  const { data: doc, error: fetchError } = await supabaseAdmin
+    .from('kyc_documents')
+    .update({ status, rejection_reason, reviewed_by: req.user!.id, reviewed_at: new Date().toISOString() })
+    .eq('id', req.params.id)
+    .select()
+    .single();
+
+  if (fetchError) { res.status(500).json({ success: false, error: fetchError.message }); return; }
+
+  await supabaseAdmin
+    .from('profiles')
+    .update({ kyc_status: status === 'approved' ? 'approved' : 'rejected' })
+    .eq('id', doc.user_id);
+
+  res.json({ success: true, data: doc });
+});
+
+// ─── Admin: Support Tickets ───────────────────────────────────────────────────
+app.get('/api/admin/support-tickets', authenticate, requireAdmin, async (req, res) => {
+  const { page = '1', limit = '20', status, priority } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+
+  let query = supabaseAdmin
+    .from('support_tickets')
+    .select('*, profiles!support_tickets_user_id_fkey(full_name, email)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+
+  if (status) query = query.eq('status', status);
+  if (priority) query = query.eq('priority', priority);
+
+  const { data, count, error } = await query;
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+app.patch('/api/admin/support-tickets/:id', authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  const { status, assigned_to, priority } = req.body as Record<string, string>;
+  const updates: Record<string, unknown> = {};
+  if (status) updates.status = status;
+  if (assigned_to) updates.assigned_to = assigned_to;
+  if (priority) updates.priority = priority;
+  if (status === 'resolved' || status === 'closed') updates.resolved_at = new Date().toISOString();
+
+  const { data, error } = await supabaseAdmin
+    .from('support_tickets')
+    .update(updates)
+    .eq('id', req.params.id)
+    .select()
+    .single();
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+// ─── Admin: Fraud Flags ───────────────────────────────────────────────────────
+app.get('/api/admin/fraud-flags', authenticate, requireAdmin, async (req, res) => {
+  const { page = '1', limit = '25', status, severity } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+
+  let query = supabaseAdmin
+    .from('fraud_flags')
+    .select('*, profiles!fraud_flags_user_id_fkey(full_name, email)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+
+  if (status) query = query.eq('status', status);
+  if (severity) query = query.eq('severity', severity);
+
+  const { data, count, error } = await query;
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+app.patch('/api/admin/fraud-flags/:id', authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  const { status, resolution_notes } = req.body as { status: string; resolution_notes?: string };
+  const allowed = ['investigating', 'resolved', 'false_positive'];
+  if (!allowed.includes(status)) { res.status(400).json({ success: false, error: 'Invalid status' }); return; }
+
+  const { data, error } = await supabaseAdmin
+    .from('fraud_flags')
+    .update({ status, resolution_notes, reviewed_by: req.user!.id, reviewed_at: new Date().toISOString() })
+    .eq('id', req.params.id)
+    .select()
+    .single();
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+// ─── Admin: Issue Card for Any User ──────────────────────────────────────────
+app.post('/api/admin/cards/issue', authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  const { target_user_id, cardholder_name, card_type, network, currency, amount,
+          spending_limit_daily, spending_limit_per_transaction, expires_at } =
+    req.body as Record<string, unknown>;
+
+  if (!target_user_id || !cardholder_name || !amount) {
+    res.status(400).json({ success: false, error: 'target_user_id, cardholder_name and amount are required' });
+    return;
+  }
+
+  // Verify target user exists
+  const { data: targetProfile } = await supabaseAdmin
+    .from('profiles')
+    .select('id, full_name, status')
+    .eq('id', target_user_id as string)
+    .single();
+
+  if (!targetProfile || targetProfile.status !== 'active') {
+    res.status(404).json({ success: false, error: 'Target user not found or not active' });
+    return;
+  }
+
+  const { cardService } = await import('./services/cardService.js');
+  const card = await cardService.issueCard({
+    user_id: target_user_id as string,
+    issued_by_agent: req.user!.id,        // deducts from admin's agent_float
+    cardholder_name: cardholder_name as string,
+    card_type: (card_type as never) ?? 'single_use',
+    network: (network as never) ?? 'visa',
+    currency: (currency as never) ?? 'USD',
+    amount: Number(amount),
+    spending_limit_daily: spending_limit_daily ? Number(spending_limit_daily) : undefined,
+    spending_limit_per_transaction: spending_limit_per_transaction ? Number(spending_limit_per_transaction) : undefined,
+    expires_at: expires_at as string | undefined,
+  });
+
+  await supabaseAdmin.rpc('create_audit_log', {
+    p_actor_id: req.user!.id,
+    p_action: 'card.admin_issued',
+    p_resource_type: 'card',
+    p_resource_id: card.id,
+    p_changes: { target_user_id, amount, currency, network, card_type },
+  });
+
+  res.status(201).json({ success: true, data: card, message: `Card issued to ${targetProfile.full_name}` });
+});
+
+// ─── Admin: Cards ─────────────────────────────────────────────────────────────
+app.get('/api/admin/cards', authenticate, requireAdmin, async (req, res) => {
+  const { page = '1', limit = '25', status, network } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+
+  let query = supabaseAdmin
+    .from('cards')
+    .select('*, profiles!cards_user_id_fkey(full_name, email)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+
+  if (status) query = query.eq('status', status);
+  if (network) query = query.eq('network', network);
+
+  const { data, count, error } = await query;
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+// ─── Admin: Payout Requests ───────────────────────────────────────────────────
+app.get('/api/admin/payout-requests', authenticate, requireAdmin, async (req, res) => {
+  const { page = '1', limit = '25', status, method } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+
+  let query = supabaseAdmin
+    .from('payout_requests')
+    .select('*, profiles!payout_requests_user_id_fkey(full_name, email)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+
+  if (status) query = query.eq('status', status);
+  if (method) query = query.eq('method', method);
+
+  const { data, count, error } = await query;
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+app.patch('/api/admin/payout-requests/:id/status', authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  const { status, notes } = req.body as { status: string; notes?: string };
+  const allowed = ['processing', 'completed', 'failed', 'cancelled'];
+  if (!allowed.includes(status)) { res.status(400).json({ success: false, error: 'Invalid status' }); return; }
+
+  const { data, error } = await supabaseAdmin
+    .from('payout_requests')
+    .update({ status, notes, processed_by: req.user!.id, processed_at: new Date().toISOString() })
+    .eq('id', req.params.id)
+    .select()
+    .single();
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+// ─── Admin: Settlements ───────────────────────────────────────────────────────
+app.get('/api/admin/settlements', authenticate, requireAdmin, async (req, res) => {
+  const { page = '1', limit = '20', status } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+
+  let query = supabaseAdmin
+    .from('settlements')
+    .select('*, profiles!settlements_initiated_by_fkey(full_name)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+
+  if (status) query = query.eq('status', status);
+
+  const { data, count, error } = await query;
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+app.post('/api/admin/settlements', authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  const { settlement_period_start, settlement_period_end, currency, notes } = req.body as Record<string, string>;
+
+  const { data, error } = await supabaseAdmin
+    .from('settlements')
+    .insert({ settlement_period_start, settlement_period_end, currency: currency ?? 'USD', notes, initiated_by: req.user!.id, status: 'pending' })
+    .select()
+    .single();
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+// ─── Admin: Exchange Rates ────────────────────────────────────────────────────
+app.get('/api/admin/exchange-rates', authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('exchange_rates')
+    .select('*')
+    .eq('is_active', true)
+    .order('from_currency');
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+// ─── Admin: Webhook Events ────────────────────────────────────────────────────
+app.get('/api/admin/webhook-events', authenticate, requireAdmin, async (req, res) => {
+  const { page = '1', limit = '25', status, event_type } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+
+  let query = supabaseAdmin
+    .from('webhook_events')
+    .select('*', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+
+  if (status) query = query.eq('status', status);
+  if (event_type) query = query.eq('event_type', event_type);
+
+  const { data, count, error } = await query;
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+app.post('/api/admin/webhook-events/:id/retry', authenticate, requireAdmin, async (req, res) => {
+  const { data: event, error: fetchError } = await supabaseAdmin
+    .from('webhook_events')
+    .select('*')
+    .eq('id', req.params.id)
+    .single();
+
+  if (fetchError || !event) { res.status(404).json({ success: false, error: 'Event not found' }); return; }
+
+  const { data, error } = await supabaseAdmin
+    .from('webhook_events')
+    .update({ status: 'retrying', next_retry_at: new Date().toISOString(), attempts: (event.attempts ?? 0) + 1 })
+    .eq('id', req.params.id)
+    .select()
+    .single();
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+// ─── Admin: Voucher Batches ───────────────────────────────────────────────────
+app.get('/api/admin/voucher-batches', authenticate, requireAdmin, async (req, res) => {
+  const { page = '1', limit = '25' } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+
+  const { data, count, error } = await supabaseAdmin
+    .from('voucher_batches')
+    .select('*, profiles!voucher_batches_issuer_id_fkey(full_name, email)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+// ─── Admin: System Config ─────────────────────────────────────────────────────
+app.get('/api/admin/config', authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('system_config')
+    .select('*')
+    .order('key');
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+app.patch('/api/admin/config/:key', authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  const { value } = req.body as { value: unknown };
+
+  const { data, error } = await supabaseAdmin
+    .from('system_config')
+    .upsert({ key: req.params.key, value, updated_by: req.user!.id, updated_at: new Date().toISOString() }, { onConflict: 'key' })
+    .select()
+    .single();
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+// ─── Not Found & Error Handler ────────────────────────────────────────────────
+app.use(notFound);
+app.use(errorHandler);
+
+export { app };

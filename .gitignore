@@ -1,0 +1,90 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+dist
+build
+.next
+out
+*.tsbuildinfo
+
+# Environment files - NEVER commit these
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
+.env.staging
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE
+.vscode/settings.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Turbo
+.turbo
+
+# Test coverage
+coverage
+.nyc_output
+
+# Supabase
+.supabase
+supabase/.branches
+supabase/.temp
+
+# Docker
+*.pem
+
+# Certificates
+*.key
+*.crt
+*.p12
+
+# Secrets
+secrets/
+*.secret
+
+# Cache
+.cache
+.parcel-cache
+.eslintcache
+.stylelintcache
+
+# TypeScript
+*.js.map
+*.d.ts.map
+
+.vercel
+
+# Playwright MCP snapshots (dev tooling artifacts)
+.playwright-mcp/
+
+# Screenshot captures (dev/debugging artifacts)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp

@@ -1,0 +1,115 @@
+version: '3.9'
+
+services:
+  # ─── API Server ───────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: vpay-api
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      FINCRA_API_KEY: ${FINCRA_API_KEY}
+      FINCRA_SECRET_KEY: ${FINCRA_SECRET_KEY}
+      FINCRA_BASE_URL: ${FINCRA_BASE_URL}
+      FINCRA_WEBHOOK_SECRET: ${FINCRA_WEBHOOK_SECRET}
+      FINCRA_BUSINESS_ID: ${FINCRA_BUSINESS_ID}
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGINS: ${CORS_ORIGINS}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - vpay-network
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3001/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ─── Web Frontend ─────────────────────────────────────────────────────────
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: vpay-web
+    restart: unless-stopped
+    ports:
+      - '5173:80'
+    environment:
+      VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+      VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+      VITE_API_URL: ${VITE_API_URL}
+    depends_on:
+      - api
+    networks:
+      - vpay-network
+
+  # ─── Admin Frontend ───────────────────────────────────────────────────────
+  admin:
+    build:
+      context: ./apps/admin
+      dockerfile: Dockerfile
+    container_name: vpay-admin
+    restart: unless-stopped
+    ports:
+      - '5174:80'
+    environment:
+      VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+      VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+      VITE_API_URL: ${VITE_API_URL}
+    depends_on:
+      - api
+    networks:
+      - vpay-network
+
+  # ─── Redis ────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7.4-alpine
+    container_name: vpay-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    networks:
+      - vpay-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Nginx Reverse Proxy ──────────────────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: vpay-nginx
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+      - web
+      - admin
+    networks:
+      - vpay-network
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  vpay-network:
+    driver: bridge

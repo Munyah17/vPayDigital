@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@vpay/types": ["packages/types/src/index.ts"],
+      "@vpay/utils": ["packages/utils/src/index.ts"],
+      "@vpay/config": ["packages/config/src/index.ts"],
+      "@vpay/auth": ["packages/auth/src/index.ts"],
+      "@vpay/fintech-core": ["packages/fintech-core/src/index.ts"],
+      "@vpay/provider-fincra": ["packages/provider-fincra/src/index.ts"],
+      "@vpay/ui": ["packages/ui/src/index.ts"]
+    }
+  }
+}

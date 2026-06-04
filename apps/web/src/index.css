@@ -1,0 +1,211 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base ──────────────────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 13%;
+    --card-foreground: 210 40% 98%;
+    --border: 217 33% 18%;
+    --input: 217 33% 16%;
+    --ring: 224 76% 58%;
+    --radius: 0.75rem;
+
+    /* Brand */
+    --brand-primary: 239 84% 59%;
+    --brand-secondary: 270 91% 65%;
+    --brand-accent: 258 90% 66%;
+  }
+
+  * {
+    @apply border-white/10;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+  }
+
+  body {
+    @apply bg-[#0a0a16] text-white font-sans;
+    overflow-x: hidden;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/20;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-indigo-500/30 text-white;
+  }
+
+  /* Focus */
+  :focus-visible {
+    @apply outline-none ring-2 ring-indigo-500 ring-offset-2 ring-offset-[#0a0a16];
+  }
+
+  /* Input autofill */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #fff;
+    -webkit-box-shadow: 0 0 0px 1000px #1a1a2e inset;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+}
+
+/* ─── Components ─────────────────────────────────────────────────────────────── */
+@layer components {
+  /* Glass Card */
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300
+           hover:bg-white/8 hover:border-white/20 hover:shadow-card-hover;
+  }
+
+  /* Brand Button */
+  .btn-brand {
+    @apply relative overflow-hidden
+           bg-gradient-to-r from-indigo-600 to-purple-600
+           hover:from-indigo-500 hover:to-purple-500
+           text-white font-semibold
+           px-6 py-3 rounded-xl
+           transition-all duration-200
+           shadow-glow hover:shadow-glow-lg
+           active:scale-[0.98];
+  }
+
+  .btn-brand::before {
+    content: '';
+    @apply absolute inset-0
+           bg-gradient-to-r from-white/0 via-white/10 to-white/0
+           translate-x-[-100%] transition-transform duration-500;
+  }
+
+  .btn-brand:hover::before {
+    @apply translate-x-[100%];
+  }
+
+  /* Ghost Button */
+  .btn-ghost {
+    @apply bg-white/5 hover:bg-white/10
+           border border-white/10 hover:border-white/20
+           text-white/80 hover:text-white
+           font-medium px-6 py-3 rounded-xl
+           transition-all duration-200
+           active:scale-[0.98];
+  }
+
+  /* Input Field */
+  .input-field {
+    @apply w-full bg-white/5 border border-white/10
+           rounded-xl px-4 py-3 text-white
+           placeholder:text-white/30
+           focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50
+           transition-all duration-200;
+  }
+
+  /* Badge */
+  .badge-active { @apply bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-medium px-2 py-0.5 rounded-full; }
+  .badge-pending { @apply bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-medium px-2 py-0.5 rounded-full; }
+  .badge-failed { @apply bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-medium px-2 py-0.5 rounded-full; }
+  .badge-frozen { @apply bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-medium px-2 py-0.5 rounded-full; }
+  .badge-inactive { @apply bg-white/10 text-white/40 border border-white/10 text-xs font-medium px-2 py-0.5 rounded-full; }
+
+  /* Shimmer loading */
+  .shimmer {
+    background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.05) 50%, transparent 75%);
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
+
+  /* Card number font */
+  .card-number {
+    @apply font-mono tracking-[0.15em] text-lg;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  /* Glow orb */
+  .glow-orb {
+    @apply absolute rounded-full blur-3xl opacity-20 pointer-events-none;
+  }
+
+  /* Metric Card */
+  .metric-card {
+    @apply glass-card p-5 relative overflow-hidden;
+  }
+
+  /* Nav Item */
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl
+           text-white/60 hover:text-white hover:bg-white/5
+           transition-all duration-200 cursor-pointer
+           text-sm font-medium;
+  }
+  .nav-item-active {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl
+           text-white bg-white/10 border border-white/10
+           transition-all duration-200 cursor-pointer
+           text-sm font-medium shadow-glow-sm;
+  }
+}
+
+/* ─── Utilities ──────────────────────────────────────────────────────────────── */
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-400
+           bg-clip-text text-transparent;
+  }
+
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400
+           bg-clip-text text-transparent;
+  }
+
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+
+  /* Perspective for 3D card flip */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+
+  /* Custom grid */
+  .grid-dashboard {
+    @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4;
+  }
+}

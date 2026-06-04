@@ -1,0 +1,41 @@
+{
+  "name": "vpay",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && rimraf node_modules",
+    "dev:web": "turbo run dev --filter=@vpay/web",
+    "dev:admin": "turbo run dev --filter=@vpay/admin",
+    "dev:api": "turbo run dev --filter=@vpay/api",
+    "build:web": "turbo run build --filter=@vpay/web",
+    "build:admin": "turbo run build --filter=@vpay/admin",
+    "build:api": "turbo run build --filter=@vpay/api",
+    "db:migrate": "node supabase/seed/migrate.js",
+    "db:seed": "node supabase/seed/demo-accounts.js",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2",
+    "rimraf": "^6.0.1",
+    "prettier": "^3.4.2",
+    "eslint": "^9.18.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "@typescript-eslint/eslint-plugin": "^8.20.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "packageManager": "npm@10.9.2"
+}
