@@ -1,6 +1,7 @@
 /**
  * vPay Migration Runner
  * Applies SQL migrations to the Supabase cloud project via the Management API.
+ * Tracks applied migrations in a _migrations table so only new files are run.
  *
  * Usage:
  *   SUPABASE_ACCESS_TOKEN=<pat> node supabase/seed/migrate.js
@@ -30,7 +31,6 @@ if (!ACCESS_TOKEN) {
   process.exit(1);
 }
 
-// Extract project ref from URL: https://<ref>.supabase.co
 const PROJECT_REF = new URL(SUPABASE_URL).hostname.split('.')[0];
 const MANAGEMENT_API = `https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query`;
 
@@ -53,16 +53,32 @@ async function runQuery(sql, label) {
   return body;
 }
 
-async function tableExists(tableName) {
+async function ensureMigrationsTable() {
+  await runQuery(`
+    CREATE TABLE IF NOT EXISTS public._migrations (
+      filename TEXT PRIMARY KEY,
+      applied_at TIMESTAMPTZ DEFAULT now() NOT NULL
+    )
+  `, 'create _migrations table');
+}
+
+async function getAppliedMigrations() {
   try {
-    const result = await runQuery(
-      `SELECT to_regclass('public.${tableName}') IS NOT NULL AS exists`,
-      `check ${tableName}`
+    const rows = await runQuery(
+      `SELECT filename FROM public._migrations ORDER BY filename`,
+      'fetch applied migrations'
     );
-    return result?.[0]?.exists === true;
+    return new Set((rows || []).map(r => r.filename));
   } catch {
-    return false;
+    return new Set();
   }
+}
+
+async function markApplied(filename) {
+  await runQuery(
+    `INSERT INTO public._migrations (filename) VALUES ('${filename}') ON CONFLICT DO NOTHING`,
+    `mark ${filename}`
+  );
 }
 
 async function main() {
@@ -80,14 +96,11 @@ async function main() {
     process.exit(1);
   }
 
-  // Check if already migrated
-  const alreadyMigrated = await tableExists('profiles');
-  if (alreadyMigrated) {
-    console.log('✓ Schema already applied — profiles table exists.\n');
-    console.log('  Run the seed script to (re)create demo accounts:');
-    console.log('  node supabase/seed/demo-accounts.js\n');
-    return;
-  }
+  // Ensure migration tracking table exists
+  await ensureMigrationsTable();
+
+  // Get already-applied migrations
+  const applied = await getAppliedMigrations();
 
   // Load and apply migrations in order
   const migrationsDir = resolve(__dirname, '../migrations');
@@ -95,13 +108,22 @@ async function main() {
     .filter(f => f.endsWith('.sql'))
     .sort();
 
-  console.log(`Found ${files.length} migration(s):\n`);
+  const pending = files.filter(f => !applied.has(f));
 
-  for (const file of files) {
+  if (pending.length === 0) {
+    console.log('✓ All migrations already applied. Nothing to do.\n');
+    return;
+  }
+
+  console.log(`Applied : ${applied.size} migration(s)`);
+  console.log(`Pending : ${pending.length} migration(s)\n`);
+
+  for (const file of pending) {
     const sql = readFileSync(join(migrationsDir, file), 'utf8');
     process.stdout.write(`  Applying ${file}… `);
     try {
       await runQuery(sql, file);
+      await markApplied(file);
       console.log('✓');
     } catch (err) {
       console.log('✗');
@@ -111,7 +133,6 @@ async function main() {
   }
 
   console.log('\n✓ All migrations applied.\n');
-  console.log('  Next: node supabase/seed/demo-accounts.js\n');
 }
 
 main().catch(err => {
