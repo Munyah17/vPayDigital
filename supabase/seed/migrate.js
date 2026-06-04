@@ -53,6 +53,26 @@ async function runQuery(sql, label) {
   return body;
 }
 
+// Base migrations that make up the initial schema deployment.
+// If the _migrations table is empty but the schema already exists,
+// we assume these were applied outside the tracker and mark them as applied
+// so only newer migration files are actually executed.
+const BASE_MIGRATIONS = [
+  '001_initial_schema.sql',
+  '002_rls_policies.sql',
+  '003_triggers_functions.sql',
+];
+
+async function tableExists(name) {
+  try {
+    const r = await runQuery(
+      `SELECT to_regclass('public.${name}') IS NOT NULL AS exists`,
+      `check ${name}`
+    );
+    return r?.[0]?.exists === true;
+  } catch { return false; }
+}
+
 async function ensureMigrationsTable() {
   await runQuery(`
     CREATE TABLE IF NOT EXISTS public._migrations (
@@ -63,15 +83,29 @@ async function ensureMigrationsTable() {
 }
 
 async function getAppliedMigrations() {
+  let rows;
   try {
-    const rows = await runQuery(
+    rows = await runQuery(
       `SELECT filename FROM public._migrations ORDER BY filename`,
       'fetch applied migrations'
     );
-    return new Set((rows || []).map(r => r.filename));
-  } catch {
-    return new Set();
+  } catch { rows = []; }
+
+  const tracked = new Set((rows || []).map(r => r.filename));
+
+  // Bootstrap: if no migrations are tracked but the schema clearly exists,
+  // mark the base migrations as applied without re-running them.
+  if (tracked.size === 0 && await tableExists('profiles')) {
+    console.log('  ↳ Schema exists but tracking is uninitialized — bootstrapping base migrations.\n');
+    const vals = BASE_MIGRATIONS.map(f => `('${f}')`).join(',');
+    await runQuery(
+      `INSERT INTO public._migrations (filename) VALUES ${vals} ON CONFLICT DO NOTHING`,
+      'bootstrap base migrations'
+    );
+    BASE_MIGRATIONS.forEach(f => tracked.add(f));
   }
+
+  return tracked;
 }
 
 async function markApplied(filename) {
@@ -99,7 +133,6 @@ async function main() {
   // Ensure migration tracking table exists
   await ensureMigrationsTable();
 
-  // Get already-applied migrations
   const applied = await getAppliedMigrations();
 
   // Load and apply migrations in order
