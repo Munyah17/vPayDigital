@@ -42,8 +42,12 @@ export const useWalletStore = create<WalletState>()(
             activeWallet: get().activeWallet ?? wallets[0] ?? null,
           });
         } catch (err: any) {
-          const msg = err?.response?.data?.error ?? err?.message ?? 'Failed to load wallets';
+          const isNetworkError = !err.response;
+          const msg = isNetworkError
+            ? 'Cannot reach API server. Check that it is running.'
+            : (err?.response?.data?.error ?? 'Failed to load wallets');
           toast.error(msg, { id: 'fetch-wallets-err' });
+          throw err; // re-throw so callers can show their own error state
         } finally {
           set({ isLoading: false });
         }

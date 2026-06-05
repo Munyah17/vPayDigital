@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Send, Download, ArrowUpRight, ArrowDownLeft, Upload } from 'lucide-react';
+import { Plus, Send, Download, ArrowUpRight, ArrowDownLeft, Upload, RefreshCw, WifiOff } from 'lucide-react';
 import { WalletCard, WalletCardSkeleton } from '../../components/wallet/WalletCard';
 import { useWalletStore } from '../../stores/walletStore';
 import { api } from '../../lib/axios';
@@ -13,22 +13,44 @@ export default function Wallet() {
   const [showSend, setShowSend] = useState(false);
   const [vaInfo, setVaInfo] = useState<{ account_number: string; bank_name: string } | null>(null);
   const [topUpLoading, setTopUpLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [searchParams] = useSearchParams();
   const actionHandled = useRef(false);
 
+  const loadWallets = async () => {
+    setLoadError(false);
+    try {
+      await fetchWallets();
+    } catch {
+      setLoadError(true);
+    }
+  };
+
   useEffect(() => {
-    fetchWallets();
+    loadWallets();
   }, []);
 
   const requestVirtualAccount = async () => {
-    if (!activeWallet) { toast.error('No wallet selected'); return; }
+    if (!activeWallet) {
+      if (loadError) {
+        toast.error('Could not connect to the server. Check that the API is running.');
+      } else if (!isLoading) {
+        toast.error('No wallet found. Your account may still be setting up.');
+      }
+      return;
+    }
     setTopUpLoading(true);
     try {
       const res = await api.post(`/api/wallets/${activeWallet.id}/virtual-account`);
       setVaInfo((res.data as any).data);
       toast.success('Virtual account ready');
     } catch (e: any) {
-      toast.error(e?.response?.data?.error ?? 'Could not assign account');
+      const isNetworkError = !e.response;
+      toast.error(
+        isNetworkError
+          ? 'Cannot reach server. Check that the API is running and VITE_API_URL is set correctly.'
+          : (e?.response?.data?.error ?? 'Could not assign virtual account')
+      );
     } finally {
       setTopUpLoading(false);
     }
@@ -45,15 +67,29 @@ export default function Wallet() {
     if (action === 'topup' && activeWallet) { requestVirtualAccount(); actionHandled.current = true; }
   }, [searchParams, activeWallet?.id]);
 
+  const hasWallets = wallets.length > 0;
+  const actionsDisabled = isLoading || !hasWallets;
+
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-display font-bold text-white text-2xl">Wallet</h1>
         <div className="flex gap-2">
-          <button onClick={requestVirtualAccount} disabled={topUpLoading} className="btn-ghost text-sm py-2 px-3 flex items-center gap-1.5 disabled:opacity-60">
-            <Download className={`w-4 h-4 ${topUpLoading ? 'animate-spin' : ''}`} /> {topUpLoading ? 'Loading…' : 'Top up'}
+          <button
+            onClick={requestVirtualAccount}
+            disabled={topUpLoading || actionsDisabled}
+            title={actionsDisabled ? 'Wallets loading…' : 'Get deposit account'}
+            className="btn-ghost text-sm py-2 px-3 flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Download className={`w-4 h-4 ${topUpLoading ? 'animate-spin' : ''}`} />
+            {topUpLoading ? 'Loading…' : 'Top up'}
           </button>
-          <button onClick={() => setShowSend(true)} className="btn-ghost text-sm py-2 px-3 flex items-center gap-1.5">
+          <button
+            onClick={() => setShowSend(true)}
+            disabled={actionsDisabled}
+            title={actionsDisabled ? 'Wallets loading…' : 'Send money'}
+            className="btn-ghost text-sm py-2 px-3 flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             <Send className="w-4 h-4" /> Send
           </button>
           <Link to="/wallet/payout" className="btn-brand text-sm py-2 px-3 flex items-center gap-1.5">
@@ -82,13 +118,29 @@ export default function Wallet() {
 
       <section>
         <h2 className="font-display font-semibold text-white text-lg mb-3">Your wallets</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {isLoading && wallets.length === 0
-            ? Array.from({ length: 3 }).map((_, i) => <WalletCardSkeleton key={i} />)
-            : wallets.map((w) => (
-                <WalletCard key={w.id} wallet={w} isActive={activeWallet?.id === w.id} onClick={() => setActiveWallet(w)} />
-              ))}
-        </div>
+
+        {loadError && !isLoading ? (
+          <div className="glass-card p-8 flex flex-col items-center gap-4 text-center">
+            <WifiOff className="w-10 h-10 text-white/20" />
+            <div>
+              <p className="text-white/60 text-sm font-medium">Could not connect to the server</p>
+              <p className="text-white/30 text-xs mt-1">
+                Make sure the API is running and <span className="font-mono text-white/40">VITE_API_URL</span> is correct in your <span className="font-mono text-white/40">.env</span>
+              </p>
+            </div>
+            <button onClick={loadWallets} className="btn-ghost text-sm py-2 px-4 flex items-center gap-2">
+              <RefreshCw className="w-4 h-4" /> Retry
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {isLoading && wallets.length === 0
+              ? Array.from({ length: 3 }).map((_, i) => <WalletCardSkeleton key={i} />)
+              : wallets.map((w) => (
+                  <WalletCard key={w.id} wallet={w} isActive={activeWallet?.id === w.id} onClick={() => setActiveWallet(w)} />
+                ))}
+          </div>
+        )}
       </section>
 
       <section>
@@ -144,7 +196,12 @@ function SendDialog({ onClose, onSuccess }: { onClose: () => void; onSuccess: ()
       toast.success('Sent!');
       onSuccess();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error ?? 'Transfer failed');
+      const isNetworkError = !e.response;
+      toast.error(
+        isNetworkError
+          ? 'Cannot reach server. Check API connection.'
+          : (e?.response?.data?.error ?? 'Transfer failed')
+      );
     } finally {
       setLoading(false);
     }
