@@ -48,7 +48,7 @@ export default function CardDetail() {
 
   return (
     <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-6">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-white/40 hover:text-white text-sm">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-foreground/40 hover:text-foreground text-sm">
         <ArrowLeft className="w-4 h-4" /> Back
       </button>
 
@@ -61,9 +61,9 @@ export default function CardDetail() {
           </motion.div>
           <div className="glass-card p-6 flex-1 space-y-4">
             <div>
-              <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Available balance</p>
-              <p className="font-display font-bold text-white text-3xl">{formatCurrency(card.current_balance, card.currency)}</p>
-              <p className="text-white/30 text-xs mt-1">of {formatCurrency(card.initial_balance, card.currency)} loaded · {formatCurrency(card.total_spent ?? 0, card.currency)} spent</p>
+              <p className="text-foreground/40 text-xs uppercase tracking-wider mb-1">Available balance</p>
+              <p className="font-display font-bold text-foreground text-3xl">{formatCurrency(card.current_balance, card.currency)}</p>
+              <p className="text-foreground/30 text-xs mt-1">of {formatCurrency(card.initial_balance, card.currency)} loaded · {formatCurrency(card.total_spent ?? 0, card.currency)} spent</p>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <DetailItem label="Type" value={titleCase(card.card_type)} />
@@ -97,22 +97,22 @@ export default function CardDetail() {
       )}
 
       <section>
-        <h2 className="font-display font-semibold text-white text-lg mb-3">Transactions</h2>
+        <h2 className="font-display font-semibold text-foreground text-lg mb-3">Transactions</h2>
         <div className="glass-card overflow-hidden">
           {txns.length === 0 ? (
-            <div className="p-8 text-center text-white/30 text-sm">No transactions yet</div>
+            <div className="p-8 text-center text-foreground/30 text-sm">No transactions yet</div>
           ) : (
-            <ul className="divide-y divide-white/5">
+            <ul className="divide-y divide-foreground/5">
               {txns.map((t) => (
                 <li key={t.id} className="flex items-center gap-3 p-4">
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${t.type === 'refund' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400'}`}>
                     {t.type === 'refund' ? <ArrowDownLeft className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-medium truncate">{t.merchant_name ?? titleCase(t.type)}</p>
-                    <p className="text-white/40 text-xs">{formatRelativeTime(new Date(t.created_at))}</p>
+                    <p className="text-foreground text-sm font-medium truncate">{t.merchant_name ?? titleCase(t.type)}</p>
+                    <p className="text-foreground/40 text-xs">{formatRelativeTime(new Date(t.created_at))}</p>
                   </div>
-                  <p className={`text-sm font-semibold tabular-nums ${t.type === 'refund' ? 'text-emerald-400' : 'text-white'}`}>
+                  <p className={`text-sm font-semibold tabular-nums ${t.type === 'refund' ? 'text-emerald-400' : 'text-foreground'}`}>
                     {t.type === 'refund' ? '+' : '−'}{formatCurrency(t.amount, t.currency)}
                   </p>
                 </li>
@@ -128,8 +128,8 @@ export default function CardDetail() {
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-white/30 text-[10px] uppercase tracking-wider">{label}</p>
-      <p className="text-white text-sm font-medium">{value}</p>
+      <p className="text-foreground/30 text-[10px] uppercase tracking-wider">{label}</p>
+      <p className="text-foreground text-sm font-medium">{value}</p>
     </div>
   );
 }

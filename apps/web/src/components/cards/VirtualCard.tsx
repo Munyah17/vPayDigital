@@ -75,7 +75,7 @@ export function VirtualCard({ card, showSensitive = false, onToggleSensitive, si
                   <VLogoIcon className="w-5" />
                   <p className="font-display font-bold text-white tracking-wide"
                     style={{ fontSize: size === 'sm' ? '11px' : size === 'lg' ? '15px' : '13px' }}>
-                    vPay
+                    ePayZW
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -193,7 +193,7 @@ export function VirtualCard({ card, showSensitive = false, onToggleSensitive, si
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
-            className="text-center text-white/20 text-[10px] mt-2"
+            className="text-center text-foreground/20 text-[10px] mt-2"
           >
             Tap to flip
           </motion.p>
@@ -247,6 +247,6 @@ function StatusPill({ status }: { status: string }) {
 export function VirtualCardSkeleton({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const sizeClasses = { sm: 'w-56 h-36', md: 'w-72 h-44', lg: 'w-96 h-56' };
   return (
-    <div className={`${sizeClasses[size]} rounded-2xl shimmer bg-white/5`} />
+    <div className={`${sizeClasses[size]} rounded-2xl shimmer bg-foreground/5`} />
   );
 }

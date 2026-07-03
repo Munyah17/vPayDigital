@@ -3,8 +3,12 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { Layout } from './components/layout/Layout';
+import { AdminLayout } from './components/layout/AdminLayout';
 import { useAuthStore } from './stores/authStore';
+import { useAdminStore } from './stores/adminStore';
+import { useThemeStore } from './stores/themeStore';
 
+// ─── User pages ───────────────────────────────────────────────────────────────
 const Login = lazy(() => import('./pages/auth/Login'));
 const Register = lazy(() => import('./pages/auth/Register'));
 const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
@@ -40,6 +44,27 @@ const Pricing = lazy(() => import('./pages/landing/Pricing'));
 const Verify = lazy(() => import('./pages/auth/Verify'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
+// ─── Admin pages ──────────────────────────────────────────────────────────────
+const AdminLoginPage   = lazy(() => import('./pages/admin/auth/AdminLoginPage'));
+const AdminDashboard   = lazy(() => import('./pages/admin/dashboard/AdminDashboard'));
+const UsersPage        = lazy(() => import('./pages/admin/users/UsersPage'));
+const AgentsPage       = lazy(() => import('./pages/admin/agents/Agents'));
+const AdminCardsPage   = lazy(() => import('./pages/admin/cards/AdminCardsPage'));
+const WebhooksPage     = lazy(() => import('./pages/admin/webhooks/WebhooksPage'));
+const FraudPage        = lazy(() => import('./pages/admin/fraud/FraudPage'));
+const FinancePage      = lazy(() => import('./pages/admin/finance/FinancePage'));
+const AdminVouchersPage = lazy(() => import('./pages/admin/vouchers/VouchersPage'));
+const AdminSettingsPage = lazy(() => import('./pages/admin/settings/Settings'));
+const KycReviewPage    = lazy(() => import('./pages/admin/kyc/KycReviewPage'));
+const SupportPage      = lazy(() => import('./pages/admin/support/SupportPage'));
+const IssueVoucherPage = lazy(() => import('./pages/admin/operations/IssueVoucherPage'));
+const IssueCardPage    = lazy(() => import('./pages/admin/operations/IssueCardPage'));
+const StaffPage        = lazy(() => import('./pages/admin/staff/StaffPage'));
+const WalletAdjustPage = lazy(() => import('./pages/admin/wallets/WalletAdjustPage'));
+const AuditLogsPage    = lazy(() => import('./pages/admin/audit/AuditLogsPage'));
+const AdminTransactionsPage = lazy(() => import('./pages/admin/transactions/TransactionsPage'));
+
+// ─── Query client ─────────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -50,14 +75,23 @@ const queryClient = new QueryClient({
   },
 });
 
+// ─── Loaders / Guards ─────────────────────────────────────────────────────────
 function PageLoader() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#0a0a16]">
+    <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="flex flex-col items-center gap-4">
         <div className="w-10 h-10 rounded-xl bg-brand-gradient flex items-center justify-center animate-pulse">
           <span className="text-white font-bold text-sm">v</span>
         </div>
       </div>
+    </div>
+  );
+}
+
+function AdminLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="w-8 h-8 rounded-lg bg-indigo-600 animate-pulse" />
     </div>
   );
 }
@@ -69,6 +103,14 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AdminGuard({ children }: { children: React.ReactNode }) {
+  const { profile, isInitialized } = useAdminStore();
+  if (!isInitialized) return <AdminLoader />;
+  if (!profile) return <Navigate to="/admin" replace />;
+  if (profile.role === 'super_admin' || profile.role === 'staff') return <>{children}</>;
+  return <Navigate to="/admin" replace />;
+}
+
 function SmartHome() {
   const { isInitialized, profile } = useAuthStore();
   if (!isInitialized) return <PageLoader />;
@@ -76,11 +118,16 @@ function SmartHome() {
   return <Landing />;
 }
 
+// ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
-  const { initialize } = useAuthStore();
+  const { initialize: initUser } = useAuthStore();
+  const { initialize: initAdmin } = useAdminStore();
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
 
   useEffect(() => {
-    initialize();
+    initUser();
+    initAdmin();
   }, []);
 
   return (
@@ -88,21 +135,17 @@ export default function App() {
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            {/* Public landing — guests see landing, authenticated users go to dashboard */}
+            {/* ── Public user routes ─────────────────────────────────────── */}
             <Route path="/" element={<SmartHome />} />
-
-            {/* Public marketing routes */}
             <Route path="/about" element={<About />} />
             <Route path="/pricing" element={<Pricing />} />
-
-            {/* Public auth routes — /login is the primary entry point */}
             <Route path="/login" element={<Login />} />
             <Route path="/auth/login" element={<Navigate to="/login" replace />} />
             <Route path="/auth/register" element={<Register />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/verify" element={<Verify />} />
 
-            {/* Authenticated app shell — pathless layout so it doesn't conflict with SmartHome at / */}
+            {/* ── Authenticated user shell ───────────────────────────────── */}
             <Route element={<AuthGuard><Layout /></AuthGuard>}>
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="transactions" element={<Transactions />} />
@@ -131,6 +174,31 @@ export default function App() {
 
               <Route path="*" element={<NotFound />} />
             </Route>
+
+            {/* ── Admin login pages (hidden — no link from user UI) ──────── */}
+            <Route path="/admin" element={<AdminLoginPage portal="admin" />} />
+            <Route path="/private" element={<AdminLoginPage portal="super-admin" />} />
+
+            {/* ── Admin dashboard (staff + super_admin) ─────────────────── */}
+            <Route path="/admin" element={<AdminGuard><AdminLayout /></AdminGuard>}>
+              <Route path="dashboard"         element={<AdminDashboard />} />
+              <Route path="users"             element={<UsersPage />} />
+              <Route path="agents"            element={<AgentsPage />} />
+              <Route path="cards"             element={<AdminCardsPage />} />
+              <Route path="webhooks"          element={<WebhooksPage />} />
+              <Route path="fraud"             element={<FraudPage />} />
+              <Route path="finance"           element={<FinancePage />} />
+              <Route path="vouchers"          element={<AdminVouchersPage />} />
+              <Route path="settings"          element={<AdminSettingsPage />} />
+              <Route path="kyc"               element={<KycReviewPage />} />
+              <Route path="support"           element={<SupportPage />} />
+              <Route path="ops/issue-voucher" element={<IssueVoucherPage />} />
+              <Route path="ops/issue-card"    element={<IssueCardPage />} />
+              <Route path="staff"             element={<StaffPage />} />
+              <Route path="ops/wallets"       element={<WalletAdjustPage />} />
+              <Route path="audit"             element={<AuditLogsPage />} />
+              <Route path="transactions"      element={<AdminTransactionsPage />} />
+            </Route>
           </Routes>
         </Suspense>
       </BrowserRouter>
@@ -139,14 +207,15 @@ export default function App() {
         position="top-right"
         toastOptions={{
           style: {
-            background: '#1a1a2e',
-            color: '#fff',
-            border: '1px solid rgba(255,255,255,0.1)',
+            background: isDark ? '#1a1a2e' : '#ffffff',
+            color: isDark ? '#fff' : '#0f1222',
+            border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(15,18,34,0.08)',
             borderRadius: '12px',
             fontSize: '14px',
+            boxShadow: isDark ? undefined : '0 4px 24px rgba(15,18,34,0.08)',
           },
-          success: { iconTheme: { primary: '#34d399', secondary: '#1a1a2e' } },
-          error: { iconTheme: { primary: '#f87171', secondary: '#1a1a2e' } },
+          success: { iconTheme: { primary: '#34d399', secondary: isDark ? '#1a1a2e' : '#ffffff' } },
+          error: { iconTheme: { primary: '#f87171', secondary: isDark ? '#1a1a2e' : '#ffffff' } },
           duration: 4000,
         }}
       />

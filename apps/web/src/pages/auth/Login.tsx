@@ -78,7 +78,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a16] flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row">
 
       {/* ── Left branding panel (desktop only) ───────────────────────── */}
       <div className="hidden lg:flex lg:w-[48%] xl:w-[52%] flex-col justify-between
@@ -99,7 +99,7 @@ export default function Login() {
         {/* Top: logo */}
         <Link to="/" className="flex items-center gap-2.5 relative z-10 w-fit">
           <VLogoIcon className="w-9" />
-          <span className="font-display font-bold text-white text-lg">vPay</span>
+          <span className="font-display font-bold text-white text-lg">ePayZW</span>
         </Link>
 
         {/* Middle: headline + features */}
@@ -163,22 +163,22 @@ export default function Login() {
           {/* Mobile logo */}
           <Link to="/" className="lg:hidden flex items-center gap-2 mb-8 w-fit mx-auto">
             <VLogoIcon className="w-8" />
-            <span className="font-display font-bold text-white text-base">vPay</span>
+            <span className="font-display font-bold text-foreground text-base">ePayZW</span>
           </Link>
 
           <div className="glass-card p-6 sm:p-8 shadow-glass">
             {/* Header */}
             <div className="mb-6">
-              <h1 className="font-display font-bold text-xl sm:text-2xl text-white">Welcome back</h1>
-              <p className="text-white/40 text-sm mt-1">Sign in to your vPay account</p>
+              <h1 className="font-display font-bold text-xl sm:text-2xl text-foreground">Welcome back</h1>
+              <p className="text-foreground/40 text-sm mt-1">Sign in to your ePayZW account</p>
             </div>
 
             {/* Google */}
             <button
               onClick={signInWithGoogle}
               className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl
-                         bg-white/5 hover:bg-white/8 border border-white/10 hover:border-white/20
-                         text-white/80 hover:text-white text-sm font-medium
+                         bg-foreground/5 hover:bg-foreground/8 border border-foreground/10 hover:border-foreground/20
+                         text-foreground/80 hover:text-foreground text-sm font-medium
                          transition-all duration-200 mb-5 active:scale-[0.98]"
             >
               <Chrome className="w-4 h-4" />
@@ -186,15 +186,15 @@ export default function Login() {
             </button>
 
             <div className="relative flex items-center gap-3 mb-5">
-              <div className="flex-1 h-px bg-white/10" />
-              <span className="text-white/20 text-xs">or email</span>
-              <div className="flex-1 h-px bg-white/10" />
+              <div className="flex-1 h-px bg-foreground/10" />
+              <span className="text-foreground/20 text-xs">or email</span>
+              <div className="flex-1 h-px bg-foreground/10" />
             </div>
 
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <label className="block text-white/60 text-sm mb-1.5 font-medium">Email</label>
+                <label className="block text-foreground/60 text-sm mb-1.5 font-medium">Email</label>
                 <input
                   {...register('email')}
                   type="email"
@@ -208,7 +208,7 @@ export default function Login() {
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-white/60 text-sm font-medium">Password</label>
+                  <label className="text-foreground/60 text-sm font-medium">Password</label>
                   <Link
                     to="/auth/forgot-password"
                     className="text-purple-400 text-xs hover:text-purple-300 transition-colors"
@@ -228,7 +228,7 @@ export default function Login() {
                     type="button"
                     onClick={() => setShowPassword(s => !s)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5
-                               text-white/30 hover:text-white/60 transition-colors"
+                               text-foreground/30 hover:text-foreground/60 transition-colors"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -250,7 +250,7 @@ export default function Login() {
               </button>
             </form>
 
-            <p className="text-center text-white/30 text-sm mt-5">
+            <p className="text-center text-foreground/30 text-sm mt-5">
               No account?{' '}
               <Link to="/auth/register" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
                 Create one free
@@ -258,7 +258,7 @@ export default function Login() {
             </p>
           </div>
 
-          <p className="text-center text-white/15 text-xs mt-4 lg:hidden">
+          <p className="text-center text-foreground/15 text-xs mt-4 lg:hidden">
             256-bit encrypted · PCI-compliant
           </p>
         </motion.div>

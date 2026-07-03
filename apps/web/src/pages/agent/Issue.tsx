@@ -32,15 +32,15 @@ export default function Issue() {
           <Zap className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h1 className="font-display font-bold text-white text-2xl">Issue vouchers</h1>
-          <p className="text-white/40 text-sm">Generate bulk voucher codes to sell or distribute</p>
+          <h1 className="font-display font-bold text-foreground text-2xl">Issue vouchers</h1>
+          <p className="text-foreground/40 text-sm">Generate bulk voucher codes to sell or distribute</p>
         </div>
       </div>
 
       <div className="glass-card p-6">
         <form onSubmit={(e) => { e.preventDefault(); issue.mutate(); }} className="space-y-4">
           <div>
-            <label className="block text-white/60 text-sm mb-1.5">Voucher type</label>
+            <label className="block text-foreground/60 text-sm mb-1.5">Voucher type</label>
             <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="input-field">
               <option value="virtual_card">Virtual Card</option>
               <option value="gift_card">Gift Card</option>
@@ -49,7 +49,7 @@ export default function Issue() {
           </div>
           {form.type === 'gift_card' && (
             <div>
-              <label className="block text-white/60 text-sm mb-1.5">Brand</label>
+              <label className="block text-foreground/60 text-sm mb-1.5">Brand</label>
               <select value={form.gift_card_brand} onChange={(e) => setForm({ ...form, gift_card_brand: e.target.value })} className="input-field">
                 <option value="">Select brand</option>
                 {BRANDS.map((b) => <option key={b} value={b}>{titleCase(b)}</option>)}
@@ -58,11 +58,11 @@ export default function Issue() {
           )}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-white/60 text-sm mb-1.5">Amount per voucher</label>
+              <label className="block text-foreground/60 text-sm mb-1.5">Amount per voucher</label>
               <input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) })} className="input-field" />
             </div>
             <div>
-              <label className="block text-white/60 text-sm mb-1.5">Currency</label>
+              <label className="block text-foreground/60 text-sm mb-1.5">Currency</label>
               <select value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} className="input-field">
                 {['USD', 'EUR', 'GBP', 'ZAR', 'NGN', 'GHS'].map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
@@ -70,11 +70,11 @@ export default function Issue() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-white/60 text-sm mb-1.5">Quantity</label>
+              <label className="block text-foreground/60 text-sm mb-1.5">Quantity</label>
               <input type="number" min={1} max={100} value={form.quantity} onChange={(e) => setForm({ ...form, quantity: parseInt(e.target.value) })} className="input-field" />
             </div>
             <div>
-              <label className="block text-white/60 text-sm mb-1.5">Expires in (days)</label>
+              <label className="block text-foreground/60 text-sm mb-1.5">Expires in (days)</label>
               <input type="number" value={form.expires_in_days} onChange={(e) => setForm({ ...form, expires_in_days: parseInt(e.target.value) })} className="input-field" />
             </div>
           </div>
@@ -86,16 +86,16 @@ export default function Issue() {
 
       {issued.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6">
-          <h3 className="font-display font-semibold text-white mb-4">Issued voucher codes ({issued.length})</h3>
+          <h3 className="font-display font-semibold text-foreground mb-4">Issued voucher codes ({issued.length})</h3>
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {issued.map((v) => (
-              <div key={v.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5">
+              <div key={v.id} className="flex items-center justify-between p-3 rounded-xl bg-foreground/5">
                 <div>
-                  <code className="text-white font-mono text-sm">{v.code}</code>
-                  <p className="text-white/40 text-xs">{formatCurrency(v.amount, v.currency)}</p>
+                  <code className="text-foreground font-mono text-sm">{v.code}</code>
+                  <p className="text-foreground/40 text-xs">{formatCurrency(v.amount, v.currency)}</p>
                 </div>
-                <button onClick={() => { navigator.clipboard.writeText(v.code); toast.success('Copied'); }} className="p-2 rounded-lg bg-white/5 hover:bg-white/10">
-                  <Copy className="w-4 h-4 text-white/60" />
+                <button onClick={() => { navigator.clipboard.writeText(v.code); toast.success('Copied'); }} className="p-2 rounded-lg bg-foreground/5 hover:bg-foreground/10">
+                  <Copy className="w-4 h-4 text-foreground/60" />
                 </button>
               </div>
             ))}

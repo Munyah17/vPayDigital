@@ -6,11 +6,24 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Poppins', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
-        display: ['Montserrat', 'Poppins', 'Helvetica Neue', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Menlo', 'Monaco', 'monospace'],
+        sans: ['IBM Plex Sans', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+        display: ['Space Grotesk', 'IBM Plex Sans', 'Helvetica Neue', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'Menlo', 'Monaco', 'monospace'],
       },
       colors: {
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
+        sidebar: {
+          DEFAULT: 'hsl(var(--sidebar))',
+          foreground: 'hsl(var(--sidebar-foreground))',
+        },
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
         brand: {
           50: '#eef2ff',
           100: '#e0e7ff',

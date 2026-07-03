@@ -40,8 +40,8 @@ export function WalletCard({ wallet, isActive, onClick, onTopUp, onSend }: Walle
         bg-gradient-to-br ${gradient}
         border transition-all duration-300
         ${isActive
-          ? 'border-indigo-500/50 shadow-glow-sm bg-white/8'
-          : 'border-white/10 bg-white/5 hover:border-white/20'
+          ? 'border-indigo-500/50 shadow-glow-sm bg-foreground/8'
+          : 'border-foreground/10 bg-foreground/5 hover:border-foreground/20'
         }
       `}
     >
@@ -55,8 +55,8 @@ export function WalletCard({ wallet, isActive, onClick, onTopUp, onSend }: Walle
           <div className="flex items-center gap-2">
             <span className="text-2xl">{CURRENCY_FLAGS[wallet.currency] ?? '💱'}</span>
             <div>
-              <p className="text-white/40 text-xs font-medium">{wallet.currency}</p>
-              <p className="text-white/20 text-[10px] capitalize">{wallet.wallet_type.replace('_', ' ')}</p>
+              <p className="text-foreground/40 text-xs font-medium">{wallet.currency}</p>
+              <p className="text-foreground/20 text-[10px] capitalize">{wallet.wallet_type.replace('_', ' ')}</p>
             </div>
           </div>
 
@@ -78,12 +78,12 @@ export function WalletCard({ wallet, isActive, onClick, onTopUp, onSend }: Walle
             key={wallet.balance}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-2xl font-bold font-display text-white"
+            className="text-2xl font-bold font-display text-foreground"
           >
             {formatCurrency(wallet.balance, wallet.currency)}
           </motion.p>
           {wallet.pending_balance > 0 && (
-            <p className="text-white/30 text-xs mt-0.5">
+            <p className="text-foreground/30 text-xs mt-0.5">
               +{formatCurrency(wallet.pending_balance, wallet.currency)} pending
             </p>
           )}
@@ -91,11 +91,11 @@ export function WalletCard({ wallet, isActive, onClick, onTopUp, onSend }: Walle
 
         {/* Stats row */}
         <div className="flex items-center gap-4 text-xs">
-          <div className="flex items-center gap-1 text-white/40">
+          <div className="flex items-center gap-1 text-foreground/40">
             <ArrowDownLeft className="w-3 h-3 text-emerald-400" />
             <span>{formatCurrency(wallet.total_credited, wallet.currency)}</span>
           </div>
-          <div className="flex items-center gap-1 text-white/40">
+          <div className="flex items-center gap-1 text-foreground/40">
             <ArrowUpRight className="w-3 h-3 text-red-400" />
             <span>{formatCurrency(wallet.total_debited, wallet.currency)}</span>
           </div>
@@ -120,8 +120,8 @@ export function WalletCard({ wallet, isActive, onClick, onTopUp, onSend }: Walle
               <button
                 onClick={(e) => { e.stopPropagation(); onSend(); }}
                 className="flex items-center gap-1.5 flex-1 justify-center py-2 rounded-xl
-                           bg-white/5 hover:bg-white/10 border border-white/10
-                           text-white/60 hover:text-white text-xs font-medium
+                           bg-foreground/5 hover:bg-foreground/10 border border-foreground/10
+                           text-foreground/60 hover:text-foreground text-xs font-medium
                            transition-all duration-200"
               >
                 <ArrowUpRight className="w-3.5 h-3.5" />
@@ -142,7 +142,7 @@ export function WalletCard({ wallet, isActive, onClick, onTopUp, onSend }: Walle
 
 export function WalletCardSkeleton() {
   return (
-    <div className="rounded-2xl p-5 bg-white/5 border border-white/10">
+    <div className="rounded-2xl p-5 bg-foreground/5 border border-foreground/10">
       <div className="flex items-center gap-2 mb-4">
         <div className="w-8 h-8 rounded-full shimmer" />
         <div className="w-12 h-3 rounded shimmer" />

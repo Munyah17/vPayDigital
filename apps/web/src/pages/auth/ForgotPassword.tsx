@@ -35,7 +35,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a16] flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row">
 
       {/* Left branding panel (desktop only) */}
       <div className="hidden lg:flex lg:w-[48%] xl:w-[52%] flex-col justify-between
@@ -53,7 +53,7 @@ export default function ForgotPassword() {
 
         <Link to="/" className="flex items-center gap-2.5 relative z-10 w-fit">
           <VLogoIcon className="w-9" />
-          <span className="font-display font-bold text-white text-lg">vPay</span>
+          <span className="font-display font-bold text-white text-lg">ePayZW</span>
         </Link>
 
         <div className="relative z-10">
@@ -118,7 +118,7 @@ export default function ForgotPassword() {
           {/* Mobile logo */}
           <Link to="/" className="lg:hidden flex items-center gap-2 mb-8 w-fit mx-auto">
             <VLogoIcon className="w-8" />
-            <span className="font-display font-bold text-white text-base">vPay</span>
+            <span className="font-display font-bold text-foreground text-base">ePayZW</span>
           </Link>
 
           {sent ? (
@@ -127,8 +127,8 @@ export default function ForgotPassword() {
               <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto mb-5">
                 <CheckCircle2 className="w-8 h-8 text-emerald-400" />
               </div>
-              <h2 className="font-display font-bold text-xl text-white mb-2">Check your email</h2>
-              <p className="text-white/40 text-sm leading-relaxed mb-7">
+              <h2 className="font-display font-bold text-xl text-foreground mb-2">Check your email</h2>
+              <p className="text-foreground/40 text-sm leading-relaxed mb-7">
                 We've sent a password reset link to your email address. Click it within 60 minutes to set a new password.
               </p>
               <Link to="/login"
@@ -143,15 +143,15 @@ export default function ForgotPassword() {
                 <div className="inline-flex w-12 h-12 rounded-2xl bg-brand-gradient items-center justify-center shadow-glow mb-4">
                   <Shield className="w-6 h-6 text-white" />
                 </div>
-                <h1 className="font-display font-bold text-xl sm:text-2xl text-white">Reset password</h1>
-                <p className="text-white/40 text-sm mt-1">
+                <h1 className="font-display font-bold text-xl sm:text-2xl text-foreground">Reset password</h1>
+                <p className="text-foreground/40 text-sm mt-1">
                   Enter your email and we'll send a reset link.
                 </p>
               </div>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                  <label className="block text-white/60 text-sm mb-1.5 font-medium">Email</label>
+                  <label className="block text-foreground/60 text-sm mb-1.5 font-medium">Email</label>
                   <input
                     {...register('email')}
                     type="email"
@@ -176,7 +176,7 @@ export default function ForgotPassword() {
                 </button>
               </form>
 
-              <p className="text-center text-white/30 text-sm mt-5">
+              <p className="text-center text-foreground/30 text-sm mt-5">
                 Remembered it?{' '}
                 <Link to="/login" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
                   Sign in
@@ -185,7 +185,7 @@ export default function ForgotPassword() {
             </div>
           )}
 
-          <p className="text-center text-white/15 text-xs mt-4 lg:hidden">
+          <p className="text-center text-foreground/15 text-xs mt-4 lg:hidden">
             256-bit encrypted · PCI-compliant
           </p>
         </motion.div>

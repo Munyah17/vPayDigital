@@ -26,7 +26,7 @@ export default function RedeemVoucher() {
 
   return (
     <div className="p-4 lg:p-6 max-w-2xl mx-auto space-y-6">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-white/40 hover:text-white text-sm">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-foreground/40 hover:text-foreground text-sm">
         <ArrowLeft className="w-4 h-4" /> Back
       </button>
 
@@ -36,14 +36,14 @@ export default function RedeemVoucher() {
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="font-display font-bold text-white text-xl">Redeem a voucher</h1>
-            <p className="text-white/40 text-sm">Got a voucher code? Use it to load your wallet or get a card.</p>
+            <h1 className="font-display font-bold text-foreground text-xl">Redeem a voucher</h1>
+            <p className="text-foreground/40 text-sm">Got a voucher code? Use it to load your wallet or get a card.</p>
           </div>
         </div>
 
         <form onSubmit={(e) => { e.preventDefault(); redeem.mutate(); }} className="space-y-4">
           <div>
-            <label className="block text-white/60 text-sm mb-1.5">Voucher code</label>
+            <label className="block text-foreground/60 text-sm mb-1.5">Voucher code</label>
             <input
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
@@ -53,7 +53,7 @@ export default function RedeemVoucher() {
             />
           </div>
           <div>
-            <label className="block text-white/60 text-sm mb-1.5">Name on card (if applicable)</label>
+            <label className="block text-foreground/60 text-sm mb-1.5">Name on card (if applicable)</label>
             <input value={name} onChange={(e) => setName(e.target.value)} className="input-field" />
           </div>
           <button type="submit" disabled={redeem.isPending || !code} className="btn-brand w-full py-3 flex items-center justify-center gap-2">

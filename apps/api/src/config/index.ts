@@ -41,8 +41,7 @@ export const env = {
   PROVIDER_TIMEOUT_MS: optional('PROVIDER_TIMEOUT_MS', '30000'),
 
   WEB_APP_URL: optional('WEB_APP_URL', 'http://localhost:5173'),
-  ADMIN_APP_URL: optional('ADMIN_APP_URL', 'http://localhost:5174'),
-  CORS_ORIGINS: optional('CORS_ORIGINS', 'http://localhost:5173,http://localhost:5174'),
+  CORS_ORIGINS: optional('CORS_ORIGINS', 'http://localhost:5173'),
 
   RATE_LIMIT_WINDOW_MS: parseInt(optional('RATE_LIMIT_WINDOW_MS', '900000')),
   RATE_LIMIT_MAX_REQUESTS: parseInt(optional('RATE_LIMIT_MAX_REQUESTS', '100')),

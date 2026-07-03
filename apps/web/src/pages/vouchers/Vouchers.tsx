@@ -65,12 +65,12 @@ export default function Vouchers() {
     <div className="p-4 lg:p-6 max-w-3xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-display font-bold text-2xl text-white">Vouchers</h1>
-        <p className="text-white/40 text-sm">Redeem voucher codes or view your history</p>
+        <h1 className="font-display font-bold text-2xl text-foreground">Vouchers</h1>
+        <p className="text-foreground/40 text-sm">Redeem voucher codes or view your history</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-white/5 rounded-xl mb-6 w-fit">
+      <div className="flex gap-1 p-1 bg-foreground/5 rounded-xl mb-6 w-fit">
         {[
           { id: 'redeem', label: 'Redeem Voucher', icon: Scan },
           { id: 'history', label: 'My Vouchers', icon: Ticket },
@@ -82,7 +82,7 @@ export default function Vouchers() {
               flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
               ${activeTab === tab.id
                 ? 'bg-indigo-600 text-white shadow-glow-sm'
-                : 'text-white/40 hover:text-white'
+                : 'text-foreground/40 hover:text-foreground'
               }
             `}
           >
@@ -117,7 +117,7 @@ export default function Vouchers() {
                 <p className={`font-semibold text-sm ${redeemResult.success ? 'text-emerald-400' : 'text-red-400'}`}>
                   {redeemResult.success ? 'Voucher Redeemed!' : 'Redemption Failed'}
                 </p>
-                <p className="text-white/40 text-sm mt-1">{redeemResult.message}</p>
+                <p className="text-foreground/40 text-sm mt-1">{redeemResult.message}</p>
                 <button
                   onClick={() => setRedeemResult(null)}
                   className="btn-ghost text-sm py-2 px-4 mt-4"
@@ -136,15 +136,15 @@ export default function Vouchers() {
                                   border border-purple-500/30 mb-3">
                     <Scan className="w-8 h-8 text-purple-400" />
                   </div>
-                  <h2 className="text-white font-semibold text-lg">Enter Voucher Code</h2>
-                  <p className="text-white/30 text-sm mt-1">
+                  <h2 className="text-foreground font-semibold text-lg">Enter Voucher Code</h2>
+                  <p className="text-foreground/30 text-sm mt-1">
                     Your voucher will be automatically processed and the service provisioned instantly
                   </p>
                 </div>
 
                 <form onSubmit={handleSubmit(data => redeemMutation.mutate(data))} className="space-y-4">
                   <div>
-                    <label className="block text-white/60 text-sm mb-1.5 font-medium">Voucher Code</label>
+                    <label className="block text-foreground/60 text-sm mb-1.5 font-medium">Voucher Code</label>
                     <input
                       {...register('code')}
                       type="text"
@@ -158,8 +158,8 @@ export default function Vouchers() {
                   </div>
 
                   <div>
-                    <label className="block text-white/60 text-sm mb-1.5 font-medium">
-                      Cardholder Name <span className="text-white/20">(for virtual cards)</span>
+                    <label className="block text-foreground/60 text-sm mb-1.5 font-medium">
+                      Cardholder Name <span className="text-foreground/20">(for virtual cards)</span>
                     </label>
                     <input
                       {...register('cardholder_name')}
@@ -189,8 +189,8 @@ export default function Vouchers() {
                 </form>
 
                 {/* What you can redeem */}
-                <div className="mt-6 pt-6 border-t border-white/5">
-                  <p className="text-white/30 text-xs uppercase tracking-wider font-medium mb-3">
+                <div className="mt-6 pt-6 border-t border-foreground/5">
+                  <p className="text-foreground/30 text-xs uppercase tracking-wider font-medium mb-3">
                     Supported Voucher Types
                   </p>
                   <div className="grid grid-cols-3 gap-2">
@@ -202,9 +202,9 @@ export default function Vouchers() {
                       { label: 'Shopping', icon: ShoppingBag, color: 'text-amber-400' },
                       { label: 'Subscriptions', icon: Clock, color: 'text-emerald-400' },
                     ].map(item => (
-                      <div key={item.label} className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white/3 border border-white/5">
+                      <div key={item.label} className="flex flex-col items-center gap-1 p-2 rounded-xl bg-foreground/3 border border-foreground/5">
                         <item.icon className={`w-4 h-4 ${item.color}`} />
-                        <span className="text-white/30 text-[10px] text-center">{item.label}</span>
+                        <span className="text-foreground/30 text-[10px] text-center">{item.label}</span>
                       </div>
                     ))}
                   </div>
@@ -240,8 +240,8 @@ export default function Vouchers() {
               </div>
             ) : (
               <div className="glass-card p-10 text-center">
-                <Ticket className="w-10 h-10 text-white/10 mx-auto mb-3" />
-                <p className="text-white/30 text-sm">No vouchers yet</p>
+                <Ticket className="w-10 h-10 text-foreground/10 mx-auto mb-3" />
+                <p className="text-foreground/30 text-sm">No vouchers yet</p>
               </div>
             )}
           </motion.div>
@@ -258,9 +258,9 @@ function VoucherRow({ voucher }: { voucher: Voucher }) {
 
   const statusColors: Record<string, string> = {
     active: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    redeemed: 'text-white/40 bg-white/5 border-white/10',
+    redeemed: 'text-foreground/40 bg-foreground/5 border-foreground/10',
     expired: 'text-red-400 bg-red-500/10 border-red-500/20',
-    cancelled: 'text-white/30 bg-white/5 border-white/10',
+    cancelled: 'text-foreground/30 bg-foreground/5 border-foreground/10',
   };
 
   return (
@@ -269,16 +269,16 @@ function VoucherRow({ voucher }: { voucher: Voucher }) {
       animate={{ opacity: 1, y: 0 }}
       className="glass-card p-4 flex items-center gap-4"
     >
-      <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-        <Icon className="w-5 h-5 text-white/60" />
+      <div className="w-10 h-10 rounded-xl bg-foreground/5 border border-foreground/10 flex items-center justify-center flex-shrink-0">
+        <Icon className="w-5 h-5 text-foreground/60" />
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-white text-sm font-medium">
+        <p className="text-foreground text-sm font-medium">
           {voucher.gift_card_brand ? titleCase(voucher.gift_card_brand) : titleCase(voucher.type)}
         </p>
-        <p className="text-white/30 text-xs font-mono">{voucher.code}</p>
-        <p className="text-white/20 text-[10px]">
+        <p className="text-foreground/30 text-xs font-mono">{voucher.code}</p>
+        <p className="text-foreground/20 text-[10px]">
           {voucher.status === 'redeemed'
             ? `Redeemed ${formatDate(voucher.redeemed_at ?? '', 'relative')}`
             : `Expires ${formatDate(voucher.expires_at, 'relative')}`
@@ -287,7 +287,7 @@ function VoucherRow({ voucher }: { voucher: Voucher }) {
       </div>
 
       <div className="text-right">
-        <p className="text-white font-semibold text-sm">{formatCurrency(voucher.amount, voucher.currency)}</p>
+        <p className="text-foreground font-semibold text-sm">{formatCurrency(voucher.amount, voucher.currency)}</p>
         <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${statusColors[status] ?? statusColors.expired}`}>
           {titleCase(status)}
         </span>

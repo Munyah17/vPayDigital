@@ -23,7 +23,7 @@ export default function Analytics() {
     <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
         <BarChart3 className="w-7 h-7 text-indigo-400" />
-        <h1 className="font-display font-bold text-white text-2xl">Analytics</h1>
+        <h1 className="font-display font-bold text-foreground text-2xl">Analytics</h1>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Stat icon={Ticket} label="Vouchers issued" value={metrics?.total_vouchers_issued ?? 0} />
@@ -39,8 +39,8 @@ function Stat({ icon: Icon, label, value }: { icon: React.ElementType; label: st
   return (
     <div className="metric-card">
       <Icon className="w-4 h-4 text-indigo-400 mb-2" />
-      <p className="text-white/30 text-[10px] uppercase tracking-wider">{label}</p>
-      <p className="font-display font-bold text-white text-xl">{value}</p>
+      <p className="text-foreground/30 text-[10px] uppercase tracking-wider">{label}</p>
+      <p className="font-display font-bold text-foreground text-xl">{value}</p>
     </div>
   );
 }

@@ -101,12 +101,12 @@ export default function PayoutPage() {
     <div className="p-4 lg:p-6 max-w-lg mx-auto space-y-6">
       <div className="flex items-center gap-3">
         <button onClick={() => step === 'method' ? navigate('/wallet') : setStep(step === 'confirm' ? 'form' : 'method')}
-          className="p-2 rounded-xl hover:bg-white/5 text-white/40 hover:text-white transition-all">
+          className="p-2 rounded-xl hover:bg-foreground/5 text-foreground/40 hover:text-foreground transition-all">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="font-display font-bold text-white text-2xl">Withdraw</h1>
-          <p className="text-white/40 text-xs">{step === 'method' ? 'Choose method' : step === 'form' ? 'Enter details' : 'Confirm'}</p>
+          <h1 className="font-display font-bold text-foreground text-2xl">Withdraw</h1>
+          <p className="text-foreground/40 text-xs">{step === 'method' ? 'Choose method' : step === 'form' ? 'Enter details' : 'Confirm'}</p>
         </div>
       </div>
 
@@ -115,15 +115,15 @@ export default function PayoutPage() {
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-3">
           {PAYOUT_METHODS.map(m => (
             <button key={m.id} onClick={() => { setMethod(m); setFields({}); setStep('form'); }}
-              className="w-full flex items-center gap-4 p-4 glass-card hover:border-white/20 hover:bg-white/8 text-left transition-all rounded-2xl">
+              className="w-full flex items-center gap-4 p-4 glass-card hover:border-foreground/20 hover:bg-foreground/8 text-left transition-all rounded-2xl">
               <div className="w-11 h-11 rounded-xl bg-indigo-600/20 flex items-center justify-center flex-shrink-0">
                 <m.icon className="w-5 h-5 text-indigo-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white font-medium">{m.label}</p>
-                <p className="text-white/40 text-xs mt-0.5">{m.description}</p>
+                <p className="text-foreground font-medium">{m.label}</p>
+                <p className="text-foreground/40 text-xs mt-0.5">{m.description}</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-white/20 flex-shrink-0" />
+              <ChevronRight className="w-5 h-5 text-foreground/20 flex-shrink-0" />
             </button>
           ))}
         </motion.div>
@@ -137,15 +137,15 @@ export default function PayoutPage() {
               <method.icon className="w-5 h-5 text-indigo-400" />
             </div>
             <div>
-              <p className="text-white font-medium">{method.label}</p>
-              <p className="text-white/40 text-xs">{method.description}</p>
+              <p className="text-foreground font-medium">{method.label}</p>
+              <p className="text-foreground/40 text-xs">{method.description}</p>
             </div>
           </div>
 
           <div className="space-y-4">
             {/* Wallet & amount */}
             <div>
-              <label className="block text-white/60 text-sm mb-1.5">From wallet</label>
+              <label className="block text-foreground/60 text-sm mb-1.5">From wallet</label>
               <select value={selectedWalletId} onChange={e => setSelectedWalletId(e.target.value)} className="input-field">
                 {wallets.map(w => (
                   <option key={w.id} value={w.id}>
@@ -156,11 +156,11 @@ export default function PayoutPage() {
             </div>
 
             <div>
-              <label className="block text-white/60 text-sm mb-1.5">Amount ({selectedWallet?.currency ?? 'USD'})</label>
+              <label className="block text-foreground/60 text-sm mb-1.5">Amount ({selectedWallet?.currency ?? 'USD'})</label>
               <input value={amount} onChange={e => setAmount(e.target.value)} type="number" step="0.01" min="1"
                 className="input-field" placeholder="0.00" />
               {amount && (
-                <div className="flex justify-between text-xs mt-1.5 text-white/40">
+                <div className="flex justify-between text-xs mt-1.5 text-foreground/40">
                   <span>Fee: {formatCurrency(fee, selectedWallet?.currency ?? 'USD')}</span>
                   <span>Total: {formatCurrency(total, selectedWallet?.currency ?? 'USD')}</span>
                 </div>
@@ -170,7 +170,7 @@ export default function PayoutPage() {
             {/* Method-specific fields */}
             {method.fields.map(field => (
               <div key={field.id}>
-                <label className="block text-white/60 text-sm mb-1.5">
+                <label className="block text-foreground/60 text-sm mb-1.5">
                   {field.label} {field.required && <span className="text-red-400">*</span>}
                 </label>
                 <input value={fields[field.id] ?? ''} onChange={e => setFields(f => ({ ...f, [field.id]: e.target.value }))}
@@ -179,7 +179,7 @@ export default function PayoutPage() {
             ))}
 
             <div>
-              <label className="block text-white/60 text-sm mb-1.5">Notes (optional)</label>
+              <label className="block text-foreground/60 text-sm mb-1.5">Notes (optional)</label>
               <input value={notes} onChange={e => setNotes(e.target.value)} className="input-field"
                 placeholder="Payment reference, memo..." />
             </div>
@@ -204,13 +204,13 @@ export default function PayoutPage() {
       {step === 'confirm' && method && (
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
           <div className="glass-card p-5 space-y-4 rounded-2xl">
-            <p className="text-white/50 text-xs uppercase tracking-wider font-medium">Payout Summary</p>
+            <p className="text-foreground/50 text-xs uppercase tracking-wider font-medium">Payout Summary</p>
             <div className="space-y-3 text-sm">
               <SummaryRow label="Method" value={method.label} />
               <SummaryRow label="From" value={`${selectedWallet?.currency ?? 'USD'} Wallet`} />
               <SummaryRow label="Amount" value={formatCurrency(parseFloat(amount), selectedWallet?.currency ?? 'USD')} />
               <SummaryRow label="Fee" value={formatCurrency(fee, selectedWallet?.currency ?? 'USD')} />
-              <div className="h-px bg-white/10" />
+              <div className="h-px bg-foreground/10" />
               <SummaryRow label="Total deducted" value={formatCurrency(total, selectedWallet?.currency ?? 'USD')} highlight />
               {method.fields.map(f => fields[f.id] && (
                 <SummaryRow key={f.id} label={f.label} value={fields[f.id]} />
@@ -237,8 +237,8 @@ export default function PayoutPage() {
 function SummaryRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div className="flex justify-between gap-4">
-      <span className="text-white/50">{label}</span>
-      <span className={`text-right ${highlight ? 'text-white font-bold text-base' : 'text-white'}`}>{value}</span>
+      <span className="text-foreground/50">{label}</span>
+      <span className={`text-right ${highlight ? 'text-foreground font-bold text-base' : 'text-foreground'}`}>{value}</span>
     </div>
   );
 }

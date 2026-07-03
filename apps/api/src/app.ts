@@ -673,6 +673,161 @@ app.patch('/api/admin/config/:key', authenticate, requireAdmin, async (req: Auth
   res.json({ success: true, data });
 });
 
+// ─── Super Admin: Staff Management ───────────────────────────────────────────
+app.get('/api/admin/staff', authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('profiles')
+    .select('id, email, full_name, role, status, created_at, last_login_at')
+    .in('role', ['super_admin', 'staff'])
+    .order('created_at', { ascending: false });
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+app.post('/api/admin/staff', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res) => {
+  const { email, full_name, password, role } = req.body as Record<string, string>;
+  if (!email || !full_name || !password) {
+    res.status(400).json({ success: false, error: 'email, full_name and password are required' }); return;
+  }
+  if (!['staff'].includes(role)) {
+    res.status(400).json({ success: false, error: 'Only staff role can be created this way' }); return;
+  }
+  const { data: { user }, error: authErr } = await supabaseAdmin.auth.admin.createUser({
+    email, password, email_confirm: true,
+    user_metadata: { full_name, role: 'staff' },
+  });
+  if (authErr || !user) { res.status(400).json({ success: false, error: authErr?.message ?? 'Failed to create user' }); return; }
+  await supabaseAdmin.from('profiles').update({ role: 'staff', full_name, status: 'active' }).eq('id', user.id);
+  await supabaseAdmin.rpc('create_audit_log', {
+    p_actor_id: req.user!.id, p_action: 'staff.created',
+    p_resource_type: 'profile', p_resource_id: user.id,
+    p_changes: { email, role: 'staff' },
+  });
+  res.status(201).json({ success: true, data: { id: user.id, email, full_name, role: 'staff' } });
+});
+
+app.delete('/api/admin/staff/:id', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res) => {
+  const { data: target } = await supabaseAdmin.from('profiles').select('role').eq('id', req.params.id).single();
+  if (!target) { res.status(404).json({ success: false, error: 'User not found' }); return; }
+  if (target.role === 'super_admin') { res.status(403).json({ success: false, error: 'Cannot delete super admin' }); return; }
+  await supabaseAdmin.auth.admin.deleteUser(req.params.id);
+  await supabaseAdmin.rpc('create_audit_log', {
+    p_actor_id: req.user!.id, p_action: 'staff.deleted',
+    p_resource_type: 'profile', p_resource_id: req.params.id, p_changes: {},
+  });
+  res.json({ success: true });
+});
+
+app.patch('/api/admin/users/:id/role', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res) => {
+  const { role } = req.body as { role: string };
+  if (!['consumer', 'agent', 'staff'].includes(role)) {
+    res.status(400).json({ success: false, error: 'Role must be consumer, agent, or staff' }); return;
+  }
+  const { data: target } = await supabaseAdmin.from('profiles').select('role').eq('id', req.params.id).single();
+  if (!target) { res.status(404).json({ success: false, error: 'User not found' }); return; }
+  if (target.role === 'super_admin') { res.status(403).json({ success: false, error: 'Cannot change super admin role' }); return; }
+  const { data, error } = await supabaseAdmin.from('profiles').update({ role }).eq('id', req.params.id).select().single();
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  if (role === 'agent') {
+    await supabaseAdmin.from('agent_profiles').upsert({ user_id: req.params.id }, { onConflict: 'user_id' });
+    await supabaseAdmin.from('wallets').upsert({ user_id: req.params.id, wallet_type: 'agent_float', currency: 'USD', status: 'active' }, { onConflict: 'user_id,currency,wallet_type' });
+  }
+  await supabaseAdmin.rpc('create_audit_log', {
+    p_actor_id: req.user!.id, p_action: 'user.role_changed',
+    p_resource_type: 'profile', p_resource_id: req.params.id, p_changes: { role },
+  });
+  res.json({ success: true, data });
+});
+
+// ─── Super Admin: Wallet Adjustments ─────────────────────────────────────────
+app.get('/api/admin/wallets', authenticate, requireAdmin, async (req, res) => {
+  const { page = '1', limit = '25', user_id, wallet_type } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+  let query = supabaseAdmin
+    .from('wallets')
+    .select('*, profiles!wallets_user_id_fkey(full_name, email)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+  if (user_id) query = query.eq('user_id', user_id);
+  if (wallet_type) query = query.eq('wallet_type', wallet_type);
+  const { data, count, error } = await query;
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+app.post('/api/admin/wallets/adjust', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res) => {
+  const { wallet_id, direction, amount, reason } = req.body as {
+    wallet_id: string; direction: 'credit' | 'debit'; amount: number; reason: string;
+  };
+  if (!wallet_id || !direction || !amount || !reason) {
+    res.status(400).json({ success: false, error: 'wallet_id, direction, amount and reason are required' }); return;
+  }
+  if (amount <= 0) { res.status(400).json({ success: false, error: 'Amount must be positive' }); return; }
+  const { data: wallet } = await supabaseAdmin.from('wallets').select('id, user_id, balance, currency').eq('id', wallet_id).single();
+  if (!wallet) { res.status(404).json({ success: false, error: 'Wallet not found' }); return; }
+  const rpc = direction === 'credit' ? 'record_wallet_credit' : 'record_wallet_debit';
+  const { error } = await supabaseAdmin.rpc(rpc, {
+    p_wallet_id: wallet_id, p_amount: amount, p_type: 'adjustment',
+    p_description: `Admin adjustment: ${reason}`,
+    p_metadata: { admin_id: req.user!.id, reason },
+  });
+  if (error) { res.status(400).json({ success: false, error: error.message }); return; }
+  await supabaseAdmin.rpc('create_audit_log', {
+    p_actor_id: req.user!.id, p_action: `wallet.admin_${direction}`,
+    p_resource_type: 'wallet', p_resource_id: wallet_id,
+    p_changes: { direction, amount, reason, balance_before: wallet.balance },
+  });
+  res.json({ success: true, message: `${direction === 'credit' ? 'Credited' : 'Debited'} ${wallet.currency} ${amount} — ${reason}` });
+});
+
+// ─── Super Admin: Audit Logs ──────────────────────────────────────────────────
+app.get('/api/admin/audit-logs', authenticate, requireAdmin, async (req, res) => {
+  const { page = '1', limit = '25', action, actor_id } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+  let query = supabaseAdmin
+    .from('audit_logs')
+    .select('*, profiles!audit_logs_actor_id_fkey(full_name, email)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+  if (action) query = query.ilike('action', `%${action}%`);
+  if (actor_id) query = query.eq('actor_id', actor_id);
+  const { data, count, error } = await query;
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+// ─── Super Admin: All Transactions ───────────────────────────────────────────
+app.get('/api/admin/transactions', authenticate, requireAdmin, async (req, res) => {
+  const { page = '1', limit = '25', type, direction, status } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+  let query = supabaseAdmin
+    .from('wallet_transactions')
+    .select('*, profiles!wallet_transactions_user_id_fkey(full_name, email)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+  if (type) query = query.eq('type', type);
+  if (direction) query = query.eq('direction', direction);
+  if (status) query = query.eq('status', status);
+  const { data, count, error } = await query;
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+// ─── Super Admin: Force password reset ───────────────────────────────────────
+app.post('/api/admin/users/:id/reset-password', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res) => {
+  const { new_password } = req.body as { new_password: string };
+  if (!new_password || new_password.length < 8) {
+    res.status(400).json({ success: false, error: 'Password must be at least 8 characters' }); return;
+  }
+  const { error } = await supabaseAdmin.auth.admin.updateUserById(req.params.id, { password: new_password });
+  if (error) { res.status(400).json({ success: false, error: error.message }); return; }
+  await supabaseAdmin.rpc('create_audit_log', {
+    p_actor_id: req.user!.id, p_action: 'user.password_reset',
+    p_resource_type: 'profile', p_resource_id: req.params.id, p_changes: {},
+  });
+  res.json({ success: true, message: 'Password reset successfully' });
+});
+
 // ─── Not Found & Error Handler ────────────────────────────────────────────────
 app.use(notFound);
 app.use(errorHandler);

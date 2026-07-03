@@ -100,7 +100,7 @@ const STATS = [
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-[#0a0a16] overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <LandingNav />
 
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
@@ -113,11 +113,11 @@ export default function About() {
             <Target className="w-3 h-3" />
             Our mission
           </div>
-          <h1 className="font-display font-bold text-5xl lg:text-6xl xl:text-7xl text-white mb-6 leading-[1.05]">
+          <h1 className="font-display font-bold text-5xl lg:text-6xl xl:text-7xl text-foreground mb-6 leading-[1.05]">
             We exist to make money{' '}
             <span className="text-gradient">move freely</span>
           </h1>
-          <p className="text-white/45 text-xl leading-relaxed max-w-2xl mx-auto">
+          <p className="text-foreground/45 text-xl leading-relaxed max-w-2xl mx-auto">
             Financial access is a human right. We're building the infrastructure that makes it real —
             for freelancers, traders, agents, and families across Africa and beyond.
           </p>
@@ -125,7 +125,7 @@ export default function About() {
       </section>
 
       {/* ── Stats ────────────────────────────────────────────────────────────── */}
-      <section className="py-16 px-6 lg:px-12 border-y border-white/[0.06] bg-white/[0.01]">
+      <section className="py-16 px-6 lg:px-12 border-y border-foreground/[0.06] bg-foreground/[0.01]">
         <div className="max-w-5xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-8">
           {STATS.map((s, i) => (
             <motion.div key={s.label} {...fadeUp(i * 0.08)} className="text-center">
@@ -133,7 +133,7 @@ export default function About() {
                 <s.icon className={`w-6 h-6 ${s.color}`} />
               </div>
               <p className={`font-display font-bold text-4xl mb-1 ${s.color}`}>{s.value}</p>
-              <p className="text-white/40 text-sm">{s.label}</p>
+              <p className="text-foreground/40 text-sm">{s.label}</p>
             </motion.div>
           ))}
         </div>
@@ -144,10 +144,10 @@ export default function About() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <motion.div {...fadeUp()}>
             <p className="text-violet-400 font-semibold text-sm uppercase tracking-widest mb-4">Our story</p>
-            <h2 className="font-display font-bold text-4xl lg:text-5xl text-white leading-tight mb-6">
+            <h2 className="font-display font-bold text-4xl lg:text-5xl text-foreground leading-tight mb-6">
               Born out of frustration. Built with purpose.
             </h2>
-            <div className="space-y-5 text-white/50 text-base leading-relaxed">
+            <div className="space-y-5 text-foreground/50 text-base leading-relaxed">
               <p>
                 It started with a single $500 payment. Takudzwa, one of our co-founders, was trying to pay
                 a freelancer in Lagos for web design work. Three days, two failed wire transfers, and $75 in
@@ -159,7 +159,7 @@ export default function About() {
                 and the experience was broken. Nobody was building the modern layer.
               </p>
               <p>
-                So we did. vPay is the platform we wish had existed — instant, affordable, and built
+                So we did. ePayZW is the platform we wish had existed — instant, affordable, and built
                 specifically for how people in our part of the world actually move money.
               </p>
             </div>
@@ -169,24 +169,24 @@ export default function About() {
           <motion.div {...fadeUp(0.12)} className="relative h-72 flex items-center justify-center">
             <div className="glow-orb w-72 h-72 bg-violet-600 opacity-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
             <div className="glass-card p-6 w-72 absolute rotate-[-4deg] top-4 left-8 border border-violet-500/20">
-              <p className="text-white/40 text-xs mb-2">2021 — Harare, Zimbabwe</p>
-              <p className="text-white font-medium text-sm">"What if sending money felt like sending a message?"</p>
+              <p className="text-foreground/40 text-xs mb-2">2021 — Harare, Zimbabwe</p>
+              <p className="text-foreground font-medium text-sm">"What if sending money felt like sending a message?"</p>
             </div>
             <div className="glass-card p-6 w-72 absolute rotate-[3deg] top-12 left-16 border border-purple-500/20 bg-gradient-to-br from-purple-600/10 to-violet-600/5">
-              <p className="text-white/40 text-xs mb-2">2024 — 1 million users</p>
-              <p className="text-white font-medium text-sm">"We processed $1B in volume. The mission is working."</p>
+              <p className="text-foreground/40 text-xs mb-2">2024 — 1 million users</p>
+              <p className="text-foreground font-medium text-sm">"We processed $1B in volume. The mission is working."</p>
             </div>
           </motion.div>
         </div>
       </section>
 
       {/* ── Values ───────────────────────────────────────────────────────────── */}
-      <section className="py-28 px-6 lg:px-12 bg-white/[0.01] border-y border-white/[0.05]">
+      <section className="py-28 px-6 lg:px-12 bg-foreground/[0.01] border-y border-foreground/[0.05]">
         <div className="max-w-7xl mx-auto">
           <motion.div {...fadeUp()} className="text-center mb-16">
             <p className="text-purple-400 font-semibold text-sm uppercase tracking-widest mb-3">What we stand for</p>
-            <h2 className="font-display font-bold text-4xl lg:text-5xl text-white mb-4">Our values</h2>
-            <p className="text-white/40 text-lg max-w-xl mx-auto">
+            <h2 className="font-display font-bold text-4xl lg:text-5xl text-foreground mb-4">Our values</h2>
+            <p className="text-foreground/40 text-lg max-w-xl mx-auto">
               These aren't words on a wall. They're decisions we make every day.
             </p>
           </motion.div>
@@ -202,11 +202,11 @@ export default function About() {
                 whileHover={{ scale: 1.02, y: -4 }}
                 className={`glass-card p-7 border ${v.border} bg-gradient-to-br ${v.color} cursor-default`}
               >
-                <div className={`w-11 h-11 rounded-xl bg-white/5 flex items-center justify-center mb-5 ${v.iconColor}`}>
+                <div className={`w-11 h-11 rounded-xl bg-foreground/5 flex items-center justify-center mb-5 ${v.iconColor}`}>
                   <v.icon className="w-5 h-5" />
                 </div>
-                <h3 className="font-display font-semibold text-white text-xl mb-3">{v.title}</h3>
-                <p className="text-white/50 text-sm leading-relaxed">{v.desc}</p>
+                <h3 className="font-display font-semibold text-foreground text-xl mb-3">{v.title}</h3>
+                <p className="text-foreground/50 text-sm leading-relaxed">{v.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -217,8 +217,8 @@ export default function About() {
       <section className="py-28 px-6 lg:px-12 max-w-5xl mx-auto">
         <motion.div {...fadeUp()} className="text-center mb-16">
           <p className="text-cyan-400 font-semibold text-sm uppercase tracking-widest mb-3">The journey</p>
-          <h2 className="font-display font-bold text-4xl lg:text-5xl text-white mb-4">Where we've been</h2>
-          <p className="text-white/40 text-lg">Five years of building, one milestone at a time.</p>
+          <h2 className="font-display font-bold text-4xl lg:text-5xl text-foreground mb-4">Where we've been</h2>
+          <p className="text-foreground/40 text-lg">Five years of building, one milestone at a time.</p>
         </motion.div>
 
         <div className="relative">
@@ -237,12 +237,12 @@ export default function About() {
               >
                 <div className="flex-shrink-0 flex flex-col items-center">
                   <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center z-10">
-                    <span className="text-white font-bold text-[10px]">{m.year}</span>
+                    <span className="text-foreground font-bold text-[10px]">{m.year}</span>
                   </div>
                 </div>
                 <div className="pb-2">
-                  <p className="text-white font-display font-semibold text-lg mb-1">{m.title}</p>
-                  <p className="text-white/45 text-sm leading-relaxed">{m.desc}</p>
+                  <p className="text-foreground font-display font-semibold text-lg mb-1">{m.title}</p>
+                  <p className="text-foreground/45 text-sm leading-relaxed">{m.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -251,12 +251,12 @@ export default function About() {
       </section>
 
       {/* ── Team ─────────────────────────────────────────────────────────────── */}
-      <section className="py-28 px-6 lg:px-12 bg-white/[0.01] border-y border-white/[0.05]">
+      <section className="py-28 px-6 lg:px-12 bg-foreground/[0.01] border-y border-foreground/[0.05]">
         <div className="max-w-6xl mx-auto">
           <motion.div {...fadeUp()} className="text-center mb-16">
             <p className="text-emerald-400 font-semibold text-sm uppercase tracking-widest mb-3">The people</p>
-            <h2 className="font-display font-bold text-4xl lg:text-5xl text-white mb-4">Meet the team</h2>
-            <p className="text-white/40 text-lg max-w-xl mx-auto">
+            <h2 className="font-display font-bold text-4xl lg:text-5xl text-foreground mb-4">Meet the team</h2>
+            <p className="text-foreground/40 text-lg max-w-xl mx-auto">
               Builders, operators, and thinkers united by one mission: financial access for everyone.
             </p>
           </motion.div>
@@ -272,12 +272,12 @@ export default function About() {
                 whileHover={{ y: -6 }}
                 className="glass-card p-6 cursor-default"
               >
-                <div className={`w-14 h-14 rounded-2xl ${member.color} flex items-center justify-center text-white font-bold text-xl mb-4`}>
+                <div className={`w-14 h-14 rounded-2xl ${member.color} flex items-center justify-center text-foreground font-bold text-xl mb-4`}>
                   {member.avatar}
                 </div>
-                <p className="text-white font-display font-semibold text-lg">{member.name}</p>
+                <p className="text-foreground font-display font-semibold text-lg">{member.name}</p>
                 <p className="text-violet-400 text-sm font-medium mb-3">{member.role}</p>
-                <p className="text-white/40 text-xs leading-relaxed">{member.detail}</p>
+                <p className="text-foreground/40 text-xs leading-relaxed">{member.detail}</p>
               </motion.div>
             ))}
           </div>
@@ -290,12 +290,12 @@ export default function About() {
           <div className="relative rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-600/10 to-purple-600/5 p-10 lg:p-16 text-center overflow-hidden">
             <div className="glow-orb w-80 h-80 bg-violet-600 opacity-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
             <motion.div {...fadeUp()} className="relative">
-              <h2 className="font-display font-bold text-4xl lg:text-5xl text-white mb-5 leading-tight">
+              <h2 className="font-display font-bold text-4xl lg:text-5xl text-foreground mb-5 leading-tight">
                 Join us on the mission
               </h2>
-              <p className="text-white/45 text-xl leading-relaxed mb-10 max-w-2xl mx-auto">
+              <p className="text-foreground/45 text-xl leading-relaxed mb-10 max-w-2xl mx-auto">
                 Whether you're signing up as a user, becoming an agent, or joining our team —
-                there's a place for you in the vPay story.
+                there's a place for you in the ePayZW story.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link to="/auth/register"

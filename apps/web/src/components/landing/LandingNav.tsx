@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { VLogoIcon } from '../ui/VLogoIcon';
+import { ThemeToggle } from '../ui/ThemeToggle';
 
 const NAV_LINKS = [
   { label: 'Features', to: '/#features' },
@@ -23,12 +24,12 @@ export function LandingNav() {
         transition={{ duration: 0.45 }}
         className="fixed top-0 inset-x-0 z-50 flex items-center justify-between
                    px-4 sm:px-6 lg:px-10 h-14 sm:h-16
-                   bg-[#0a0a16]/90 backdrop-blur-xl border-b border-white/[0.06]"
+                   bg-background/90 backdrop-blur-xl border-b border-foreground/[0.06]"
       >
         {/* Logo */}
         <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-2 flex-shrink-0">
           <VLogoIcon className="w-7" />
-          <span className="font-display font-bold text-white text-base tracking-tight">vPay</span>
+          <span className="font-display font-bold text-foreground text-base tracking-tight">ePayZW</span>
         </Link>
 
         {/* Desktop nav */}
@@ -40,7 +41,7 @@ export function LandingNav() {
                 key={item.label}
                 to={item.to}
                 className={`transition-colors duration-200 ${
-                  isActive ? 'text-white' : 'text-white/45 hover:text-white/80'
+                  isActive ? 'text-foreground' : 'text-foreground/45 hover:text-foreground/80'
                 }`}
               >
                 {item.label}
@@ -50,19 +51,23 @@ export function LandingNav() {
         </div>
 
         {/* Desktop CTA */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-3">
+          <ThemeToggle />
           <Link to="/login" className="btn-ghost text-xs py-1.5 px-4">Sign in</Link>
           <Link to="/auth/register" className="btn-brand text-xs py-1.5 px-4">Get started</Link>
         </div>
 
-        {/* Mobile burger */}
-        <button
-          className="md:hidden p-2 text-white/60 hover:text-white transition-colors"
-          onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
-        >
-          {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        {/* Mobile controls */}
+        <div className="md:hidden flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            className="p-2 text-foreground/60 hover:text-foreground transition-colors"
+            onClick={() => setOpen(!open)}
+            aria-label="Toggle menu"
+          >
+            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </motion.nav>
 
       {/* Mobile drawer */}
@@ -75,7 +80,7 @@ export function LandingNav() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
             className="fixed top-14 sm:top-16 inset-x-0 z-40 md:hidden
-                       bg-[#0d0d1e]/98 backdrop-blur-xl border-b border-white/[0.06]"
+                       bg-sidebar/98 backdrop-blur-xl border-b border-foreground/[0.06]"
           >
             <div className="px-4 py-4 flex flex-col gap-1">
               {NAV_LINKS.map((item) => (
@@ -83,12 +88,12 @@ export function LandingNav() {
                   key={item.label}
                   to={item.to}
                   onClick={() => setOpen(false)}
-                  className="px-3 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/[0.05] text-sm font-medium transition-colors"
+                  className="px-3 py-3 rounded-xl text-foreground/60 hover:text-foreground hover:bg-foreground/[0.05] text-sm font-medium transition-colors"
                 >
                   {item.label}
                 </Link>
               ))}
-              <div className="border-t border-white/[0.06] mt-2 pt-3 flex flex-col gap-2">
+              <div className="border-t border-foreground/[0.06] mt-2 pt-3 flex flex-col gap-2">
                 <Link
                   to="/login"
                   onClick={() => setOpen(false)}

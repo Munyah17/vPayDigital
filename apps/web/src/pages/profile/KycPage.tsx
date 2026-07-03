@@ -93,8 +93,8 @@ export default function KycPage() {
       <div className="flex items-center gap-3">
         <Shield className="w-7 h-7 text-indigo-400" />
         <div>
-          <h1 className="font-display font-bold text-white text-2xl">Identity Verification</h1>
-          <p className="text-white/40 text-sm">KYC · Know Your Customer</p>
+          <h1 className="font-display font-bold text-foreground text-2xl">Identity Verification</h1>
+          <p className="text-foreground/40 text-sm">KYC · Know Your Customer</p>
         </div>
       </div>
 
@@ -107,15 +107,15 @@ export default function KycPage() {
       {/* Submitted docs */}
       {docs.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-white font-semibold text-sm">Submitted Documents</h2>
+          <h2 className="text-foreground font-semibold text-sm">Submitted Documents</h2>
           {docs.map(doc => {
             const Icon = STATUS_ICON[doc.status];
             return (
               <div key={doc.id} className={`flex items-start gap-3 p-4 rounded-xl border ${STATUS_BG[doc.status]}`}>
                 <Icon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${STATUS_COLOR[doc.status]}`} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-medium capitalize">{doc.document_type.replace('_', ' ')}</p>
-                  <p className="text-white/40 text-xs mt-0.5">
+                  <p className="text-foreground text-sm font-medium capitalize">{doc.document_type.replace('_', ' ')}</p>
+                  <p className="text-foreground/40 text-xs mt-0.5">
                     Submitted {formatDate(doc.created_at, 'short')}
                     {doc.reviewed_at && ` · Reviewed ${formatDate(doc.reviewed_at, 'short')}`}
                   </p>
@@ -133,7 +133,7 @@ export default function KycPage() {
       {/* Document type selection */}
       {kycStatus !== 'approved' && (
         <section className="space-y-3">
-          <h2 className="text-white font-semibold text-sm">
+          <h2 className="text-foreground font-semibold text-sm">
             {docs.length > 0 ? 'Submit Additional Documents' : 'Choose Document Type'}
           </h2>
           {DOC_TYPES.map(type => {
@@ -145,21 +145,21 @@ export default function KycPage() {
                 className={`w-full flex items-center gap-4 p-4 rounded-xl border text-left transition-all ${
                   isApproved ? 'border-emerald-500/20 bg-emerald-500/5 opacity-60 cursor-default' :
                   selectedType?.id === type.id ? 'border-indigo-500/50 bg-indigo-500/10' :
-                  'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8'
+                  'border-foreground/10 bg-foreground/5 hover:border-foreground/20 hover:bg-foreground/8'
                 }`}>
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-                  <FileText className="w-5 h-5 text-white/40" />
+                <div className="w-10 h-10 rounded-xl bg-foreground/10 flex items-center justify-center flex-shrink-0">
+                  <FileText className="w-5 h-5 text-foreground/40" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-medium">{type.label}</p>
-                  <p className="text-white/40 text-xs">{type.description}</p>
+                  <p className="text-foreground text-sm font-medium">{type.label}</p>
+                  <p className="text-foreground/40 text-xs">{type.description}</p>
                 </div>
                 {isApproved ? (
                   <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
                 ) : existing?.status === 'pending' ? (
                   <Clock className="w-5 h-5 text-amber-400 flex-shrink-0" />
                 ) : (
-                  <ChevronRight className="w-5 h-5 text-white/30 flex-shrink-0" />
+                  <ChevronRight className="w-5 h-5 text-foreground/30 flex-shrink-0" />
                 )}
               </button>
             );
@@ -173,8 +173,8 @@ export default function KycPage() {
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }}
             className="glass-card p-6 space-y-5">
             <div className="flex items-center justify-between">
-              <h3 className="text-white font-semibold">{selectedType.label}</h3>
-              <button onClick={() => setSelectedType(null)} className="text-white/30 hover:text-white text-xs">Cancel</button>
+              <h3 className="text-foreground font-semibold">{selectedType.label}</h3>
+              <button onClick={() => setSelectedType(null)} className="text-foreground/30 hover:text-foreground text-xs">Cancel</button>
             </div>
 
             <div className="space-y-4">
@@ -193,12 +193,12 @@ export default function KycPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-white/60 text-sm mb-1.5">Document number</label>
+                  <label className="block text-foreground/60 text-sm mb-1.5">Document number</label>
                   <input value={form.document_number} onChange={e => setForm(f => ({ ...f, document_number: e.target.value }))}
                     className="input-field" placeholder="e.g. AB1234567" />
                 </div>
                 <div>
-                  <label className="block text-white/60 text-sm mb-1.5">Country of issue</label>
+                  <label className="block text-foreground/60 text-sm mb-1.5">Country of issue</label>
                   <input value={form.country_of_issue} onChange={e => setForm(f => ({ ...f, country_of_issue: e.target.value }))}
                     className="input-field" placeholder="e.g. ZW" maxLength={2} />
                 </div>
@@ -206,7 +206,7 @@ export default function KycPage() {
 
               {selectedType.id !== 'proof_of_address' && (
                 <div>
-                  <label className="block text-white/60 text-sm mb-1.5">Expiry date</label>
+                  <label className="block text-foreground/60 text-sm mb-1.5">Expiry date</label>
                   <input type="date" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))}
                     className="input-field" min={new Date().toISOString().split('T')[0]} />
                 </div>
@@ -240,12 +240,12 @@ function UrlField({ label, hint, value, onChange, required }: {
 }) {
   return (
     <div>
-      <label className="block text-white/60 text-sm mb-1.5">
+      <label className="block text-foreground/60 text-sm mb-1.5">
         {label} {required && <span className="text-red-400">*</span>}
       </label>
       <input value={value} onChange={e => onChange(e.target.value)} className="input-field"
         placeholder="https://..." type="url" />
-      <p className="text-white/30 text-xs mt-1">{hint}</p>
+      <p className="text-foreground/30 text-xs mt-1">{hint}</p>
     </div>
   );
 }

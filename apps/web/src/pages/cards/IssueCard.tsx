@@ -48,7 +48,7 @@ export default function IssueCard() {
 
   return (
     <div className="p-4 lg:p-6 max-w-2xl mx-auto space-y-6">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-white/40 hover:text-white text-sm">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-foreground/40 hover:text-foreground text-sm">
         <ArrowLeft className="w-4 h-4" /> Back
       </button>
 
@@ -58,34 +58,34 @@ export default function IssueCard() {
             <CreditCard className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="font-display font-bold text-white text-xl">Issue a virtual card</h1>
-            <p className="text-white/40 text-sm">Instantly create a card linked to your wallet</p>
+            <h1 className="font-display font-bold text-foreground text-xl">Issue a virtual card</h1>
+            <p className="text-foreground/40 text-sm">Instantly create a card linked to your wallet</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit((d) => issue.mutate(d))} className="space-y-4">
           <div>
-            <label className="block text-white/60 text-sm mb-1.5">Cardholder name</label>
+            <label className="block text-foreground/60 text-sm mb-1.5">Cardholder name</label>
             <input {...register('cardholder_name')} className="input-field" />
             {errors.cardholder_name && <p className="text-red-400 text-xs mt-1">{errors.cardholder_name.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-white/60 text-sm mb-1.5">Network</label>
+              <label className="block text-foreground/60 text-sm mb-1.5">Network</label>
               <select {...register('network')} className="input-field">
                 <option value="visa">Visa</option>
                 <option value="mastercard">Mastercard</option>
               </select>
             </div>
             <div>
-              <label className="block text-white/60 text-sm mb-1.5">Currency</label>
+              <label className="block text-foreground/60 text-sm mb-1.5">Currency</label>
               <select {...register('currency')} className="input-field">
                 {['USD', 'EUR', 'GBP', 'ZAR', 'NGN', 'GHS'].map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>
           <div>
-            <label className="block text-white/60 text-sm mb-1.5">Card type</label>
+            <label className="block text-foreground/60 text-sm mb-1.5">Card type</label>
             <select {...register('card_type')} className="input-field">
               <option value="multi_use">Multi-use (reloadable)</option>
               <option value="single_use">Single-use (one transaction)</option>
@@ -94,7 +94,7 @@ export default function IssueCard() {
             </select>
           </div>
           <div>
-            <label className="block text-white/60 text-sm mb-1.5">Initial load amount</label>
+            <label className="block text-foreground/60 text-sm mb-1.5">Initial load amount</label>
             <input {...register('amount')} type="number" step="0.01" className="input-field" />
             {errors.amount && <p className="text-red-400 text-xs mt-1">{errors.amount.message}</p>}
           </div>

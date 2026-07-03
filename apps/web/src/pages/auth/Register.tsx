@@ -72,7 +72,7 @@ export default function Register() {
   /* ── Email verification screen ─────────────────────────────────────── */
   if (step === 'verify') {
     return (
-      <div className="min-h-screen bg-[#0a0a16] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -81,8 +81,8 @@ export default function Register() {
           <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto mb-5">
             <CheckCircle2 className="w-8 h-8 text-emerald-400" />
           </div>
-          <h2 className="font-display font-bold text-xl text-white mb-2">Check your email</h2>
-          <p className="text-white/40 text-sm mb-7 leading-relaxed">
+          <h2 className="font-display font-bold text-xl text-foreground mb-2">Check your email</h2>
+          <p className="text-foreground/40 text-sm mb-7 leading-relaxed">
             We sent a verification link to your email. Click it to activate your account.
           </p>
           <button onClick={() => navigate('/auth/login')} className="btn-ghost w-full py-3">
@@ -95,7 +95,7 @@ export default function Register() {
 
   /* ── Registration form ──────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-[#0a0a16] flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row">
 
       {/* Left branding strip (desktop) */}
       <div className="hidden lg:flex lg:w-[38%] xl:w-[40%] flex-col justify-between
@@ -111,7 +111,7 @@ export default function Register() {
 
         <Link to="/" className="flex items-center gap-2.5 relative z-10 w-fit">
           <VLogoIcon className="w-9" />
-          <span className="font-display font-bold text-white text-lg">vPay</span>
+          <span className="font-display font-bold text-white text-lg">ePayZW</span>
         </Link>
 
         <div className="relative z-10">
@@ -152,18 +152,18 @@ export default function Register() {
           {/* Mobile logo */}
           <Link to="/" className="lg:hidden flex items-center gap-2 mb-7 w-fit mx-auto">
             <VLogoIcon className="w-8" />
-            <span className="font-display font-bold text-white text-base">vPay</span>
+            <span className="font-display font-bold text-foreground text-base">ePayZW</span>
           </Link>
 
           <div className="glass-card p-6 sm:p-8 shadow-glass">
             <div className="mb-5">
-              <h1 className="font-display font-bold text-xl sm:text-2xl text-white">Create account</h1>
-              <p className="text-white/40 text-sm mt-1">Join vPay — it's free</p>
+              <h1 className="font-display font-bold text-xl sm:text-2xl text-foreground">Create account</h1>
+              <p className="text-foreground/40 text-sm mt-1">Join ePayZW — it's free</p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Role selector */}
-              <div className="grid grid-cols-2 gap-2 p-1 bg-white/5 rounded-xl">
+              <div className="grid grid-cols-2 gap-2 p-1 bg-foreground/5 rounded-xl">
                 {([
                   { value: 'consumer', label: 'Personal', icon: User },
                   { value: 'agent',    label: 'Agent / Biz', icon: Building2 },
@@ -173,7 +173,7 @@ export default function Register() {
                     className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-all ${
                       role === r.value
                         ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow-sm'
-                        : 'text-white/40 hover:text-white/70'
+                        : 'text-foreground/40 hover:text-foreground/70'
                     }`}
                   >
                     <input {...register('role')} type="radio" value={r.value} className="sr-only" />
@@ -184,35 +184,35 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="block text-white/60 text-sm mb-1.5 font-medium">Full Name</label>
+                <label className="block text-foreground/60 text-sm mb-1.5 font-medium">Full Name</label>
                 <input {...register('full_name')} type="text" placeholder="John Doe"
                   className="input-field text-base sm:text-sm" autoComplete="name" />
                 {errors.full_name && <p className="text-red-400 text-xs mt-1">{errors.full_name.message}</p>}
               </div>
 
               <div>
-                <label className="block text-white/60 text-sm mb-1.5 font-medium">Email</label>
+                <label className="block text-foreground/60 text-sm mb-1.5 font-medium">Email</label>
                 <input {...register('email')} type="email" placeholder="you@example.com"
                   className="input-field text-base sm:text-sm" autoComplete="email" inputMode="email" />
                 {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
               </div>
 
               <div>
-                <label className="block text-white/60 text-sm mb-1.5 font-medium">
-                  Phone <span className="text-white/20 font-normal">(optional)</span>
+                <label className="block text-foreground/60 text-sm mb-1.5 font-medium">
+                  Phone <span className="text-foreground/20 font-normal">(optional)</span>
                 </label>
                 <input {...register('phone')} type="tel" placeholder="+1 234 567 8900"
                   className="input-field text-base sm:text-sm" autoComplete="tel" inputMode="tel" />
               </div>
 
               <div>
-                <label className="block text-white/60 text-sm mb-1.5 font-medium">Password</label>
+                <label className="block text-foreground/60 text-sm mb-1.5 font-medium">Password</label>
                 <div className="relative">
                   <input {...register('password')} type={showPassword ? 'text' : 'password'}
                     placeholder="Create a strong password"
                     className="input-field pr-12 text-base sm:text-sm" autoComplete="new-password" />
                   <button type="button" onClick={() => setShowPassword(s => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-white/30 hover:text-white/60 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-foreground/30 hover:text-foreground/60 transition-colors"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}>
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -221,8 +221,8 @@ export default function Register() {
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
                     {PASSWORD_RULES.map(rule => (
                       <div key={rule.label} className="flex items-center gap-1.5">
-                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${rule.test(password) ? 'bg-emerald-400' : 'bg-white/20'}`} />
-                        <span className={`text-xs ${rule.test(password) ? 'text-emerald-400' : 'text-white/30'}`}>{rule.label}</span>
+                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${rule.test(password) ? 'bg-emerald-400' : 'bg-foreground/20'}`} />
+                        <span className={`text-xs ${rule.test(password) ? 'text-emerald-400' : 'text-foreground/30'}`}>{rule.label}</span>
                       </div>
                     ))}
                   </div>
@@ -230,15 +230,15 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="block text-white/60 text-sm mb-1.5 font-medium">Confirm Password</label>
+                <label className="block text-foreground/60 text-sm mb-1.5 font-medium">Confirm Password</label>
                 <input {...register('confirm_password')} type="password" placeholder="Repeat password"
                   className="input-field text-base sm:text-sm" autoComplete="new-password" />
                 {errors.confirm_password && <p className="text-red-400 text-xs mt-1">{errors.confirm_password.message}</p>}
               </div>
 
               <div>
-                <label className="block text-white/60 text-sm mb-1.5 font-medium">
-                  Referral Code <span className="text-white/20 font-normal">(optional)</span>
+                <label className="block text-foreground/60 text-sm mb-1.5 font-medium">
+                  Referral Code <span className="text-foreground/20 font-normal">(optional)</span>
                 </label>
                 <input {...register('referral_code')} type="text" placeholder="VP-XXXX"
                   className="input-field uppercase text-base sm:text-sm" />
@@ -247,7 +247,7 @@ export default function Register() {
               <label className="flex items-start gap-3 cursor-pointer py-1">
                 <input {...register('terms')} type="checkbox"
                   className="mt-0.5 w-4 h-4 rounded accent-purple-500 flex-shrink-0" />
-                <span className="text-white/40 text-xs leading-relaxed">
+                <span className="text-foreground/40 text-xs leading-relaxed">
                   I agree to the{' '}
                   <Link to="/terms" className="text-purple-400 hover:text-purple-300 transition-colors">Terms of Service</Link>
                   {' '}and{' '}
@@ -264,7 +264,7 @@ export default function Register() {
               </button>
             </form>
 
-            <p className="text-center text-white/30 text-sm mt-5">
+            <p className="text-center text-foreground/30 text-sm mt-5">
               Already have an account?{' '}
               <Link to="/login" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
                 Sign in

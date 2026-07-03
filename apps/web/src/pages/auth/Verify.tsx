@@ -46,7 +46,7 @@ export default function Verify() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a16] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-indigo-600/10 blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-purple-700/10 blur-3xl" />
@@ -60,7 +60,7 @@ export default function Verify() {
       >
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
           <VLogoIcon className="w-8" />
-          <span className="font-display font-bold text-white text-lg">vPay</span>
+          <span className="font-display font-bold text-foreground text-lg">ePayZW</span>
         </Link>
 
         {state === 'verifying' && (
@@ -68,8 +68,8 @@ export default function Verify() {
             <div className="w-16 h-16 rounded-full bg-indigo-500/15 flex items-center justify-center mx-auto mb-5">
               <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
             </div>
-            <h2 className="font-display font-bold text-xl text-white mb-2">Verifying your email</h2>
-            <p className="text-white/40 text-sm">Please wait a moment…</p>
+            <h2 className="font-display font-bold text-xl text-foreground mb-2">Verifying your email</h2>
+            <p className="text-foreground/40 text-sm">Please wait a moment…</p>
           </>
         )}
 
@@ -83,11 +83,11 @@ export default function Verify() {
             >
               <CheckCircle2 className="w-8 h-8 text-emerald-400" />
             </motion.div>
-            <h2 className="font-display font-bold text-xl text-white mb-2">Email verified!</h2>
-            <p className="text-white/40 text-sm mb-6">
+            <h2 className="font-display font-bold text-xl text-foreground mb-2">Email verified!</h2>
+            <p className="text-foreground/40 text-sm mb-6">
               Your account is active. Redirecting to your dashboard…
             </p>
-            <div className="w-full h-1 rounded-full bg-white/5 overflow-hidden">
+            <div className="w-full h-1 rounded-full bg-foreground/5 overflow-hidden">
               <motion.div
                 className="h-full bg-gradient-to-r from-indigo-500 to-purple-500"
                 initial={{ width: 0 }}
@@ -103,8 +103,8 @@ export default function Verify() {
             <div className="w-16 h-16 rounded-full bg-red-500/15 flex items-center justify-center mx-auto mb-5">
               <XCircle className="w-8 h-8 text-red-400" />
             </div>
-            <h2 className="font-display font-bold text-xl text-white mb-2">Verification failed</h2>
-            <p className="text-white/40 text-sm mb-6">{errorMsg || 'This link may have expired. Request a new one.'}</p>
+            <h2 className="font-display font-bold text-xl text-foreground mb-2">Verification failed</h2>
+            <p className="text-foreground/40 text-sm mb-6">{errorMsg || 'This link may have expired. Request a new one.'}</p>
             <div className="flex flex-col gap-3">
               <button onClick={() => navigate('/auth/login')} className="btn-brand w-full py-3 text-sm">
                 Go to Sign In

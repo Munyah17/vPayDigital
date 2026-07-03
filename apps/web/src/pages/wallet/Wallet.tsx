@@ -73,7 +73,7 @@ export default function Wallet() {
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-display font-bold text-white text-2xl">Wallet</h1>
+        <h1 className="font-display font-bold text-foreground text-2xl">Wallet</h1>
         <div className="flex gap-2">
           <button
             onClick={requestVirtualAccount}
@@ -100,11 +100,11 @@ export default function Wallet() {
 
       {vaInfo && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-5">
-          <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Deposit to this account</p>
+          <p className="text-foreground/40 text-xs uppercase tracking-wider mb-1">Deposit to this account</p>
           <div className="flex items-center gap-4 flex-wrap">
             <div>
-              <p className="text-white font-display font-bold text-xl tabular-nums">{vaInfo.account_number}</p>
-              <p className="text-white/40 text-xs">{vaInfo.bank_name}</p>
+              <p className="text-foreground font-display font-bold text-xl tabular-nums">{vaInfo.account_number}</p>
+              <p className="text-foreground/40 text-xs">{vaInfo.bank_name}</p>
             </div>
             <button
               onClick={() => { navigator.clipboard.writeText(vaInfo.account_number); toast.success('Copied'); }}
@@ -117,15 +117,15 @@ export default function Wallet() {
       )}
 
       <section>
-        <h2 className="font-display font-semibold text-white text-lg mb-3">Your wallets</h2>
+        <h2 className="font-display font-semibold text-foreground text-lg mb-3">Your wallets</h2>
 
         {loadError && !isLoading ? (
           <div className="glass-card p-8 flex flex-col items-center gap-4 text-center">
-            <WifiOff className="w-10 h-10 text-white/20" />
+            <WifiOff className="w-10 h-10 text-foreground/20" />
             <div>
-              <p className="text-white/60 text-sm font-medium">Could not connect to the server</p>
-              <p className="text-white/30 text-xs mt-1">
-                Make sure the API is running and <span className="font-mono text-white/40">VITE_API_URL</span> is correct in your <span className="font-mono text-white/40">.env</span>
+              <p className="text-foreground/60 text-sm font-medium">Could not connect to the server</p>
+              <p className="text-foreground/30 text-xs mt-1">
+                Make sure the API is running and <span className="font-mono text-foreground/40">VITE_API_URL</span> is correct in your <span className="font-mono text-foreground/40">.env</span>
               </p>
             </div>
             <button onClick={loadWallets} className="btn-ghost text-sm py-2 px-4 flex items-center gap-2">
@@ -144,26 +144,26 @@ export default function Wallet() {
       </section>
 
       <section>
-        <h2 className="font-display font-semibold text-white text-lg mb-3">Transactions</h2>
+        <h2 className="font-display font-semibold text-foreground text-lg mb-3">Transactions</h2>
         <div className="glass-card overflow-hidden">
           {transactions.length === 0 ? (
-            <div className="p-8 text-center text-white/30 text-sm">No transactions yet</div>
+            <div className="p-8 text-center text-foreground/30 text-sm">No transactions yet</div>
           ) : (
-            <ul className="divide-y divide-white/5">
+            <ul className="divide-y divide-foreground/5">
               {transactions.map((t) => (
                 <li key={t.id} className="flex items-center gap-3 p-4">
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${t.direction === 'credit' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400'}`}>
                     {t.direction === 'credit' ? <ArrowDownLeft className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-medium truncate">{t.description ?? titleCase(t.type)}</p>
-                    <p className="text-white/40 text-xs">{formatRelativeTime(new Date(t.created_at))} · <span className="font-mono">{t.reference}</span></p>
+                    <p className="text-foreground text-sm font-medium truncate">{t.description ?? titleCase(t.type)}</p>
+                    <p className="text-foreground/40 text-xs">{formatRelativeTime(new Date(t.created_at))} · <span className="font-mono">{t.reference}</span></p>
                   </div>
                   <div className="text-right">
-                    <p className={`text-sm font-semibold tabular-nums ${t.direction === 'credit' ? 'text-emerald-400' : 'text-white'}`}>
+                    <p className={`text-sm font-semibold tabular-nums ${t.direction === 'credit' ? 'text-emerald-400' : 'text-foreground'}`}>
                       {t.direction === 'credit' ? '+' : '−'}{formatCurrency(t.amount, t.currency)}
                     </p>
-                    <p className="text-white/30 text-[10px]">{titleCase(t.status)}</p>
+                    <p className="text-foreground/30 text-[10px]">{titleCase(t.status)}</p>
                   </div>
                 </li>
               ))}
@@ -215,14 +215,14 @@ function SendDialog({ onClose, onSuccess }: { onClose: () => void; onSuccess: ()
         className="glass-card p-6 w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="font-display font-bold text-white text-lg mb-4">Send money</h3>
+        <h3 className="font-display font-bold text-foreground text-lg mb-4">Send money</h3>
         <form onSubmit={submit} className="space-y-4">
           <div>
-            <label className="block text-white/60 text-sm mb-1.5">Recipient email</label>
+            <label className="block text-foreground/60 text-sm mb-1.5">Recipient email</label>
             <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required className="input-field" placeholder="someone@example.com" />
           </div>
           <div>
-            <label className="block text-white/60 text-sm mb-1.5">Amount ({activeWallet?.currency ?? 'USD'})</label>
+            <label className="block text-foreground/60 text-sm mb-1.5">Amount ({activeWallet?.currency ?? 'USD'})</label>
             <input value={amount} onChange={(e) => setAmount(e.target.value)} type="number" step="0.01" required className="input-field" placeholder="50.00" />
           </div>
           <div className="flex gap-2">

@@ -66,8 +66,8 @@ export default function Cards() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display font-bold text-2xl text-white">My Cards</h1>
-          <p className="text-white/40 text-sm">{cards.length} virtual {cards.length === 1 ? 'card' : 'cards'}</p>
+          <h1 className="font-display font-bold text-2xl text-foreground">My Cards</h1>
+          <p className="text-foreground/40 text-sm">{cards.length} virtual {cards.length === 1 ? 'card' : 'cards'}</p>
         </div>
         <motion.button
           whileHover={{ scale: 1.02 }}
@@ -90,7 +90,7 @@ export default function Cards() {
               px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all
               ${filterStatus === status
                 ? 'bg-indigo-600 text-white shadow-glow-sm'
-                : 'bg-white/5 text-white/40 hover:text-white border border-white/10'
+                : 'bg-foreground/5 text-foreground/40 hover:text-foreground border border-foreground/10'
               }
             `}
           >
@@ -125,7 +125,7 @@ export default function Cards() {
                   onClick={() => setSelectedCard(card)}
                   className={`
                     glass-card p-4 cursor-pointer transition-all duration-200
-                    ${selectedCard?.id === card.id ? 'border-indigo-500/50 shadow-glow-sm' : 'hover:border-white/20'}
+                    ${selectedCard?.id === card.id ? 'border-indigo-500/50 shadow-glow-sm' : 'hover:border-foreground/20'}
                   `}
                 >
                   <VirtualCard card={card} size="md" />
@@ -133,8 +133,8 @@ export default function Cards() {
                   {/* Card info */}
                   <div className="mt-4 flex items-center justify-between">
                     <div>
-                      <p className="text-white/40 text-xs capitalize">{titleCase(card.card_type)}</p>
-                      <p className="text-white font-semibold text-sm">
+                      <p className="text-foreground/40 text-xs capitalize">{titleCase(card.card_type)}</p>
+                      <p className="text-foreground font-semibold text-sm">
                         {formatCurrency(card.current_balance, card.currency)}
                       </p>
                     </div>
@@ -156,8 +156,8 @@ export default function Cards() {
                       <button
                         onClick={(e) => { e.stopPropagation(); navigate(`/cards/${card.id}/transactions`); }}
                         className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg
-                                   bg-white/5 hover:bg-white/10 border border-white/10
-                                   text-white/60 text-xs transition-all"
+                                   bg-foreground/5 hover:bg-foreground/10 border border-foreground/10
+                                   text-foreground/60 text-xs transition-all"
                       >
                         <ArrowUpRight className="w-3.5 h-3.5" />
                         History
@@ -180,10 +180,10 @@ export default function Cards() {
             </div>
           ) : (
             <div className="glass-card p-12 text-center">
-              <CreditCard className="w-12 h-12 text-white/10 mx-auto mb-4" />
-              <p className="text-white/40 text-sm mb-2">No {filterStatus === 'all' ? '' : filterStatus} cards</p>
-              <button onClick={() => navigate('/cards/new')} className="btn-brand text-sm py-2 px-4">
-                <Plus className="w-4 h-4 mr-1.5" />
+              <CreditCard className="w-12 h-12 text-foreground/10 mx-auto mb-4" />
+              <p className="text-foreground/40 text-sm mb-2">No {filterStatus === 'all' ? '' : filterStatus} cards</p>
+              <button onClick={() => navigate('/cards/new')} className="btn-brand inline-flex items-center gap-1.5 text-sm py-2 px-5">
+                <Plus className="w-4 h-4" />
                 Issue Card
               </button>
             </div>
@@ -202,10 +202,10 @@ export default function Cards() {
                 className="glass-card p-5 space-y-5"
               >
                 <div className="flex items-center justify-between">
-                  <h3 className="text-white font-semibold text-sm">Card Details</h3>
+                  <h3 className="text-foreground font-semibold text-sm">Card Details</h3>
                   <button onClick={() => setShowSensitive(s => !s)}
-                    className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
-                    {showSensitive ? <EyeOff className="w-4 h-4 text-white/40" /> : <Eye className="w-4 h-4 text-white/40" />}
+                    className="p-1.5 rounded-lg hover:bg-foreground/5 transition-colors">
+                    {showSensitive ? <EyeOff className="w-4 h-4 text-foreground/40" /> : <Eye className="w-4 h-4 text-foreground/40" />}
                   </button>
                 </div>
 
@@ -267,15 +267,15 @@ export default function Cards() {
                 {/* Recent transactions */}
                 {transactions.length > 0 && (
                   <div>
-                    <p className="text-white/40 text-xs font-medium mb-2 uppercase tracking-wider">Recent Activity</p>
+                    <p className="text-foreground/40 text-xs font-medium mb-2 uppercase tracking-wider">Recent Activity</p>
                     <div className="space-y-2">
                       {transactions.slice(0, 4).map(tx => (
                         <div key={tx.id} className="flex items-center justify-between py-1">
                           <div>
-                            <p className="text-white text-xs truncate max-w-[120px]">{tx.merchant_name ?? titleCase(tx.type)}</p>
-                            <p className="text-white/30 text-[10px]">{formatDate(tx.created_at, 'relative')}</p>
+                            <p className="text-foreground text-xs truncate max-w-[120px]">{tx.merchant_name ?? titleCase(tx.type)}</p>
+                            <p className="text-foreground/30 text-[10px]">{formatDate(tx.created_at, 'relative')}</p>
                           </div>
-                          <p className={`text-xs font-semibold ${tx.type === 'refund' ? 'text-emerald-400' : 'text-white/70'}`}>
+                          <p className={`text-xs font-semibold ${tx.type === 'refund' ? 'text-emerald-400' : 'text-foreground/70'}`}>
                             {tx.type === 'refund' ? '+' : '-'}{formatCurrency(tx.amount, tx.currency)}
                           </p>
                         </div>
@@ -290,8 +290,8 @@ export default function Cards() {
                 animate={{ opacity: 1 }}
                 className="glass-card p-8 text-center"
               >
-                <CreditCard className="w-10 h-10 text-white/10 mx-auto mb-3" />
-                <p className="text-white/30 text-sm">Select a card to view details</p>
+                <CreditCard className="w-10 h-10 text-foreground/10 mx-auto mb-3" />
+                <p className="text-foreground/30 text-sm">Select a card to view details</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -316,9 +316,9 @@ function StatusChip({ status }: { status: string }) {
 
 function StatBox({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-white/3 rounded-xl p-3 border border-white/5">
-      <p className="text-white/30 text-[10px] uppercase tracking-wider mb-1">{label}</p>
-      <p className="text-white text-sm font-semibold">{value}</p>
+    <div className="bg-foreground/3 rounded-xl p-3 border border-foreground/5">
+      <p className="text-foreground/30 text-[10px] uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-foreground text-sm font-semibold">{value}</p>
     </div>
   );
 }

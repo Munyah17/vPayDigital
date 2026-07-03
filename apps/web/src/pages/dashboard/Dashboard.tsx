@@ -80,8 +80,8 @@ export default function Dashboard() {
         className="flex items-start justify-between"
       >
         <div>
-          <p className="text-white/40 text-sm">{greeting()},</p>
-          <h1 className="font-display font-bold text-2xl text-white">
+          <p className="text-foreground/40 text-sm">{greeting()},</p>
+          <h1 className="font-display font-bold text-2xl text-foreground">
             {profile?.display_name ?? profile?.full_name?.split(' ')[0] ?? 'User'}
           </h1>
         </div>
@@ -114,9 +114,9 @@ export default function Dashboard() {
 
         <div className="relative">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-white/40 text-sm font-medium">Total Portfolio Value</p>
-            <button onClick={() => setShowBalance(s => !s)} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
-              {showBalance ? <EyeOff className="w-4 h-4 text-white/30" /> : <Eye className="w-4 h-4 text-white/30" />}
+            <p className="text-foreground/40 text-sm font-medium">Total Portfolio Value</p>
+            <button onClick={() => setShowBalance(s => !s)} className="p-1.5 rounded-lg hover:bg-foreground/5 transition-colors">
+              {showBalance ? <EyeOff className="w-4 h-4 text-foreground/30" /> : <Eye className="w-4 h-4 text-foreground/30" />}
             </button>
           </div>
 
@@ -126,7 +126,7 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
           >
             {showBalance ? (
-              <p className="font-display font-bold text-4xl text-white">
+              <p className="font-display font-bold text-4xl text-foreground">
                 {storeLoading ? (
                   <span className="inline-block w-40 h-9 rounded-lg shimmer" />
                 ) : (
@@ -134,19 +134,19 @@ export default function Dashboard() {
                 )}
               </p>
             ) : (
-              <p className="font-display font-bold text-4xl text-white">••••••</p>
+              <p className="font-display font-bold text-4xl text-foreground">••••••</p>
             )}
           </motion.div>
 
           <div className="flex items-center gap-4 mt-4">
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span className="text-white/40 text-xs">{wallets.length} active {wallets.length === 1 ? 'wallet' : 'wallets'}</span>
+              <span className="text-foreground/40 text-xs">{wallets.length} active {wallets.length === 1 ? 'wallet' : 'wallets'}</span>
             </div>
             {cards.length > 0 && (
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-indigo-400" />
-                <span className="text-white/40 text-xs">{cards.filter(c => c.status === 'active').length} active {cards.filter(c => c.status === 'active').length === 1 ? 'card' : 'cards'}</span>
+                <span className="text-foreground/40 text-xs">{cards.filter(c => c.status === 'active').length} active {cards.filter(c => c.status === 'active').length === 1 ? 'card' : 'cards'}</span>
               </div>
             )}
           </div>
@@ -170,16 +170,16 @@ export default function Dashboard() {
             className={`
               flex flex-col items-center gap-2 p-3 rounded-2xl
               bg-gradient-to-br ${action.color}
-              border border-white/10 hover:border-white/20
+              border border-foreground/10 hover:border-foreground/20
               transition-all duration-200
             `}
           >
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-              <action.icon className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-foreground/10 flex items-center justify-center">
+              <action.icon className="w-5 h-5 text-foreground" />
             </div>
             <div className="text-center">
-              <p className="text-white text-xs font-semibold">{action.label}</p>
-              <p className="text-white/30 text-[10px]">{action.description}</p>
+              <p className="text-foreground text-xs font-semibold">{action.label}</p>
+              <p className="text-foreground/30 text-[10px]">{action.description}</p>
             </div>
           </motion.button>
         ))}
@@ -190,7 +190,7 @@ export default function Dashboard() {
         {/* Wallets */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-white font-semibold text-sm">My Wallets</h2>
+            <h2 className="text-foreground font-semibold text-sm">My Wallets</h2>
             <button onClick={() => navigate('/wallet')} className="text-indigo-400 text-xs hover:text-indigo-300 flex items-center gap-0.5">
               All wallets <ChevronRight className="w-3 h-3" />
             </button>
@@ -217,7 +217,7 @@ export default function Dashboard() {
         {/* Featured Card */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-white font-semibold text-sm">Active Card</h2>
+            <h2 className="text-foreground font-semibold text-sm">Active Card</h2>
             <button onClick={() => navigate('/cards')} className="text-indigo-400 text-xs hover:text-indigo-300 flex items-center gap-0.5">
               All cards <ChevronRight className="w-3 h-3" />
             </button>
@@ -230,10 +230,10 @@ export default function Dashboard() {
               <VirtualCard card={activeCard} size="lg" />
             ) : (
               <div className="glass-card p-8 text-center w-full">
-                <CreditCard className="w-12 h-12 text-white/20 mx-auto mb-3" />
-                <p className="text-white/40 text-sm mb-4">No active cards</p>
-                <button onClick={() => navigate('/cards/new')} className="btn-brand text-sm py-2 px-4">
-                  <Plus className="w-4 h-4 mr-1.5" />
+                <CreditCard className="w-12 h-12 text-foreground/20 mx-auto mb-3" />
+                <p className="text-foreground/40 text-sm mb-4">No active cards</p>
+                <button onClick={() => navigate('/cards/new')} className="btn-brand inline-flex items-center gap-1.5 text-sm py-2 px-5">
+                  <Plus className="w-4 h-4" />
                   Issue Card
                 </button>
               </div>
@@ -245,20 +245,20 @@ export default function Dashboard() {
       {/* Recent Transactions */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-white font-semibold text-sm">Recent Transactions</h2>
+          <h2 className="text-foreground font-semibold text-sm">Recent Transactions</h2>
           <button onClick={() => navigate('/transactions')} className="text-indigo-400 text-xs hover:text-indigo-300 flex items-center gap-0.5">
             View all <ChevronRight className="w-3 h-3" />
           </button>
         </div>
 
-        <div className="glass-card divide-y divide-white/5">
+        <div className="glass-card divide-y divide-foreground/5">
           {txLoading ? (
             Array.from({ length: 4 }).map((_, i) => <TransactionSkeleton key={i} />)
           ) : transactions.length > 0 ? (
             transactions.map(txn => <TransactionRow key={txn.id} txn={txn} />)
           ) : (
             <div className="p-8 text-center">
-              <p className="text-white/20 text-sm">No transactions yet</p>
+              <p className="text-foreground/20 text-sm">No transactions yet</p>
             </div>
           )}
         </div>
@@ -274,7 +274,7 @@ function TransactionRow({ txn }: { txn: WalletTransaction }) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex items-center gap-4 p-4 hover:bg-white/3 transition-colors"
+      className="flex items-center gap-4 p-4 hover:bg-foreground/3 transition-colors"
     >
       <div className={`
         w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
@@ -287,12 +287,12 @@ function TransactionRow({ txn }: { txn: WalletTransaction }) {
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-white text-sm font-medium truncate">{txn.description ?? titleCase(txn.type)}</p>
-        <p className="text-white/30 text-xs">{formatDate(txn.created_at, 'relative')}</p>
+        <p className="text-foreground text-sm font-medium truncate">{txn.description ?? titleCase(txn.type)}</p>
+        <p className="text-foreground/30 text-xs">{formatDate(txn.created_at, 'relative')}</p>
       </div>
 
       <div className="text-right">
-        <p className={`font-semibold text-sm ${isCredit ? 'text-emerald-400' : 'text-white'}`}>
+        <p className={`font-semibold text-sm ${isCredit ? 'text-emerald-400' : 'text-foreground'}`}>
           {isCredit ? '+' : '-'}{formatCurrency(txn.amount, txn.currency)}
         </p>
         <StatusBadge status={txn.status} />
@@ -328,8 +328,8 @@ function TransactionSkeleton() {
 function EmptyState({ message, action, onAction }: { message: string; action: string; onAction: () => void }) {
   return (
     <div className="glass-card p-8 text-center">
-      <Zap className="w-10 h-10 text-white/10 mx-auto mb-3" />
-      <p className="text-white/30 text-sm mb-4">{message}</p>
+      <Zap className="w-10 h-10 text-foreground/10 mx-auto mb-3" />
+      <p className="text-foreground/30 text-sm mb-4">{message}</p>
       <button onClick={onAction} className="btn-ghost text-sm py-2 px-4">{action}</button>
     </div>
   );

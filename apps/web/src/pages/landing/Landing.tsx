@@ -5,7 +5,7 @@ import {
   Zap, Shield, Globe, CreditCard, ArrowRight, CheckCircle,
   Wallet, BarChart3, Users, Star, ChevronRight,
   Building2, TrendingUp, XCircle, AlertCircle,
-  Gift, Fingerprint,
+  Gift, Fingerprint, Ticket,
 } from 'lucide-react';
 import { LandingNav } from '../../components/landing/LandingNav';
 import { LandingFooter } from '../../components/landing/LandingFooter';
@@ -142,11 +142,11 @@ function FloatingCard() {
         <div className="w-7 h-7 rounded-full bg-amber-500/80" />
       </div>
       <div className="absolute bottom-10 left-5 right-5">
-        <p className="font-mono text-white/90 tracking-[0.18em] text-sm">4242 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 8765</p>
+        <p className="font-mono text-foreground/90 tracking-[0.18em] text-sm">4242 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 8765</p>
       </div>
       <div className="absolute bottom-5 left-5 right-5 flex justify-between items-end">
-        <p className="text-white font-semibold text-xs tracking-wide uppercase">T. MUPFAWA</p>
-        <p className="text-white/60 text-[10px] font-mono">08/28</p>
+        <p className="text-foreground font-semibold text-xs tracking-wide uppercase">T. MUPFAWA</p>
+        <p className="text-foreground/60 text-[10px] font-mono">08/28</p>
       </div>
     </motion.div>
   );
@@ -167,10 +167,10 @@ function FloatingCardSmall() {
       <div className="absolute inset-0 bg-noise opacity-20" />
       <div className="absolute top-4 left-4 w-7 h-5 rounded bg-gradient-to-br from-amber-300 to-amber-400 opacity-80" />
       <div className="absolute bottom-4 left-4 right-4">
-        <p className="font-mono text-white/70 tracking-[0.12em] text-[10px] mb-1.5">5262 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 1193</p>
+        <p className="font-mono text-foreground/70 tracking-[0.12em] text-[10px] mb-1.5">5262 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 1193</p>
         <div className="flex justify-between items-end">
-          <p className="text-white/60 text-[10px] font-medium uppercase">O. ADEYEMI</p>
-          <p className="text-white/40 text-[10px] font-mono">12/27</p>
+          <p className="text-foreground/60 text-[10px] font-medium uppercase">O. ADEYEMI</p>
+          <p className="text-foreground/40 text-[10px] font-mono">12/27</p>
         </div>
       </div>
     </motion.div>
@@ -189,7 +189,7 @@ function AuthFeed() {
   return (
     <div className="space-y-2">
       {events.map((e, i) => (
-        <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+        <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-foreground/[0.03] border border-foreground/[0.05]">
           <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
             e.type === 'approved' ? 'bg-emerald-500/15' : 'bg-rose-500/15'
           }`}>
@@ -199,8 +199,8 @@ function AuthFeed() {
             }
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-white text-xs font-medium truncate">{e.flag} {e.merchant}</p>
-            <p className="text-white/30 text-[10px]">
+            <p className="text-foreground text-xs font-medium truncate">{e.flag} {e.merchant}</p>
+            <p className="text-foreground/30 text-[10px]">
               {e.type === 'declined' ? e.reason : e.currency} · {e.time}
             </p>
           </div>
@@ -223,7 +223,7 @@ export default function Landing() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
   return (
-    <div className="min-h-screen bg-[#0a0a16]">
+    <div className="min-h-screen bg-background">
       <LandingNav />
 
       {/* -- Hero: full viewport width, no max-w cap ------------------------- */}
@@ -255,7 +255,7 @@ export default function Landing() {
               </motion.p>
 
               <motion.h1 {...fadeUp(0.06)}
-                className="font-display font-bold leading-[1.08] text-white mb-4
+                className="font-display font-bold leading-[1.08] text-foreground mb-4
                            text-[1.875rem] sm:text-[2.375rem] lg:text-[2.75rem] xl:text-[3.125rem]">
                 Your payments,{' '}
                 <span className="text-gradient">everywhere</span>{' '}
@@ -263,7 +263,7 @@ export default function Landing() {
               </motion.h1>
 
               <motion.p {...fadeUp(0.12)}
-                className="text-white/50 text-sm sm:text-[0.9375rem] leading-relaxed mb-8">
+                className="text-foreground/50 text-sm sm:text-[0.9375rem] leading-relaxed mb-8">
                 Instant virtual Visa &amp; Mastercard cards, voucher-to-card redemption, and
                 real-time authorisations — built for international payments that actually work.
               </motion.p>
@@ -284,7 +284,7 @@ export default function Landing() {
               <motion.div {...fadeUp(0.22)}
                 className="flex flex-wrap items-center gap-4 mt-7 justify-center lg:justify-start">
                 {['Free to join', 'No monthly fees', '180+ countries'].map((item) => (
-                  <div key={item} className="flex items-center gap-1.5 text-white/35 text-xs">
+                  <div key={item} className="flex items-center gap-1.5 text-foreground/35 text-xs">
                     <CheckCircle className="w-3 h-3 text-emerald-400 flex-shrink-0" />
                     {item}
                   </div>
@@ -327,12 +327,12 @@ export default function Landing() {
       </section>
 
       {/* -- Stats ----------------------------------------------------------- */}
-      <section className="border-y border-white/[0.06] bg-white/[0.015] py-8 sm:py-10 px-4 sm:px-6 lg:px-10">
+      <section className="border-y border-foreground/[0.06] bg-foreground/[0.015] py-8 sm:py-10 px-4 sm:px-6 lg:px-10">
         <div className="max-w-5xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {STATS.map((s, i) => (
             <motion.div key={s.label} {...stagger(i)} className="text-center">
               <p className="font-display font-bold text-gradient text-3xl sm:text-4xl tabular-nums mb-0.5">{s.value}</p>
-              <p className="text-white/40 text-xs sm:text-sm">{s.label}</p>
+              <p className="text-foreground/40 text-xs sm:text-sm">{s.label}</p>
             </motion.div>
           ))}
         </div>
@@ -344,11 +344,11 @@ export default function Landing() {
           <motion.div {...fadeUp()} className="mb-10 sm:mb-14 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
             <div>
               <p className="text-indigo-400 font-semibold text-xs uppercase tracking-widest mb-2">Built for real payments</p>
-              <h2 className="font-display font-bold text-white text-2xl sm:text-[1.875rem] lg:text-[2.25rem]">
+              <h2 className="font-display font-bold text-foreground text-2xl sm:text-[1.875rem] lg:text-[2.25rem]">
                 Everything from issuance to settlement
               </h2>
             </div>
-            <p className="text-white/40 text-sm sm:text-[0.9375rem] max-w-sm lg:text-right lg:pb-1">
+            <p className="text-foreground/40 text-sm sm:text-[0.9375rem] max-w-sm lg:text-right lg:pb-1">
               From the moment a card is created to every authorisation decision — full visibility, full control.
             </p>
           </motion.div>
@@ -365,8 +365,8 @@ export default function Landing() {
                 <div className={`w-9 h-9 rounded-xl ${f.iconBg} flex items-center justify-center mb-3 ${f.iconColor}`}>
                   <f.icon className="w-4 h-4" />
                 </div>
-                <h3 className="font-display font-semibold text-white text-[0.9375rem] mb-1.5">{f.title}</h3>
-                <p className="text-white/45 text-xs sm:text-[0.8125rem] leading-relaxed">{f.desc}</p>
+                <h3 className="font-display font-semibold text-foreground text-[0.9375rem] mb-1.5">{f.title}</h3>
+                <p className="text-foreground/45 text-xs sm:text-[0.8125rem] leading-relaxed">{f.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -374,16 +374,16 @@ export default function Landing() {
       </section>
 
       {/* -- How it works ---------------------------------------------------- */}
-      <section id="how-it-works" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 bg-white/[0.01] border-y border-white/[0.05]">
+      <section id="how-it-works" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 bg-foreground/[0.01] border-y border-foreground/[0.05]">
         <div className="max-w-7xl mx-auto">
           <motion.div {...fadeUp()} className="mb-10 sm:mb-14 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
             <div>
               <p className="text-purple-400 font-semibold text-xs uppercase tracking-widest mb-2">Pay per use</p>
-              <h2 className="font-display font-bold text-white text-2xl sm:text-[1.875rem] lg:text-[2.25rem]">
+              <h2 className="font-display font-bold text-foreground text-2xl sm:text-[1.875rem] lg:text-[2.25rem]">
                 Card in hand in under 60 seconds
               </h2>
             </div>
-            <p className="text-white/40 text-sm sm:text-[0.9375rem] max-w-sm lg:text-right lg:pb-1">
+            <p className="text-foreground/40 text-sm sm:text-[0.9375rem] max-w-sm lg:text-right lg:pb-1">
               No subscription. No waiting. Join free, load balance with a voucher, and start spending globally.
             </p>
           </motion.div>
@@ -392,15 +392,15 @@ export default function Landing() {
             {STEPS.map((step, i) => (
               <motion.div key={step.num} {...stagger(i)} className="relative">
                 <span className="absolute -top-2 -left-1 font-display font-bold text-[5rem] sm:text-[6rem]
-                                 text-white/[0.04] leading-none select-none pointer-events-none">
+                                 text-foreground/[0.04] leading-none select-none pointer-events-none">
                   {step.num}
                 </span>
                 <div className="relative">
                   <div className="w-11 h-11 rounded-2xl glass-card border border-indigo-500/20 flex items-center justify-center mb-4">
                     <step.icon className="w-5 h-5 text-indigo-400" />
                   </div>
-                  <h3 className="font-display font-semibold text-white text-base mb-2">{step.title}</h3>
-                  <p className="text-white/45 text-xs sm:text-[0.8125rem] leading-relaxed">{step.desc}</p>
+                  <h3 className="font-display font-semibold text-foreground text-base mb-2">{step.title}</h3>
+                  <p className="text-foreground/45 text-xs sm:text-[0.8125rem] leading-relaxed">{step.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -416,12 +416,12 @@ export default function Landing() {
             <div className="glass-card p-5 relative">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-white/40 text-[10px] uppercase tracking-wider mb-0.5">Active card</p>
-                  <p className="font-mono text-white text-sm font-semibold tracking-widest">4242 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 8765</p>
+                  <p className="text-foreground/40 text-[10px] uppercase tracking-wider mb-0.5">Active card</p>
+                  <p className="font-mono text-foreground text-sm font-semibold tracking-widest">4242 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 8765</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-white/40 text-[10px] mb-0.5">Balance</p>
-                  <p className="font-display font-bold text-white text-xl tabular-nums">$248.50</p>
+                  <p className="text-foreground/40 text-[10px] mb-0.5">Balance</p>
+                  <p className="font-display font-bold text-foreground text-xl tabular-nums">$248.50</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 mb-4 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
@@ -429,17 +429,17 @@ export default function Landing() {
                 <p className="text-emerald-400 text-xs font-medium">Authorisation engine active</p>
                 <p className="text-emerald-400/60 text-[10px] ml-auto">~0.3s avg</p>
               </div>
-              <p className="text-white/30 text-[10px] uppercase tracking-wider mb-2">Recent authorisations</p>
+              <p className="text-foreground/30 text-[10px] uppercase tracking-wider mb-2">Recent authorisations</p>
               <AuthFeed />
             </div>
           </motion.div>
 
           <motion.div {...fadeUp(0.1)} className="order-1 lg:order-2">
             <p className="text-indigo-400 font-semibold text-xs uppercase tracking-widest mb-3">Real-time engine</p>
-            <h2 className="font-display font-bold text-white leading-tight mb-4 text-2xl sm:text-[1.875rem] lg:text-[2.25rem]">
+            <h2 className="font-display font-bold text-foreground leading-tight mb-4 text-2xl sm:text-[1.875rem] lg:text-[2.25rem]">
               Every authorisation, every decline — in real time
             </h2>
-            <p className="text-white/45 text-sm sm:text-[0.9375rem] leading-relaxed mb-6">
+            <p className="text-foreground/45 text-sm sm:text-[0.9375rem] leading-relaxed mb-6">
               Our authorisation engine processes every payment request in milliseconds.
               Approved transactions land instantly; declines include full reason codes so you
               always know exactly what happened.
@@ -453,7 +453,7 @@ export default function Landing() {
               ].map((item) => (
                 <div key={item} className="flex items-start gap-2.5">
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-white/65 text-sm">{item}</p>
+                  <p className="text-foreground/65 text-sm">{item}</p>
                 </div>
               ))}
             </div>
@@ -465,15 +465,15 @@ export default function Landing() {
       </section>
 
       {/* -- Agent section --------------------------------------------------- */}
-      <section id="for-agents" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 bg-white/[0.01] border-y border-white/[0.05]">
+      <section id="for-agents" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 bg-foreground/[0.01] border-y border-foreground/[0.05]">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <motion.div {...fadeUp()}>
             <p className="text-purple-400 font-semibold text-xs uppercase tracking-widest mb-3">For agents &amp; distributors</p>
-            <h2 className="font-display font-bold text-white leading-tight mb-4 text-2xl sm:text-[1.875rem] lg:text-[2.25rem]">
-              Build a card issuance business on vPay
+            <h2 className="font-display font-bold text-foreground leading-tight mb-4 text-2xl sm:text-[1.875rem] lg:text-[2.25rem]">
+              Build a card issuance business on ePayZW
             </h2>
-            <p className="text-white/45 text-sm sm:text-[0.9375rem] leading-relaxed mb-6">
-              Become a vPay agent. Issue virtual cards to your customers, sell redemption vouchers,
+            <p className="text-foreground/45 text-sm sm:text-[0.9375rem] leading-relaxed mb-6">
+              Become an ePayZW agent. Issue virtual cards to your customers, sell redemption vouchers,
               and earn commissions on every transaction. Your own card programme, powered by our infrastructure.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-7">
@@ -488,8 +488,8 @@ export default function Landing() {
                     <item.icon className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <p className="text-white font-semibold text-xs mb-0.5">{item.title}</p>
-                    <p className="text-white/40 text-[11px] leading-relaxed">{item.desc}</p>
+                    <p className="text-foreground font-semibold text-xs mb-0.5">{item.title}</p>
+                    <p className="text-foreground/40 text-[11px] leading-relaxed">{item.desc}</p>
                   </div>
                 </motion.div>
               ))}
@@ -516,15 +516,91 @@ export default function Landing() {
                 className="glass-card p-4 sm:p-5 flex items-center justify-between cursor-default"
               >
                 <div>
-                  <p className="text-white/40 text-[11px] mb-0.5">{m.label}</p>
-                  <p className="font-display font-bold text-white text-xl sm:text-2xl tabular-nums">{m.value}</p>
+                  <p className="text-foreground/40 text-[11px] mb-0.5">{m.label}</p>
+                  <p className="font-display font-bold text-foreground text-xl sm:text-2xl tabular-nums">{m.value}</p>
                 </div>
                 <div className="text-right">
                   <p className={`text-xs font-medium ${m.color}`}>{m.delta}</p>
-                  <ChevronRight className="w-3.5 h-3.5 text-white/20 ml-auto mt-1" />
+                  <ChevronRight className="w-3.5 h-3.5 text-foreground/20 ml-auto mt-1" />
                 </div>
               </motion.div>
             ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* -- Voucher partner banner ------------------------------------------ */}
+      <section className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            {...fadeUp()}
+            className="relative overflow-hidden rounded-3xl border border-amber-500/20
+                       bg-gradient-to-br from-amber-600/[0.08] via-transparent to-emerald-600/[0.06] p-8 sm:p-10 lg:p-12"
+          >
+            <div className="glow-orb w-80 h-80 -right-20 -bottom-20 bg-amber-500 opacity-[0.07]" />
+            <div className="glow-orb w-56 h-56 -left-10 -top-10 bg-emerald-500 opacity-[0.06]" />
+
+            <div className="relative flex flex-col lg:flex-row lg:items-center gap-8 lg:gap-14">
+
+              {/* Left: headline + copy */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+                    <Ticket className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <span className="text-amber-400 font-semibold text-xs uppercase tracking-widest">
+                    Voucher partner programme
+                  </span>
+                </div>
+
+                <h2 className="font-display font-bold text-foreground text-2xl sm:text-[1.875rem] leading-tight mb-3">
+                  Sell vouchers.{' '}
+                  <span className="bg-gradient-to-r from-amber-400 to-emerald-400 bg-clip-text text-transparent">
+                    Earn on every redemption.
+                  </span>
+                </h2>
+
+                <p className="text-foreground/50 text-sm sm:text-[0.9375rem] leading-relaxed max-w-lg">
+                  Want to issue and sell ePayZW redemption vouchers through your business or network?
+                  Fill in a short application — we review every request and respond within 2 business days.
+                  Approval is required; accepted partners get access to our full voucher distribution toolkit.
+                </p>
+              </div>
+
+              {/* Divider */}
+              <div className="hidden lg:block w-px self-stretch bg-foreground/[0.07] flex-shrink-0" />
+
+              {/* Right: bullet points + CTA */}
+              <div className="lg:w-72 flex-shrink-0 space-y-5">
+                <ul className="space-y-2.5">
+                  {[
+                    'Set your own voucher denominations',
+                    'Earn commission on every redemption',
+                    'Quick 2-minute application form',
+                    'Subject to review & approval',
+                  ].map((item) => (
+                    <li key={item} className="flex items-center gap-2.5">
+                      <CheckCircle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                      <span className="text-foreground/65 text-sm">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  to="/auth/register"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold
+                             bg-amber-500 hover:bg-amber-400 text-black rounded-xl
+                             transition-all duration-200 active:scale-[0.98]"
+                >
+                  Apply to become a partner
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+
+                <p className="text-foreground/25 text-[11px] text-center">
+                  Simple application · Response within 2 business days
+                </p>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -535,11 +611,11 @@ export default function Landing() {
           <motion.div {...fadeUp()} className="mb-10 sm:mb-12 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
             <div>
               <p className="text-emerald-400 font-semibold text-xs uppercase tracking-widest mb-2">Trust &amp; safety</p>
-              <h2 className="font-display font-bold text-white text-2xl sm:text-[1.875rem] lg:text-[2.25rem]">
+              <h2 className="font-display font-bold text-foreground text-2xl sm:text-[1.875rem] lg:text-[2.25rem]">
                 Security at every layer
               </h2>
             </div>
-            <p className="text-white/40 text-sm sm:text-[0.9375rem] max-w-sm lg:text-right lg:pb-1">
+            <p className="text-foreground/40 text-sm sm:text-[0.9375rem] max-w-sm lg:text-right lg:pb-1">
               Every card, every authorisation, every transaction flows through security-first infrastructure.
             </p>
           </motion.div>
@@ -559,8 +635,8 @@ export default function Landing() {
                 <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-3">
                   <item.icon className="w-4 h-4" />
                 </div>
-                <h3 className="font-display font-semibold text-white text-sm mb-1.5">{item.title}</h3>
-                <p className="text-white/40 text-xs leading-relaxed">{item.desc}</p>
+                <h3 className="font-display font-semibold text-foreground text-sm mb-1.5">{item.title}</h3>
+                <p className="text-foreground/40 text-xs leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -568,16 +644,16 @@ export default function Landing() {
       </section>
 
       {/* -- Testimonials ---------------------------------------------------- */}
-      <section className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 bg-white/[0.01] border-y border-white/[0.05]">
+      <section className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 bg-foreground/[0.01] border-y border-foreground/[0.05]">
         <div className="max-w-7xl mx-auto">
           <motion.div {...fadeUp()} className="mb-10 sm:mb-12 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
             <div>
               <p className="text-indigo-400 font-semibold text-xs uppercase tracking-widest mb-2">Real users</p>
-              <h2 className="font-display font-bold text-white text-2xl sm:text-[1.875rem] lg:text-[2.25rem]">
+              <h2 className="font-display font-bold text-foreground text-2xl sm:text-[1.875rem] lg:text-[2.25rem]">
                 Payments that actually go through
               </h2>
             </div>
-            <p className="text-white/40 text-sm lg:text-right lg:pb-1 max-w-xs">
+            <p className="text-foreground/40 text-sm lg:text-right lg:pb-1 max-w-xs">
               Real people, real transactions — see what our users say.
             </p>
           </motion.div>
@@ -596,14 +672,14 @@ export default function Landing() {
                     <Star key={s} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                   ))}
                 </div>
-                <p className="text-white/65 text-xs sm:text-[0.8125rem] leading-relaxed flex-1">"{t.body}"</p>
-                <div className="flex items-center gap-2.5 pt-2 border-t border-white/[0.06]">
-                  <div className={`w-8 h-8 rounded-full ${t.color} flex items-center justify-center text-white font-bold text-xs flex-shrink-0`}>
+                <p className="text-foreground/65 text-xs sm:text-[0.8125rem] leading-relaxed flex-1">"{t.body}"</p>
+                <div className="flex items-center gap-2.5 pt-2 border-t border-foreground/[0.06]">
+                  <div className={`w-8 h-8 rounded-full ${t.color} flex items-center justify-center text-foreground font-bold text-xs flex-shrink-0`}>
                     {t.avatar}
                   </div>
                   <div>
-                    <p className="text-white font-semibold text-xs">{t.name}</p>
-                    <p className="text-white/35 text-[10px]">{t.role}</p>
+                    <p className="text-foreground font-semibold text-xs">{t.name}</p>
+                    <p className="text-foreground/35 text-[10px]">{t.role}</p>
                   </div>
                 </div>
               </motion.div>
@@ -618,11 +694,11 @@ export default function Landing() {
           <div className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-b from-indigo-600/10 to-transparent p-10 sm:p-14">
             <div className="glow-orb w-64 h-64 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-indigo-600 opacity-[0.18]" />
             <motion.div {...fadeUp()} className="relative">
-              <h2 className="font-display font-bold text-white leading-tight mb-4 text-[1.875rem] sm:text-[2.375rem]">
+              <h2 className="font-display font-bold text-foreground leading-tight mb-4 text-[1.875rem] sm:text-[2.375rem]">
                 Ready to start accepting{' '}
                 <span className="text-gradient">international payments?</span>
               </h2>
-              <p className="text-white/45 text-sm sm:text-[0.9375rem] leading-relaxed mb-8">
+              <p className="text-foreground/45 text-sm sm:text-[0.9375rem] leading-relaxed mb-8">
                 Join free. No monthly fee. Issue your first virtual card in under a minute
                 and start spending across 180+ countries.
               </p>
@@ -637,7 +713,7 @@ export default function Landing() {
                   Sign in
                 </Link>
               </div>
-              <p className="text-white/25 text-xs mt-5">Free to join · Pay per use · No monthly fee</p>
+              <p className="text-foreground/25 text-xs mt-5">Free to join · Pay per use · No monthly fee</p>
             </motion.div>
           </div>
         </div>

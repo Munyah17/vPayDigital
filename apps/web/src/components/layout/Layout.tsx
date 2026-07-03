@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Search, Menu } from 'lucide-react';
 import { Sidebar } from './Sidebar';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import { useAuthStore } from '../../stores/authStore';
 import { useWalletStore } from '../../stores/walletStore';
 
@@ -29,7 +30,7 @@ export function Layout() {
   if (!profile) return null;
 
   return (
-    <div className="flex h-screen bg-[#0a0a16] overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden">
       {/* Mobile sidebar overlay */}
       <AnimatePresence>
         {mobileSidebarOpen && (
@@ -69,33 +70,36 @@ export function Layout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
-        <header className="flex items-center justify-between px-4 lg:px-6 py-4 border-b border-white/5 bg-[#0a0a16]/80 backdrop-blur-xl flex-shrink-0">
+        <header className="flex items-center justify-between px-4 lg:px-6 py-4 border-b border-foreground/5 bg-background/80 backdrop-blur-xl flex-shrink-0">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl hover:bg-white/5 transition-colors"
+              className="lg:hidden p-2 rounded-xl hover:bg-foreground/5 transition-colors"
             >
-              <Menu className="w-5 h-5 text-white/60" />
+              <Menu className="w-5 h-5 text-foreground/60" />
             </button>
 
             {/* Search */}
-            <div className="hidden sm:flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 w-64">
-              <Search className="w-4 h-4 text-white/30 flex-shrink-0" />
+            <div className="hidden sm:flex items-center gap-2 bg-foreground/5 border border-foreground/10 rounded-xl px-3 py-2 w-64">
+              <Search className="w-4 h-4 text-foreground/30 flex-shrink-0" />
               <input
                 type="text"
                 placeholder="Search transactions, cards..."
-                className="bg-transparent text-white/60 placeholder:text-white/20 text-sm flex-1 outline-none"
+                className="bg-transparent text-foreground/60 placeholder:text-foreground/20 text-sm flex-1 outline-none"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Theme toggle */}
+            <ThemeToggle />
+
             {/* Notifications */}
             <button
               onClick={() => navigate('/notifications')}
-              className="relative p-2 rounded-xl hover:bg-white/5 transition-colors"
+              className="relative p-2 rounded-xl hover:bg-foreground/5 transition-colors"
             >
-              <Bell className="w-5 h-5 text-white/60" />
+              <Bell className="w-5 h-5 text-foreground/60" />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-purple-500 text-white text-[9px] font-bold flex items-center justify-center">
                   {unreadCount > 9 ? '9+' : unreadCount}

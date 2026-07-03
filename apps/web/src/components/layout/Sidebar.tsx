@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, CreditCard, Wallet, Ticket, ArrowUpDown,
   User, Settings, LogOut, ChevronLeft, HelpCircle,
-  Users, BarChart3, Zap, ExternalLink
+  Users, BarChart3, Zap
 } from 'lucide-react';
 import { VLogoIcon } from '../ui/VLogoIcon';
 import { useAuthStore } from '../../stores/authStore';
@@ -57,13 +57,13 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       initial={false}
       animate={{ width: isCollapsed ? 72 : 240 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="flex flex-col h-full bg-[#0d0d1a] border-r border-white/5 relative overflow-hidden"
+      className="flex flex-col h-full bg-sidebar border-r border-foreground/5 relative overflow-hidden"
     >
       {/* Background decoration */}
       <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-purple-950/20 to-transparent pointer-events-none" />
 
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-white/5">
+      <div className="flex items-center gap-3 px-4 py-5 border-b border-foreground/5">
         <VLogoIcon className="w-9 flex-shrink-0" />
         <AnimatePresence>
           {!isCollapsed && (
@@ -74,17 +74,17 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <p className="font-display font-bold text-white text-lg leading-none">vPay</p>
-              <p className="text-white/30 text-[10px] font-medium">Virtual Payments</p>
+              <p className="font-display font-bold text-foreground text-lg leading-none">ePayZW</p>
+              <p className="text-foreground/30 text-[10px] font-medium">Zimbabwe Payments</p>
             </motion.div>
           )}
         </AnimatePresence>
         <button
           onClick={onToggle}
-          className="ml-auto p-1 rounded-lg hover:bg-white/5 transition-colors flex-shrink-0"
+          className="ml-auto p-1 rounded-lg hover:bg-foreground/5 transition-colors flex-shrink-0"
         >
           <motion.div animate={{ rotate: isCollapsed ? 180 : 0 }}>
-            <ChevronLeft className="w-4 h-4 text-white/40" />
+            <ChevronLeft className="w-4 h-4 text-foreground/40" />
           </motion.div>
         </button>
       </div>
@@ -102,11 +102,11 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           <>
             <div className="px-2 pt-4 pb-1">
               {!isCollapsed && (
-                <p className="text-white/20 text-[10px] uppercase tracking-wider font-medium">
+                <p className="text-foreground/20 text-[10px] uppercase tracking-wider font-medium">
                   Agent Tools
                 </p>
               )}
-              {isCollapsed && <div className="h-px bg-white/5 mx-1" />}
+              {isCollapsed && <div className="h-px bg-foreground/5 mx-1" />}
             </div>
             {agentItems
               .filter(item => !item.roles || item.roles.includes(role as UserRole))
@@ -118,39 +118,14 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       </nav>
 
       {/* Bottom section */}
-      <div className="px-2 py-4 border-t border-white/5 space-y-1">
+      <div className="px-2 py-4 border-t border-foreground/5 space-y-1">
         <SidebarItem item={{ label: 'Settings', icon: Settings, to: '/settings' }} isCollapsed={isCollapsed} />
         <SidebarItem item={{ label: 'Help', icon: HelpCircle, to: '/help' }} isCollapsed={isCollapsed} />
-
-        {/* Admin panel shortcut — super_admin only */}
-        {role === 'super_admin' && (
-          <a
-            href={import.meta.env.VITE_ADMIN_URL ?? 'https://vpay-admin.vercel.app'}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="nav-item flex w-full text-left"
-          >
-            <ExternalLink className="w-4 h-4 flex-shrink-0" />
-            <AnimatePresence>
-              {!isCollapsed && (
-                <motion.span
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -8 }}
-                  transition={{ duration: 0.15 }}
-                  className="truncate"
-                >
-                  Admin Panel
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </a>
-        )}
 
         {/* User profile */}
         <div className={`
           flex items-center gap-3 px-3 py-2.5 rounded-xl mt-2
-          bg-white/5 border border-white/10
+          bg-foreground/5 border border-foreground/10
         `}>
           <div className="w-8 h-8 rounded-full bg-brand-gradient flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">
             {profile?.full_name?.charAt(0)?.toUpperCase() ?? '?'}
@@ -163,13 +138,13 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 exit={{ opacity: 0 }}
                 className="flex-1 min-w-0"
               >
-                <p className="text-white text-xs font-medium truncate">{profile?.full_name ?? 'User'}</p>
-                <p className="text-white/30 text-[10px] truncate capitalize">{profile?.role ?? 'consumer'}</p>
+                <p className="text-foreground text-xs font-medium truncate">{profile?.full_name ?? 'User'}</p>
+                <p className="text-foreground/30 text-[10px] truncate capitalize">{profile?.role ?? 'consumer'}</p>
               </motion.div>
             )}
           </AnimatePresence>
-          <button onClick={handleSignOut} className="flex-shrink-0 p-1 rounded-lg hover:bg-white/10 transition-colors">
-            <LogOut className="w-3.5 h-3.5 text-white/40 hover:text-red-400 transition-colors" />
+          <button onClick={handleSignOut} className="flex-shrink-0 p-1 rounded-lg hover:bg-foreground/10 transition-colors">
+            <LogOut className="w-3.5 h-3.5 text-foreground/40 hover:text-red-400 transition-colors" />
           </button>
         </div>
       </div>
