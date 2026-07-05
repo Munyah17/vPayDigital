@@ -470,10 +470,10 @@ export default function Landing() {
           <motion.div {...fadeUp()}>
             <p className="text-purple-400 font-semibold text-xs uppercase tracking-widest mb-3">For agents &amp; distributors</p>
             <h2 className="font-display font-bold text-foreground leading-tight mb-4 text-2xl sm:text-[1.875rem] lg:text-[2.25rem]">
-              Build a card issuance business on ePayZW
+              Build a card issuance business on ePay Smart
             </h2>
             <p className="text-foreground/45 text-sm sm:text-[0.9375rem] leading-relaxed mb-6">
-              Become an ePayZW agent. Issue virtual cards to your customers, sell redemption vouchers,
+              Become an ePay Smart agent. Issue virtual cards to your customers, sell redemption vouchers,
               and earn commissions on every transaction. Your own card programme, powered by our infrastructure.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-7">
@@ -561,7 +561,7 @@ export default function Landing() {
                 </h2>
 
                 <p className="text-foreground/50 text-sm sm:text-[0.9375rem] leading-relaxed max-w-lg">
-                  Want to issue and sell ePayZW redemption vouchers through your business or network?
+                  Want to issue and sell ePay Smart redemption vouchers through your business or network?
                   Fill in a short application — we review every request and respond within 2 business days.
                   Approval is required; accepted partners get access to our full voucher distribution toolkit.
                 </p>

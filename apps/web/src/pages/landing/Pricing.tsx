@@ -111,7 +111,7 @@ const FAQS = [
   },
   {
     q: 'What payment methods do you accept for subscriptions?',
-    a: 'You can pay with any ePayZW wallet balance (USD, EUR, GBP), virtual card, or bank transfer. Crypto payments are coming soon.',
+    a: 'You can pay with any ePay Smart wallet balance (USD, EUR, GBP), virtual card, or bank transfer. Crypto payments are coming soon.',
   },
 ];
 
@@ -355,7 +355,7 @@ export default function Pricing() {
               className="btn-brand flex items-center justify-center gap-2 px-6 py-3 text-sm">
               Start free trial <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-            <a href="mailto:sales@epayzw.app"
+            <a href="mailto:sales@epaysmart.live"
               className="btn-ghost flex items-center justify-center gap-2 px-6 py-3 text-sm">
               Talk to sales
             </a>

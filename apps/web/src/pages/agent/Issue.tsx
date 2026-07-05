@@ -64,7 +64,7 @@ export default function Issue() {
             <div>
               <label className="block text-foreground/60 text-sm mb-1.5">Currency</label>
               <select value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} className="input-field">
-                {['USD', 'EUR', 'GBP', 'ZAR', 'NGN', 'GHS'].map((c) => <option key={c} value={c}>{c}</option>)}
+                {['USD', 'EUR', 'GBP', 'ZAR'].map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>

@@ -64,6 +64,7 @@ export default function AuditLogsPage() {
       </div>
 
       <div className="panel overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-foreground/5">
@@ -113,6 +114,7 @@ export default function AuditLogsPage() {
             ))}
           </tbody>
         </table>
+        </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-foreground/5">
           <p className="text-foreground/30 text-xs">{total} entries</p>
           <div className="flex gap-2">

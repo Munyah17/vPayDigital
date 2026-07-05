@@ -25,7 +25,6 @@ export const env = {
   SUPABASE_URL: required('SUPABASE_URL'),
   SUPABASE_ANON_KEY: required('SUPABASE_ANON_KEY'),
   SUPABASE_SERVICE_ROLE_KEY: required('SUPABASE_SERVICE_ROLE_KEY'),
-  SUPABASE_JWT_SECRET: required('SUPABASE_JWT_SECRET'),
 
   JWT_SECRET: required('JWT_SECRET'),
   JWT_EXPIRY: optional('JWT_EXPIRY', '15m'),

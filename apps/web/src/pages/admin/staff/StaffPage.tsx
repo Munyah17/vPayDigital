@@ -50,6 +50,7 @@ export default function StaffPage() {
       </div>
 
       <div className="panel overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-foreground/5">
@@ -103,6 +104,7 @@ export default function StaffPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {showCreate && <CreateStaffDialog onClose={() => setShowCreate(false)} onSuccess={() => { setShowCreate(false); qc.invalidateQueries({ queryKey: ['admin-staff'] }); }} />}
@@ -143,7 +145,7 @@ function CreateStaffDialog({ onClose, onSuccess }: { onClose: () => void; onSucc
           <div>
             <label className="block text-foreground/50 text-sm mb-1.5">Email</label>
             <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              type="email" required className="input w-full" placeholder="jane@epayzw.app" />
+              type="email" required className="input w-full" placeholder="jane@epaysmart.live" />
           </div>
           <div>
             <label className="block text-foreground/50 text-sm mb-1.5">Temporary Password</label>

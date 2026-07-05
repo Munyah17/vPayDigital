@@ -90,7 +90,7 @@ export default function Transactions() {
 
       {/* Summary stats */}
       {filtered.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="glass-card px-4 py-3">
             <p className="text-foreground/30 text-[10px] uppercase tracking-wider mb-1">Transactions</p>
             <p className="text-foreground font-bold font-display text-lg">{filtered.length}</p>

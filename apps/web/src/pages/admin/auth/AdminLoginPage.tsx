@@ -21,7 +21,7 @@ const PORTAL_CONFIG = {
     glow: 'shadow-[0_0_40px_rgba(79,70,229,0.25)]',
     allowedRoles: ['staff'],
     denyMsg: 'This portal is for staff accounts only.',
-    placeholder: 'staff@epayzw.app',
+    placeholder: 'staff@epaysmart.live',
   },
   'super-admin': {
     label: 'Super Admin',
@@ -30,7 +30,7 @@ const PORTAL_CONFIG = {
     glow: 'shadow-[0_0_40px_rgba(147,51,234,0.3)]',
     allowedRoles: ['super_admin'],
     denyMsg: 'This portal is for super admin accounts only.',
-    placeholder: 'admin@epayzw.app',
+    placeholder: 'admin@epaysmart.live',
   },
 };
 
@@ -137,7 +137,7 @@ export default function AdminLoginPage({ portal }: Props) {
 
         {/* Portal badge */}
         <p className="text-center text-foreground/15 text-xs mt-4">
-          {portal === 'super-admin' ? 'Super Admin portal · IP-logged' : 'Staff portal · ePayZW Operations'}
+          {portal === 'super-admin' ? 'Super Admin portal · IP-logged' : 'Staff portal · ePay Smart Operations'}
         </p>
       </motion.div>
     </div>

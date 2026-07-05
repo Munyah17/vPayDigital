@@ -111,7 +111,7 @@ export default function Register() {
 
         <Link to="/" className="flex items-center gap-2.5 relative z-10 w-fit">
           <VLogoIcon className="w-9" />
-          <span className="font-display font-bold text-white text-lg">ePayZW</span>
+          <span className="font-display font-bold text-white text-lg">ePay Smart</span>
         </Link>
 
         <div className="relative z-10">
@@ -152,13 +152,13 @@ export default function Register() {
           {/* Mobile logo */}
           <Link to="/" className="lg:hidden flex items-center gap-2 mb-7 w-fit mx-auto">
             <VLogoIcon className="w-8" />
-            <span className="font-display font-bold text-foreground text-base">ePayZW</span>
+            <span className="font-display font-bold text-foreground text-base">ePay Smart</span>
           </Link>
 
           <div className="glass-card p-6 sm:p-8 shadow-glass">
             <div className="mb-5">
               <h1 className="font-display font-bold text-xl sm:text-2xl text-foreground">Create account</h1>
-              <p className="text-foreground/40 text-sm mt-1">Join ePayZW — it's free</p>
+              <p className="text-foreground/40 text-sm mt-1">Join ePay Smart — it's free</p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

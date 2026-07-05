@@ -12,7 +12,7 @@ const schema = z.object({
   cardholder_name: z.string().min(2).max(26),
   card_type: z.enum(['single_use', 'multi_use', 'disposable', 'subscription']),
   network: z.enum(['visa', 'mastercard']),
-  currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR', 'NGN', 'GHS']),
+  currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR']),
   requested_amount: z.coerce.number().min(5).max(10_000),
   notes: z.string().max(200).optional(),
 });
@@ -86,7 +86,7 @@ export default function RequestCard() {
             <div>
               <label className="block text-foreground/60 text-sm mb-1.5">Currency</label>
               <select {...register('currency')} className="input-field">
-                {['USD', 'EUR', 'GBP', 'ZAR', 'NGN', 'GHS'].map((c) => (
+                {['USD', 'EUR', 'GBP', 'ZAR'].map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>

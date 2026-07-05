@@ -8,7 +8,7 @@ const router = Router();
 
 const initiatePayoutSchema = z.object({
   amount: z.number().min(1),
-  currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR', 'NGN', 'GHS']),
+  currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR']),
   method: z.enum(['bank_transfer', 'crypto', 'mobile_money', 'card']),
   beneficiary_name: z.string().min(2),
   beneficiary_account: z.string().optional(),

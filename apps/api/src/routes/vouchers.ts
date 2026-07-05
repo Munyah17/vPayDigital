@@ -9,7 +9,7 @@ const router = Router();
 const issueVoucherSchema = z.object({
   type: z.enum(['virtual_card', 'gift_card', 'streaming', 'gaming', 'ecommerce', 'subscription', 'utility', 'travel', 'general']),
   amount: z.number().min(1).max(5000),
-  currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR', 'NGN', 'GHS']).default('USD'),
+  currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR']).default('USD'),
   gift_card_brand: z.string().optional(),
   expires_in_days: z.number().min(1).max(365).default(30),
   quantity: z.number().min(1).max(100).default(1),

@@ -77,14 +77,14 @@ export default function Help() {
 
       {/* Quick contact */}
       <div className="grid grid-cols-2 gap-3">
-        <a href="mailto:support@epayzw.app"
+        <a href="mailto:support@epaysmart.live"
           className="glass-card p-4 flex items-center gap-3 hover:border-foreground/20 transition-all rounded-2xl">
           <div className="w-9 h-9 rounded-xl bg-indigo-500/20 flex items-center justify-center">
             <Mail className="w-4 h-4 text-indigo-400" />
           </div>
           <div>
             <p className="text-foreground text-sm font-medium">Email support</p>
-            <p className="text-foreground/40 text-xs">support@epayzw.app</p>
+            <p className="text-foreground/40 text-xs">support@epaysmart.live</p>
           </div>
         </a>
         <div className="glass-card p-4 flex items-center gap-3 rounded-2xl opacity-50 cursor-not-allowed">

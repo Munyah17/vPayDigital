@@ -1,15 +1,30 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useMutation } from '@tanstack/react-query';
-import { ArrowUpRight, Building2, Smartphone, Bitcoin, CreditCard, ChevronRight, ArrowLeft, Info } from 'lucide-react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { ArrowUpRight, Building2, Smartphone, Bitcoin, CreditCard, ChevronRight, ArrowLeft, Info, Star } from 'lucide-react';
 import { api } from '../../lib/axios';
 import { useWalletStore } from '../../stores/walletStore';
 import { formatCurrency } from '@vpay/utils';
+import type { Beneficiary, BeneficiaryType } from '@vpay/types';
 import toast from 'react-hot-toast';
 
 type PayoutMethod = { id: string; label: string; icon: React.ElementType; description: string; fields: FieldDef[] };
 type FieldDef = { id: string; label: string; placeholder: string; type?: string; required?: boolean };
+
+const METHOD_TO_BENEFICIARY_TYPE: Record<string, BeneficiaryType> = {
+  bank_transfer: 'bank',
+  mobile_money: 'mobile_money',
+  crypto: 'crypto',
+  card: 'card',
+};
+
+const BENEFICIARY_TO_PAYOUT_FIELDS: Record<string, Record<string, string>> = {
+  bank: { account_name: 'beneficiary_name', account_number: 'beneficiary_account', bank_name: 'beneficiary_bank', swift_code: 'beneficiary_bank_code', country: 'beneficiary_country' },
+  mobile_money: { account_name: 'beneficiary_name', mobile_number: 'mobile_number', mobile_provider: 'mobile_provider' },
+  crypto: { account_name: 'beneficiary_name', crypto_address: 'crypto_address', crypto_network: 'crypto_network' },
+  card: { account_name: 'beneficiary_name', account_number: 'beneficiary_account', bank_name: 'beneficiary_bank' },
+};
 
 const PAYOUT_METHODS: PayoutMethod[] = [
   {
@@ -74,11 +89,30 @@ export default function PayoutPage() {
   const [amount, setAmount] = useState('');
   const [fields, setFields] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState('');
+  const [saveBeneficiary, setSaveBeneficiary] = useState(false);
 
   const selectedWallet = wallets.find(w => w.id === selectedWalletId) ?? activeWallet;
 
   const fee = amount ? Math.max(parseFloat(amount) * 0.01 + 1, 1.5) : 0;
   const total = amount ? parseFloat(amount) + fee : 0;
+
+  const beneficiaryType = method ? METHOD_TO_BENEFICIARY_TYPE[method.id] : undefined;
+
+  const { data: beneficiariesData } = useQuery({
+    queryKey: ['beneficiaries'],
+    queryFn: () => api.get<{ success: boolean; data: Beneficiary[] }>('/api/beneficiaries'),
+  });
+  const savedBeneficiaries = (beneficiariesData?.data?.data ?? []).filter(b => b.beneficiary_type === beneficiaryType);
+
+  const applyBeneficiary = (b: Beneficiary) => {
+    const mapping = BENEFICIARY_TO_PAYOUT_FIELDS[b.beneficiary_type] ?? {};
+    const next: Record<string, string> = {};
+    for (const [beneficiaryField, payoutField] of Object.entries(mapping)) {
+      const value = (b as unknown as Record<string, string | undefined>)[beneficiaryField];
+      if (value) next[payoutField] = value;
+    }
+    setFields(f => ({ ...f, ...next }));
+  };
 
   const payoutMutation = useMutation({
     mutationFn: () => api.post('/api/wallets/payout', {
@@ -88,7 +122,19 @@ export default function PayoutPage() {
       notes: notes || undefined,
       ...fields,
     }),
-    onSuccess: () => {
+    onSuccess: async () => {
+      if (saveBeneficiary && beneficiaryType) {
+        const mapping = BENEFICIARY_TO_PAYOUT_FIELDS[beneficiaryType] ?? {};
+        const payload: Record<string, string> = { beneficiary_type: beneficiaryType };
+        for (const [beneficiaryField, payoutField] of Object.entries(mapping)) {
+          if (fields[payoutField]) payload[beneficiaryField] = fields[payoutField];
+        }
+        try {
+          await api.post('/api/beneficiaries', payload);
+        } catch {
+          // Payout already succeeded — a failed save shouldn't block the success flow.
+        }
+      }
       toast.success('Payout initiated! Processing within the quoted timeframe.');
       navigate('/wallet');
     },
@@ -142,6 +188,24 @@ export default function PayoutPage() {
             </div>
           </div>
 
+          {savedBeneficiaries.length > 0 && (
+            <div>
+              <label className="block text-foreground/60 text-sm mb-1.5">Saved beneficiaries</label>
+              <div className="flex gap-2 flex-wrap">
+                {savedBeneficiaries.map(b => (
+                  <button
+                    key={b.id}
+                    onClick={() => applyBeneficiary(b)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-foreground/5 hover:bg-foreground/10 border border-foreground/10 text-foreground/70"
+                  >
+                    {b.is_favourite && <Star className="w-3 h-3 text-amber-400 fill-amber-400" />}
+                    {b.nickname || b.account_name || 'Beneficiary'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-4">
             {/* Wallet & amount */}
             <div>
@@ -183,6 +247,12 @@ export default function PayoutPage() {
               <input value={notes} onChange={e => setNotes(e.target.value)} className="input-field"
                 placeholder="Payment reference, memo..." />
             </div>
+
+            <label className="flex items-center gap-2 text-sm text-foreground/60">
+              <input type="checkbox" checked={saveBeneficiary} onChange={e => setSaveBeneficiary(e.target.checked)}
+                className="w-4 h-4 rounded accent-indigo-600" />
+              Save this beneficiary for next time
+            </label>
           </div>
 
           {selectedWallet && amount && total > selectedWallet.balance && (

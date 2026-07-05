@@ -9,7 +9,7 @@ export type UserStatus = 'active' | 'suspended' | 'pending_verification' | 'clos
 export type KycStatus = 'not_submitted' | 'pending' | 'approved' | 'rejected' | 'expired';
 
 export type WalletType = 'consumer' | 'agent_float' | 'master_pool' | 'fee_pool' | 'settlement';
-export type WalletCurrency = 'USD' | 'EUR' | 'GBP' | 'ZAR' | 'NGN' | 'GHS' | 'KES' | 'ZWL' | 'USDT' | 'BTC' | 'ETH';
+export type WalletCurrency = 'USD' | 'EUR' | 'GBP' | 'ZAR' | 'KES' | 'USDT' | 'BTC' | 'ETH';
 export type WalletStatus = 'active' | 'frozen' | 'closed';
 
 export type TransactionType =
@@ -22,7 +22,7 @@ export type TransactionDirection = 'credit' | 'debit';
 export type CardType = 'single_use' | 'multi_use' | 'disposable' | 'time_limited' | 'merchant_locked' | 'subscription';
 export type CardStatus = 'pending' | 'active' | 'frozen' | 'terminated' | 'expired' | 'exhausted' | 'consumed';
 export type CardNetwork = 'visa' | 'mastercard' | 'amex' | 'unionpay';
-export type CardCurrency = 'USD' | 'EUR' | 'GBP' | 'ZAR' | 'NGN' | 'GHS';
+export type CardCurrency = 'USD' | 'EUR' | 'GBP' | 'ZAR';
 
 export type VoucherType = 'virtual_card' | 'gift_card' | 'streaming' | 'gaming' | 'ecommerce' | 'subscription' | 'utility' | 'travel' | 'general';
 export type VoucherStatus = 'active' | 'redeemed' | 'expired' | 'cancelled' | 'refunded';
@@ -109,6 +109,70 @@ export interface Wallet {
   provider_account_id?: string;
   provider_virtual_account_number?: string;
   provider_bank_name?: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VirtualAccount {
+  id: string;
+  user_id: string;
+  wallet_id: string;
+  provider: string;
+  provider_account_id: string;
+  account_number?: string;
+  account_name?: string;
+  bank_name?: string;
+  bank_code?: string;
+  currency: WalletCurrency;
+  is_active: boolean;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export type IbanAccountStatus = 'requested' | 'in_review' | 'provisioning' | 'active' | 'rejected';
+
+export interface IbanAccount {
+  id: string;
+  user_id: string;
+  wallet_id?: string;
+  status: IbanAccountStatus;
+  requested_currency: WalletCurrency;
+  provider?: string;
+  provider_account_id?: string;
+  iban?: string;
+  bic?: string;
+  bank_name?: string;
+  rejection_reason?: string;
+  requested_at: string;
+  activated_at?: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export type BeneficiaryType = 'bank' | 'mobile_money' | 'crypto' | 'card';
+
+export interface Beneficiary {
+  id: string;
+  user_id: string;
+  nickname?: string;
+  beneficiary_type: BeneficiaryType;
+  account_name?: string;
+  account_number?: string;
+  bank_name?: string;
+  bank_code?: string;
+  country?: string;
+  currency?: string;
+  routing_number?: string;
+  swift_code?: string;
+  mobile_number?: string;
+  mobile_provider?: string;
+  crypto_address?: string;
+  crypto_network?: string;
+  is_verified: boolean;
+  is_favourite: boolean;
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;

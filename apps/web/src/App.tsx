@@ -23,6 +23,7 @@ const IssueCard = lazy(() => import('./pages/cards/IssueCard'));
 const RequestCard = lazy(() => import('./pages/cards/RequestCard'));
 
 const Wallet = lazy(() => import('./pages/wallet/Wallet'));
+const BankingServices = lazy(() => import('./pages/banking/BankingServices'));
 
 const Vouchers = lazy(() => import('./pages/vouchers/Vouchers'));
 const RedeemVoucher = lazy(() => import('./pages/vouchers/RedeemVoucher'));
@@ -63,6 +64,7 @@ const StaffPage        = lazy(() => import('./pages/admin/staff/StaffPage'));
 const WalletAdjustPage = lazy(() => import('./pages/admin/wallets/WalletAdjustPage'));
 const AuditLogsPage    = lazy(() => import('./pages/admin/audit/AuditLogsPage'));
 const AdminTransactionsPage = lazy(() => import('./pages/admin/transactions/TransactionsPage'));
+const AdminBankingPage    = lazy(() => import('./pages/admin/banking/AdminBankingPage'));
 
 // ─── Query client ─────────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
@@ -158,6 +160,7 @@ export default function App() {
 
               <Route path="wallet" element={<Wallet />} />
               <Route path="wallet/payout" element={<PayoutPage />} />
+              <Route path="banking" element={<BankingServices />} />
 
               <Route path="vouchers" element={<Vouchers />} />
               <Route path="vouchers/redeem" element={<RedeemVoucher />} />
@@ -198,6 +201,7 @@ export default function App() {
               <Route path="ops/wallets"       element={<WalletAdjustPage />} />
               <Route path="audit"             element={<AuditLogsPage />} />
               <Route path="transactions"      element={<AdminTransactionsPage />} />
+              <Route path="banking"           element={<AdminBankingPage />} />
             </Route>
           </Routes>
         </Suspense>

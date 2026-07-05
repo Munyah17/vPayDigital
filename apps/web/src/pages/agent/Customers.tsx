@@ -68,6 +68,7 @@ export default function Customers() {
 
       {isLoading ? (
         <div className="glass-card overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full">
             <tbody className="divide-y divide-foreground/5">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -77,6 +78,7 @@ export default function Customers() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       ) : filtered.length === 0 ? (
         <div className="glass-card p-12 text-center">
@@ -88,6 +90,7 @@ export default function Customers() {
       ) : (
         <>
           <div className="glass-card overflow-hidden">
+            <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-foreground/5">
@@ -125,6 +128,7 @@ export default function Customers() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
           <div className="flex items-center justify-between">
             <p className="text-foreground/30 text-xs">{total} total customers</p>

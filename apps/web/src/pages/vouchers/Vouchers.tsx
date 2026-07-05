@@ -193,7 +193,7 @@ export default function Vouchers() {
                   <p className="text-foreground/30 text-xs uppercase tracking-wider font-medium mb-3">
                     Supported Voucher Types
                   </p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {[
                       { label: 'Virtual Cards', icon: CreditCard, color: 'text-blue-400' },
                       { label: 'Gift Cards', icon: Gift, color: 'text-pink-400' },

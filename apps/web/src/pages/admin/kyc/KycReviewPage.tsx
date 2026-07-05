@@ -69,7 +69,7 @@ export default function KycReviewPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-      <header className="flex items-center justify-between">
+      <header className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <ShieldCheck className="w-7 h-7 text-brand-400" />
           <div>
@@ -77,10 +77,10 @@ export default function KycReviewPage() {
             <p className="text-foreground/30 text-sm">{total} documents</p>
           </div>
         </div>
-        <div className="flex gap-1 p-1 bg-foreground/5 rounded-xl">
+        <div className="flex gap-1 p-1 bg-foreground/5 rounded-xl overflow-x-auto max-w-full">
           {['pending', 'approved', 'rejected', ''].map(s => (
             <button key={s} onClick={() => { setStatusFilter(s); setPage(1); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all capitalize ${statusFilter === s ? 'bg-foreground/10 text-foreground' : 'text-foreground/40 hover:text-foreground'}`}>
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all capitalize whitespace-nowrap ${statusFilter === s ? 'bg-foreground/10 text-foreground' : 'text-foreground/40 hover:text-foreground'}`}>
               {s || 'All'}
             </button>
           ))}
@@ -94,6 +94,7 @@ export default function KycReviewPage() {
       </div>
 
       <div className="glass-card overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-foreground/5">
@@ -148,6 +149,7 @@ export default function KycReviewPage() {
             ))}
           </tbody>
         </table>
+        </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-foreground/5">
           <p className="text-foreground/30 text-xs">{total} total</p>
           <div className="flex gap-2">
@@ -167,7 +169,7 @@ export default function KycReviewPage() {
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
             <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
-              className="glass-card w-full max-w-xl p-6 space-y-5">
+              className="glass-card w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 space-y-5">
               <div className="flex items-center justify-between">
                 <h2 className="font-bold text-foreground text-lg">Document Review</h2>
                 <button onClick={() => setSelected(null)} className="p-1.5 rounded-lg hover:bg-foreground/10 text-foreground/30">

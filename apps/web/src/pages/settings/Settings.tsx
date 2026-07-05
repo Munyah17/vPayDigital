@@ -18,7 +18,7 @@ function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void 
   );
 }
 
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'ZAR', 'NGN', 'GHS', 'KES', 'ZWL'];
+const CURRENCIES = ['USD', 'EUR', 'GBP', 'ZAR', 'KES'];
 
 type NotifKey = 'transactions' | 'security' | 'promotional';
 

@@ -99,7 +99,7 @@ export default function Login() {
         {/* Top: logo */}
         <Link to="/" className="flex items-center gap-2.5 relative z-10 w-fit">
           <VLogoIcon className="w-9" />
-          <span className="font-display font-bold text-white text-lg">ePayZW</span>
+          <span className="font-display font-bold text-white text-lg">ePay Smart</span>
         </Link>
 
         {/* Middle: headline + features */}
@@ -163,14 +163,14 @@ export default function Login() {
           {/* Mobile logo */}
           <Link to="/" className="lg:hidden flex items-center gap-2 mb-8 w-fit mx-auto">
             <VLogoIcon className="w-8" />
-            <span className="font-display font-bold text-foreground text-base">ePayZW</span>
+            <span className="font-display font-bold text-foreground text-base">ePay Smart</span>
           </Link>
 
           <div className="glass-card p-6 sm:p-8 shadow-glass">
             {/* Header */}
             <div className="mb-6">
               <h1 className="font-display font-bold text-xl sm:text-2xl text-foreground">Welcome back</h1>
-              <p className="text-foreground/40 text-sm mt-1">Sign in to your ePayZW account</p>
+              <p className="text-foreground/40 text-sm mt-1">Sign in to your ePay Smart account</p>
             </div>
 
             {/* Google */}

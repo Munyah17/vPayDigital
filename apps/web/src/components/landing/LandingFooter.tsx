@@ -40,7 +40,7 @@ export function LandingFooter() {
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
                 <span className="text-foreground font-bold text-sm">e</span>
               </div>
-              <span className="font-display font-bold text-foreground text-lg">ePayZW</span>
+              <span className="font-display font-bold text-foreground text-lg">ePay Smart</span>
             </Link>
             <p className="text-foreground/35 text-sm leading-relaxed max-w-xs">
               The modern financial platform for Africa and beyond. Send, receive, spend and earn — globally.
@@ -64,7 +64,7 @@ export function LandingFooter() {
         </div>
 
         <div className="border-t border-foreground/[0.06] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-foreground/25 text-sm">© 2026 ePayZW Technologies. All rights reserved. Powered by Global Space Web.</p>
+          <p className="text-foreground/25 text-sm">© 2026 ePay Smart Technologies. All rights reserved. Powered by Global Space Web.</p>
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-emerald-400 text-xs font-medium">All systems operational</span>

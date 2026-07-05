@@ -29,7 +29,7 @@ export function LandingNav() {
         {/* Logo */}
         <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-2 flex-shrink-0">
           <VLogoIcon className="w-7" />
-          <span className="font-display font-bold text-foreground text-base tracking-tight">ePayZW</span>
+          <span className="font-display font-bold text-foreground text-base tracking-tight">ePay Smart</span>
         </Link>
 
         {/* Desktop nav */}

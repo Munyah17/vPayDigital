@@ -158,7 +158,7 @@ export default function Dashboard() {
         variants={staggerParent}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-4 gap-3"
+        className="grid grid-cols-2 sm:grid-cols-4 gap-3"
       >
         {quickActions.map(action => (
           <motion.button

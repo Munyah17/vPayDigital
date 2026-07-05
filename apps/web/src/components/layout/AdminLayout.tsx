@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Users, UserCheck, CreditCard, Webhook,
   ShieldAlert, DollarSign, Settings, LogOut, Bell, Shield,
   ChevronDown, Activity, Ticket, ShieldCheck, LifeBuoy,
   Zap, ExternalLink, UserCog, Wallet, ScrollText, ArrowLeftRight,
-  Key
+  Key, Landmark, Menu
 } from 'lucide-react';
 import { useAdminStore } from '../../stores/adminStore';
 import { ThemeToggle } from '../ui/ThemeToggle';
+import type { Profile } from '@vpay/types';
 
 // ─── Navigation structure ─────────────────────────────────────────────────────
 
@@ -34,6 +35,10 @@ const NAV_PEOPLE = [
 const NAV_PRODUCTS = [
   { label: 'Cards',            icon: CreditCard, to: '/admin/cards' },
   { label: 'Vouchers',         icon: Ticket,     to: '/admin/vouchers' },
+];
+
+const NAV_BANKING = [
+  { label: 'Banking',          icon: Landmark,   to: '/admin/banking' },
 ];
 
 const NAV_COMPLIANCE = [
@@ -109,109 +114,189 @@ function NavSection({ label, items, sidebarOpen, activeColor = 'indigo' }: {
   );
 }
 
-// ─── Layout ───────────────────────────────────────────────────────────────────
+// ─── Sidebar panel (shared between the persistent desktop rail and the mobile drawer) ─
 
-export function AdminLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const { profile, signOut } = useAdminStore();
-  const navigate = useNavigate();
-  const isSuperAdmin = profile?.role === 'super_admin';
-
-  const handleSignOut = async () => { await signOut(); navigate('/admin'); };
-
+function AdminSidebarPanel({ sidebarOpen, onToggle, isSuperAdmin, profile, onSignOut, signingOut }: {
+  sidebarOpen: boolean;
+  onToggle: () => void;
+  isSuperAdmin: boolean;
+  profile: Profile | null;
+  onSignOut: () => void;
+  signingOut: boolean;
+}) {
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar */}
-      <motion.aside
-        animate={{ width: sidebarOpen ? 224 : 64 }}
-        className="flex flex-col h-full bg-sidebar border-r border-foreground/5 overflow-hidden flex-shrink-0"
-      >
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-4 py-4 border-b border-foreground/5">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isSuperAdmin ? 'bg-purple-600' : 'bg-indigo-600'}`}>
-            <Shield className="w-4 h-4 text-foreground" />
+    <div className="flex flex-col h-full bg-sidebar border-r border-foreground/5 overflow-hidden">
+      {/* Logo */}
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-foreground/5">
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isSuperAdmin ? 'bg-purple-600' : 'bg-indigo-600'}`}>
+          <Shield className="w-4 h-4 text-foreground" />
+        </div>
+        <AnimatePresence>
+          {sidebarOpen && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 min-w-0">
+              <p className="font-bold text-foreground text-sm truncate">ePay Smart Control</p>
+              <p className="text-foreground/30 text-[10px]">{isSuperAdmin ? 'Super Admin' : 'Staff Panel'}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <button onClick={onToggle} className="ml-auto p-1 rounded hover:bg-foreground/5 flex-shrink-0">
+          <motion.div animate={{ rotate: sidebarOpen ? 0 : 180 }}>
+            <ChevronDown className="w-4 h-4 text-foreground/30 -rotate-90" />
+          </motion.div>
+        </button>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 px-2 py-2 space-y-0.5 overflow-y-auto">
+        {isSuperAdmin ? (
+          <>
+            <NavSection label="Super Admin Operations" items={NAV_SUPER_ADMIN_OPERATIONS} sidebarOpen={sidebarOpen} activeColor="purple" />
+            {sidebarOpen && <div className="h-px bg-foreground/5 mx-1 my-1" />}
+            <NavSection label="Platform" items={NAV_PLATFORM} sidebarOpen={sidebarOpen} />
+            <NavSection label="People" items={NAV_PEOPLE} sidebarOpen={sidebarOpen} />
+            <NavSection label="Products" items={NAV_PRODUCTS} sidebarOpen={sidebarOpen} />
+            <NavSection label="Banking" items={NAV_BANKING} sidebarOpen={sidebarOpen} />
+            <NavSection label="Compliance" items={NAV_COMPLIANCE} sidebarOpen={sidebarOpen} />
+            <NavSection label="Finance" items={NAV_FINANCE} sidebarOpen={sidebarOpen} />
+            <NavSection label="System" items={NAV_SYSTEM} sidebarOpen={sidebarOpen} />
+          </>
+        ) : (
+          <>
+            <NavSection label="Management" items={NAV_STAFF_MANAGEMENT} sidebarOpen={sidebarOpen} />
+            <NavSection label="Compliance" items={NAV_STAFF_COMPLIANCE} sidebarOpen={sidebarOpen} />
+            <NavSection label="Products" items={NAV_STAFF_PRODUCTS} sidebarOpen={sidebarOpen} />
+            <NavSection label="Banking" items={NAV_BANKING} sidebarOpen={sidebarOpen} />
+          </>
+        )}
+
+        {/* Back to consumer app */}
+        {sidebarOpen && (
+          <a href="/" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-foreground/20 hover:text-foreground/50 hover:bg-foreground/5 mt-2">
+            <ExternalLink className="w-4 h-4 flex-shrink-0" />
+            <span className="truncate">Consumer App</span>
+          </a>
+        )}
+      </nav>
+
+      {/* Bottom user strip */}
+      <div className="px-2 py-3 border-t border-foreground/5">
+        <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl bg-foreground/[0.03]">
+          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${isSuperAdmin ? 'bg-purple-600' : 'bg-indigo-600'}`}>
+            {profile?.full_name?.charAt(0) ?? 'A'}
           </div>
           <AnimatePresence>
             {sidebarOpen && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 min-w-0">
-                <p className="font-bold text-foreground text-sm truncate">ePayZW Control</p>
-                <p className="text-foreground/30 text-[10px]">{isSuperAdmin ? 'Super Admin' : 'Staff Panel'}</p>
+                <p className="text-foreground text-xs font-medium truncate">{profile?.full_name}</p>
+                <p className="text-foreground/30 text-[10px] capitalize">{profile?.role?.replace('_', ' ')}</p>
               </motion.div>
             )}
           </AnimatePresence>
-          <button onClick={() => setSidebarOpen(o => !o)} className="ml-auto p-1 rounded hover:bg-foreground/5 flex-shrink-0">
-            <motion.div animate={{ rotate: sidebarOpen ? 0 : 180 }}>
-              <ChevronDown className="w-4 h-4 text-foreground/30 -rotate-90" />
-            </motion.div>
+          <button onClick={onSignOut} disabled={signingOut} className="p-1 rounded hover:bg-foreground/10 flex-shrink-0 disabled:opacity-40" title="Sign out">
+            <LogOut className={`w-3.5 h-3.5 text-foreground/30 hover:text-red-400 ${signingOut ? 'animate-pulse' : ''}`} />
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
 
-        {/* Nav */}
-        <nav className="flex-1 px-2 py-2 space-y-0.5 overflow-y-auto">
-          {isSuperAdmin ? (
-            <>
-              <NavSection label="Super Admin Operations" items={NAV_SUPER_ADMIN_OPERATIONS} sidebarOpen={sidebarOpen} activeColor="purple" />
-              {sidebarOpen && <div className="h-px bg-foreground/5 mx-1 my-1" />}
-              <NavSection label="Platform" items={NAV_PLATFORM} sidebarOpen={sidebarOpen} />
-              <NavSection label="People" items={NAV_PEOPLE} sidebarOpen={sidebarOpen} />
-              <NavSection label="Products" items={NAV_PRODUCTS} sidebarOpen={sidebarOpen} />
-              <NavSection label="Compliance" items={NAV_COMPLIANCE} sidebarOpen={sidebarOpen} />
-              <NavSection label="Finance" items={NAV_FINANCE} sidebarOpen={sidebarOpen} />
-              <NavSection label="System" items={NAV_SYSTEM} sidebarOpen={sidebarOpen} />
-            </>
-          ) : (
-            <>
-              <NavSection label="Management" items={NAV_STAFF_MANAGEMENT} sidebarOpen={sidebarOpen} />
-              <NavSection label="Compliance" items={NAV_STAFF_COMPLIANCE} sidebarOpen={sidebarOpen} />
-              <NavSection label="Products" items={NAV_STAFF_PRODUCTS} sidebarOpen={sidebarOpen} />
-            </>
-          )}
+// ─── Layout ───────────────────────────────────────────────────────────────────
 
-          {/* Back to consumer app */}
-          {sidebarOpen && (
-            <a href="/" target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-foreground/20 hover:text-foreground/50 hover:bg-foreground/5 mt-2">
-              <ExternalLink className="w-4 h-4 flex-shrink-0" />
-              <span className="truncate">Consumer App</span>
-            </a>
-          )}
-        </nav>
+export function AdminLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const { profile, signOut } = useAdminStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isSuperAdmin = profile?.role === 'super_admin';
 
-        {/* Bottom user strip */}
-        <div className="px-2 py-3 border-t border-foreground/5">
-          <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl bg-foreground/[0.03]">
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${isSuperAdmin ? 'bg-purple-600' : 'bg-indigo-600'}`}>
-              {profile?.full_name?.charAt(0) ?? 'A'}
-            </div>
-            <AnimatePresence>
-              {sidebarOpen && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 min-w-0">
-                  <p className="text-foreground text-xs font-medium truncate">{profile?.full_name}</p>
-                  <p className="text-foreground/30 text-[10px] capitalize">{profile?.role?.replace('_', ' ')}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <button onClick={handleSignOut} className="p-1 rounded hover:bg-foreground/10 flex-shrink-0" title="Sign out">
-              <LogOut className="w-3.5 h-3.5 text-foreground/30 hover:text-red-400" />
-            </button>
-          </div>
-        </div>
-      </motion.aside>
+  const handleSignOut = async () => {
+    if (isSigningOut) return;
+    setIsSigningOut(true);
+    try {
+      await signOut();
+      navigate('/admin');
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
+
+  return (
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Mobile sidebar overlay */}
+      <AnimatePresence>
+        {mobileSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Desktop sidebar — persistent, collapsible */}
+      <motion.div
+        animate={{ width: sidebarOpen ? 224 : 64 }}
+        className="hidden lg:block flex-shrink-0"
+      >
+        <AdminSidebarPanel
+          sidebarOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(o => !o)}
+          isSuperAdmin={isSuperAdmin}
+          profile={profile}
+          onSignOut={handleSignOut}
+          signingOut={isSigningOut}
+        />
+      </motion.div>
+
+      {/* Mobile sidebar — slide-in drawer */}
+      <AnimatePresence>
+        {mobileSidebarOpen && (
+          <motion.div
+            initial={{ x: -280 }}
+            animate={{ x: 0 }}
+            exit={{ x: -280 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed left-0 top-0 bottom-0 z-50 w-[240px] lg:hidden"
+          >
+            <AdminSidebarPanel
+              sidebarOpen
+              onToggle={() => setMobileSidebarOpen(false)}
+              isSuperAdmin={isSuperAdmin}
+              profile={profile}
+              onSignOut={handleSignOut}
+              signingOut={isSigningOut}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Header */}
-        <header className="flex items-center justify-between px-6 py-4 border-b border-foreground/5 bg-background/90 backdrop-blur-xl flex-shrink-0">
-          <div className="flex items-center gap-3">
+        <header className="flex items-center justify-between gap-2 px-4 lg:px-6 py-4 border-b border-foreground/5 bg-background/90 backdrop-blur-xl flex-shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              aria-label="Open menu"
+              className="lg:hidden p-2 -ml-2 rounded-xl hover:bg-foreground/5 transition-colors flex-shrink-0"
+            >
+              <Menu className="w-5 h-5 text-foreground/60" />
+            </button>
             {isSuperAdmin && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20 flex-shrink-0">
                 <Key className="w-3 h-3 text-purple-400" />
                 <span className="text-purple-400 text-xs font-medium">Super Admin</span>
               </div>
             )}
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
               <Activity className="w-3.5 h-3.5 text-emerald-400" />
               <span className="text-emerald-400 text-xs font-medium">System Online</span>
             </div>

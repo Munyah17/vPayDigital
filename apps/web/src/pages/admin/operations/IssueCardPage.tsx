@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 const NETWORKS   = ['visa', 'mastercard'] as const;
 const CARD_TYPES = ['single_use', 'multi_use', 'disposable', 'time_limited', 'subscription'] as const;
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'ZAR', 'NGN', 'GHS'] as const;
+const CURRENCIES = ['USD', 'EUR', 'GBP', 'ZAR'] as const;
 
 type Profile = { id: string; full_name: string; email: string; kyc_status: string; status: string };
 type IssuedCard = { id: string; masked_pan: string; network: string; currency: string; current_balance: number; card_type: string; status: string };

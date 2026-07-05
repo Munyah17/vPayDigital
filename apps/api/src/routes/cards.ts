@@ -10,7 +10,7 @@ const issueCardSchema = z.object({
   cardholder_name: z.string().min(2).max(26),
   card_type: z.enum(['single_use', 'multi_use', 'disposable', 'time_limited', 'merchant_locked', 'subscription']),
   network: z.enum(['visa', 'mastercard', 'amex', 'unionpay']).default('visa'),
-  currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR', 'NGN', 'GHS']).default('USD'),
+  currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR']).default('USD'),
   amount: z.number().min(5).max(10000),
   spending_limit_daily: z.number().optional(),
   spending_limit_per_transaction: z.number().optional(),
@@ -69,7 +69,7 @@ const requestCardSchema = z.object({
   cardholder_name: z.string().min(2).max(26),
   card_type: z.enum(['single_use', 'multi_use', 'disposable', 'subscription']).default('multi_use'),
   network: z.enum(['visa', 'mastercard']).default('visa'),
-  currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR', 'NGN', 'GHS']).default('USD'),
+  currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR']).default('USD'),
   requested_amount: z.number().min(5).max(10000),
   notes: z.string().max(200).optional(),
 });

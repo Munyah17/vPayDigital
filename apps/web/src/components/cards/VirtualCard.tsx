@@ -75,7 +75,7 @@ export function VirtualCard({ card, showSensitive = false, onToggleSensitive, si
                   <VLogoIcon className="w-5" />
                   <p className="font-display font-bold text-white tracking-wide"
                     style={{ fontSize: size === 'sm' ? '11px' : size === 'lg' ? '15px' : '13px' }}>
-                    ePayZW
+                    ePay Smart
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5">

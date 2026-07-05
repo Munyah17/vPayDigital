@@ -17,6 +17,8 @@ interface AuthState {
   refreshProfile: () => Promise<void>;
 }
 
+let authListenerSubscribed = false;
+
 export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
@@ -40,15 +42,19 @@ export const useAuthStore = create<AuthState>()(
               await get().refreshProfile();
             }
 
-            // Listen for auth changes
-            supabase.auth.onAuthStateChange(async (_event, session) => {
-              if (session?.user) {
-                set({ user: { id: session.user.id, email: session.user.email! } });
-                await get().refreshProfile();
-              } else {
-                set({ user: null, profile: null });
-              }
-            });
+            // Listen for auth changes — guard against duplicate subscriptions if
+            // initialize() is ever called more than once (e.g. dev remounts).
+            if (!authListenerSubscribed) {
+              authListenerSubscribed = true;
+              supabase.auth.onAuthStateChange(async (_event, session) => {
+                if (session?.user) {
+                  set({ user: { id: session.user.id, email: session.user.email! } });
+                  await get().refreshProfile();
+                } else {
+                  set({ user: null, profile: null });
+                }
+              });
+            }
           } finally {
             set({ isLoading: false, isInitialized: true });
           }
@@ -68,8 +74,17 @@ export const useAuthStore = create<AuthState>()(
         },
 
         signOut: async () => {
-          await supabase.auth.signOut();
+          // Clear local state immediately and unconditionally, so a slow or failed
+          // remote call can never leave the UI looking "stuck" signed in.
           set({ user: null, profile: null });
+          try {
+            await Promise.race([
+              supabase.auth.signOut(),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('sign-out timed out')), 5000)),
+            ]);
+          } catch {
+            // Local state is already cleared — nothing more to do.
+          }
         },
       }),
       {

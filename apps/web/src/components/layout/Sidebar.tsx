@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, CreditCard, Wallet, Ticket, ArrowUpDown,
   User, Settings, LogOut, ChevronLeft, HelpCircle,
-  Users, BarChart3, Zap
+  Users, BarChart3, Zap, Landmark
 } from 'lucide-react';
 import { VLogoIcon } from '../ui/VLogoIcon';
 import { useAuthStore } from '../../stores/authStore';
@@ -27,6 +28,7 @@ const navItems: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
   { label: 'Cards', icon: CreditCard, to: '/cards' },
   { label: 'Wallet', icon: Wallet, to: '/wallet' },
+  { label: 'Banking', icon: Landmark, to: '/banking' },
   { label: 'Vouchers', icon: Ticket, to: '/vouchers' },
   { label: 'Transactions', icon: ArrowUpDown, to: '/transactions' },
   { label: 'Profile', icon: User, to: '/profile' },
@@ -46,10 +48,17 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
   const role = profile?.role ?? 'consumer';
   const isAgent = ['agent', 'super_admin', 'staff'].includes(role);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
+    if (isSigningOut) return;
+    setIsSigningOut(true);
+    try {
+      await signOut();
+      navigate('/');
+    } finally {
+      setIsSigningOut(false);
+    }
   };
 
   return (
@@ -74,7 +83,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <p className="font-display font-bold text-foreground text-lg leading-none">ePayZW</p>
+              <p className="font-display font-bold text-foreground text-lg leading-none">ePay Smart</p>
               <p className="text-foreground/30 text-[10px] font-medium">Zimbabwe Payments</p>
             </motion.div>
           )}
@@ -143,8 +152,9 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               </motion.div>
             )}
           </AnimatePresence>
-          <button onClick={handleSignOut} className="flex-shrink-0 p-1 rounded-lg hover:bg-foreground/10 transition-colors">
-            <LogOut className="w-3.5 h-3.5 text-foreground/40 hover:text-red-400 transition-colors" />
+          <button onClick={handleSignOut} disabled={isSigningOut} title="Sign out"
+            className="flex-shrink-0 p-1 rounded-lg hover:bg-foreground/10 transition-colors disabled:opacity-40">
+            <LogOut className={`w-3.5 h-3.5 text-foreground/40 hover:text-red-400 transition-colors ${isSigningOut ? 'animate-pulse' : ''}`} />
           </button>
         </div>
       </div>

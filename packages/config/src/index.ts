@@ -3,11 +3,11 @@
 // =============================================================================
 
 export const APP_CONFIG = {
-  name: 'vPay',
+  name: 'ePay Smart',
   tagline: 'Your Virtual Payments, Redefined',
   version: '1.0.0',
-  supportEmail: 'support@vpay.app',
-  websiteUrl: 'https://vpay.app',
+  supportEmail: 'support@epaysmart.live',
+  websiteUrl: 'https://epaysmart.live',
 } as const;
 
 export const CARD_CONFIG = {
@@ -33,6 +33,12 @@ export const FEE_CONFIG = {
   payoutPercent: 0.01,
 } as const;
 
+export const BANKING_CONFIG = {
+  // No EU BaaS/EMI provider is contracted yet — flip this on once one is signed.
+  // Backend endpoints work regardless; this only gates frontend visibility.
+  ibanEnabled: false,
+} as const;
+
 export const FRAUD_CONFIG = {
   autoSuspendScore: 80,
   reviewScore: 60,
@@ -45,10 +51,7 @@ export const CURRENCIES: Array<{ code: string; name: string; symbol: string; fla
   { code: 'EUR', name: 'Euro', symbol: '€', flag: '🇪🇺' },
   { code: 'GBP', name: 'British Pound', symbol: '£', flag: '🇬🇧' },
   { code: 'ZAR', name: 'South African Rand', symbol: 'R', flag: '🇿🇦' },
-  { code: 'NGN', name: 'Nigerian Naira', symbol: '₦', flag: '🇳🇬' },
-  { code: 'GHS', name: 'Ghanaian Cedi', symbol: '₵', flag: '🇬🇭' },
   { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh', flag: '🇰🇪' },
-  { code: 'ZWL', name: 'Zimbabwean Dollar', symbol: 'Z$', flag: '🇿🇼' },
 ];
 
 export const GIFT_CARD_BRANDS = [

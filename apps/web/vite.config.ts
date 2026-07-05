@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'ePayZW — Zimbabwe Payments',
-        short_name: 'ePayZW',
+        name: 'ePay Smart — Zimbabwe Payments',
+        short_name: 'ePay Smart',
         description: 'Premium virtual payment platform',
         theme_color: '#4f46e5',
         background_color: '#0f0f1a',

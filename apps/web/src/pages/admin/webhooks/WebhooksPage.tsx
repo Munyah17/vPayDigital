@@ -95,7 +95,7 @@ export default function WebhooksPage() {
       </header>
 
       {/* Status summary */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {(Object.entries(statCounts) as [string, number][]).map(([s, n]) => (
           <button key={s} onClick={() => { setStatusFilter(statusFilter === s ? '' : s); setPage(1); }}
             className={`glass-card p-4 text-left transition-all hover:border-foreground/10 ${statusFilter === s ? 'border-foreground/20' : ''}`}>
@@ -109,8 +109,8 @@ export default function WebhooksPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3">
-        <div className="flex items-center gap-2 bg-foreground/5 border border-foreground/10 rounded-xl px-3 py-2 flex-1 max-w-xs">
+      <div className="flex flex-wrap gap-3">
+        <div className="flex items-center gap-2 bg-foreground/5 border border-foreground/10 rounded-xl px-3 py-2 flex-1 min-w-[180px] max-w-xs">
           <Search className="w-4 h-4 text-foreground/30" />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search event type, key..." className="bg-transparent text-foreground text-sm outline-none flex-1 placeholder:text-foreground/20" />
@@ -196,7 +196,7 @@ export default function WebhooksPage() {
                       {JSON.stringify(event.payload, null, 2)}
                     </pre>
                   </div>
-                  <div className="grid grid-cols-3 gap-4 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                     <div>
                       <p className="text-foreground/30 mb-0.5">Last attempt</p>
                       <p className="text-foreground/60">{event.last_attempt_at ? formatDate(event.last_attempt_at, 'short') : '—'}</p>

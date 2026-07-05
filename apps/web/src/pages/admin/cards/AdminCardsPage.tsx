@@ -83,7 +83,7 @@ export default function AdminCardsPage() {
       </header>
 
       {/* Status pills */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {statsByStatus.map(({ status, count }) => (
           <button key={status} onClick={() => { setStatusFilter(statusFilter === status ? '' : status); setPage(1); }}
             className={`glass-card p-4 text-left transition-all hover:border-foreground/10 ${statusFilter === status ? 'border-foreground/20' : ''}`}>
@@ -94,8 +94,8 @@ export default function AdminCardsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3">
-        <div className="flex items-center gap-2 bg-foreground/5 border border-foreground/10 rounded-xl px-3 py-2 flex-1 max-w-xs">
+      <div className="flex flex-wrap gap-3">
+        <div className="flex items-center gap-2 bg-foreground/5 border border-foreground/10 rounded-xl px-3 py-2 flex-1 min-w-[180px] max-w-xs">
           <Search className="w-4 h-4 text-foreground/30" />
           <input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search user, cardholder, last 4..." className="bg-transparent text-foreground text-sm outline-none flex-1 placeholder:text-foreground/20" />
@@ -118,6 +118,7 @@ export default function AdminCardsPage() {
 
       {/* Table */}
       <div className="glass-card overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-foreground/5">
@@ -175,6 +176,7 @@ export default function AdminCardsPage() {
             ))}
           </tbody>
         </table>
+        </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-foreground/5">
           <p className="text-foreground/30 text-xs">{total} total cards</p>
           <div className="flex gap-2">

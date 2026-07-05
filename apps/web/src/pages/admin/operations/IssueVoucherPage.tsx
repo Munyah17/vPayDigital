@@ -17,7 +17,7 @@ const TYPES = [
 const BRANDS = ['netflix', 'amazon', 'spotify', 'apple', 'google_play', 'steam',
   'playstation', 'xbox', 'binance', 'airbnb', 'uber', 'ebay', 'disney_plus', 'youtube'];
 
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'ZAR', 'NGN', 'GHS'];
+const CURRENCIES = ['USD', 'EUR', 'GBP', 'ZAR'];
 
 type IssuedVoucher = { id: string; code: string; amount: number; currency: string; type: string; expires_at: string };
 

@@ -1,12 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import type { Profile } from '@vpay/types';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL as string,
-  import.meta.env.VITE_SUPABASE_ANON_KEY as string
-);
 
 const ADMIN_ROLES = ['super_admin', 'staff'] as const;
 
@@ -54,12 +49,19 @@ export const useAdminStore = create<AdminStore>()(
       },
 
       signOut: async () => {
-        await supabase.auth.signOut();
+        // Clear local state immediately and unconditionally, so a slow or failed
+        // remote call can never leave the UI looking "stuck" signed in.
         set({ profile: null });
+        try {
+          await Promise.race([
+            supabase.auth.signOut(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('sign-out timed out')), 5000)),
+          ]);
+        } catch {
+          // Local state is already cleared — nothing more to do.
+        }
       },
     }),
     { name: 'vpay-admin', partialize: (s) => ({ profile: s.profile }) }
   )
 );
-
-export { supabase as adminSupabase };

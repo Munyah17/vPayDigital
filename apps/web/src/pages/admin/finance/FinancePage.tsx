@@ -35,14 +35,14 @@ export default function FinancePage() {
       </header>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-foreground/5 rounded-xl w-fit">
+      <div className="flex gap-1 p-1 bg-foreground/5 rounded-xl overflow-x-auto max-w-full">
         {([
           { id: 'payouts', label: 'Payout Requests', icon: ArrowDownLeft },
           { id: 'settlements', label: 'Settlements', icon: BarChart2 },
           { id: 'fx', label: 'Exchange Rates', icon: RefreshCw },
         ] as { id: Tab; label: string; icon: React.ElementType }[]).map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.id ? 'bg-foreground/10 text-foreground' : 'text-foreground/40 hover:text-foreground'}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${tab === t.id ? 'bg-foreground/10 text-foreground' : 'text-foreground/40 hover:text-foreground'}`}>
             <t.icon className="w-3.5 h-3.5" />
             {t.label}
           </button>
@@ -108,6 +108,7 @@ function PayoutsTab() {
       </div>
 
       <div className="glass-card overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-foreground/5">
@@ -166,6 +167,7 @@ function PayoutsTab() {
             ))}
           </tbody>
         </table>
+        </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-foreground/5">
           <p className="text-foreground/30 text-xs">{total} total</p>
           <div className="flex gap-2">
@@ -182,7 +184,7 @@ function PayoutsTab() {
       {reviewing && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={e => { if (e.target === e.currentTarget) setReviewing(null); }}>
-          <div className="glass-card w-full max-w-md p-6 space-y-4">
+          <div className="glass-card w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-foreground">Review Payout</h3>
               <button onClick={() => setReviewing(null)} className="p-1.5 rounded-lg hover:bg-foreground/10 text-foreground/30">
@@ -264,6 +266,7 @@ function SettlementsTab() {
       </div>
 
       <div className="glass-card overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-foreground/5">
@@ -303,6 +306,7 @@ function SettlementsTab() {
             ))}
           </tbody>
         </table>
+        </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-foreground/5">
           <p className="text-foreground/30 text-xs">{total} total</p>
           <div className="flex gap-2">
@@ -318,7 +322,7 @@ function SettlementsTab() {
       {showCreate && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={e => { if (e.target === e.currentTarget) setShowCreate(false); }}>
-          <div className="glass-card w-full max-w-md p-6 space-y-4">
+          <div className="glass-card w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-foreground">Initiate Settlement</h3>
               <button onClick={() => setShowCreate(false)} className="p-1.5 rounded-lg hover:bg-foreground/10 text-foreground/30"><X className="w-4 h-4" /></button>
@@ -335,7 +339,7 @@ function SettlementsTab() {
               <Field label="Currency">
                 <select value={form.currency} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
                   className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-3 py-2 text-foreground text-sm outline-none">
-                  {['USD', 'EUR', 'GBP', 'ZAR', 'NGN', 'GHS', 'KES', 'ZWL'].map(c => <option key={c} value={c}>{c}</option>)}
+                  {['USD', 'EUR', 'GBP', 'ZAR', 'KES'].map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </Field>
               <Field label="Notes">
@@ -372,6 +376,7 @@ function FXTab() {
         <p className="text-foreground/20 text-xs">Auto-refreshes every 60s</p>
       </div>
       <div className="glass-card overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-foreground/5">
@@ -405,6 +410,7 @@ function FXTab() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

@@ -109,7 +109,7 @@ export default function SupportPage() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: 'Open', count: tickets.filter(t => t.status === 'open').length, color: 'text-yellow-400' },
           { label: 'In Progress', count: tickets.filter(t => t.status === 'in_progress').length, color: 'text-blue-400' },
@@ -124,6 +124,7 @@ export default function SupportPage() {
       </div>
 
       <div className="glass-card overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-foreground/5">
@@ -180,6 +181,7 @@ export default function SupportPage() {
             ))}
           </tbody>
         </table>
+        </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-foreground/5">
           <p className="text-foreground/30 text-xs">{total} total</p>
           <div className="flex gap-2">
@@ -196,7 +198,7 @@ export default function SupportPage() {
       {selected && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
-          <div className="glass-card w-full max-w-lg p-6 space-y-4">
+          <div className="glass-card w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="font-bold text-foreground">{selected.subject}</h2>

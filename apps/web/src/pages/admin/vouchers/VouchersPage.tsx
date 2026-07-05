@@ -81,7 +81,7 @@ function BatchesTab() {
   return (
     <div className="space-y-4">
       {/* Summary cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: 'Total Batches', value: String(total) },
           { label: 'Total Vouchers', value: totalVouchers.toLocaleString() },
@@ -102,6 +102,7 @@ function BatchesTab() {
       </div>
 
       <div className="glass-card overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-foreground/5">
@@ -168,6 +169,7 @@ function BatchesTab() {
             })}
           </tbody>
         </table>
+        </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-foreground/5">
           <p className="text-foreground/30 text-xs">{total} total batches</p>
           <div className="flex gap-2">
@@ -205,6 +207,7 @@ function AnalyticsTab() {
         <div className="px-4 py-3 border-b border-foreground/5">
           <h3 className="text-foreground font-medium text-sm">Vouchers by Type</h3>
         </div>
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-foreground/5">
@@ -247,6 +250,7 @@ function AnalyticsTab() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

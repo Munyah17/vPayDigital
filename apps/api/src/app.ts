@@ -14,8 +14,10 @@ import { logger } from './utils/logger.js';
 import { cardRouter } from './routes/cards.js';
 import { walletRouter } from './routes/wallets.js';
 import { voucherRouter } from './routes/vouchers.js';
+import { bankingRouter } from './routes/banking.js';
+import { beneficiaryRouter } from './routes/beneficiaries.js';
 import { handleFincraWebhook } from './webhooks/fincraWebhook.js';
-import { authenticate, requireAdmin, requireAgent, AuthenticatedRequest } from './middleware/auth.js';
+import { authenticate, requireAdmin, requireAgent, requireSuperAdmin, AuthenticatedRequest } from './middleware/auth.js';
 import { supabaseAdmin } from './utils/supabase.js';
 
 const app = express();
@@ -95,6 +97,8 @@ app.get('/health', (_req, res) => {
 app.use('/api/cards', cardRouter);
 app.use('/api/wallets', walletRouter);
 app.use('/api/vouchers', voucherRouter);
+app.use('/api/banking', bankingRouter);
+app.use('/api/beneficiaries', beneficiaryRouter);
 
 // ─── Profile Routes ───────────────────────────────────────────────────────────
 app.get('/api/profile', authenticate, async (req: AuthenticatedRequest, res) => {
@@ -549,6 +553,95 @@ app.patch('/api/admin/payout-requests/:id/status', authenticate, requireAdmin, a
     .single();
 
   if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data });
+});
+
+// ─── Admin: Banking Services ──────────────────────────────────────────────────
+app.get('/api/admin/banking/accounts', authenticate, requireAdmin, async (req, res) => {
+  const { page = '1', limit = '25' } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+
+  const { data, count, error } = await supabaseAdmin
+    .from('virtual_accounts')
+    .select('*, profiles!virtual_accounts_user_id_fkey(full_name, email)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+app.get('/api/admin/banking/iban-requests', authenticate, requireAdmin, async (req, res) => {
+  const { page = '1', limit = '25', status } = req.query as Record<string, string>;
+  const offset = (Number(page) - 1) * Number(limit);
+
+  let query = supabaseAdmin
+    .from('iban_accounts')
+    .select('*, profiles!iban_accounts_user_id_fkey(full_name, email)', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + Number(limit) - 1);
+
+  if (status) query = query.eq('status', status);
+
+  const { data, count, error } = await query;
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
+app.patch('/api/admin/banking/iban-requests/:id', authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  const { status, iban, bic, bank_name, rejection_reason } = req.body as {
+    status?: string; iban?: string; bic?: string; bank_name?: string; rejection_reason?: string;
+  };
+  const allowed = ['requested', 'in_review', 'provisioning', 'active', 'rejected'];
+  if (status && !allowed.includes(status)) {
+    res.status(400).json({ success: false, error: 'Invalid status' });
+    return;
+  }
+
+  const { data: existing } = await supabaseAdmin
+    .from('iban_accounts')
+    .select('*')
+    .eq('id', req.params.id)
+    .single();
+
+  if (!existing) { res.status(404).json({ success: false, error: 'IBAN request not found' }); return; }
+
+  if (status === 'active' && !((iban ?? existing.iban) && (bic ?? existing.bic) && (bank_name ?? existing.bank_name))) {
+    res.status(400).json({ success: false, error: 'iban, bic, and bank_name are required to activate' });
+    return;
+  }
+
+  const updates: Record<string, unknown> = {};
+  if (status) updates.status = status;
+  if (iban) updates.iban = iban;
+  if (bic) updates.bic = bic;
+  if (bank_name) updates.bank_name = bank_name;
+  if (rejection_reason) updates.rejection_reason = rejection_reason;
+
+  if (status === 'active') {
+    updates.activated_at = new Date().toISOString();
+    const { walletService } = await import('./services/walletService.js');
+    const wallet = await walletService.ensureWallet(existing.user_id, existing.requested_currency ?? 'EUR', 'consumer');
+    updates.wallet_id = wallet.id;
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('iban_accounts')
+    .update(updates)
+    .eq('id', req.params.id)
+    .select()
+    .single();
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+
+  await supabaseAdmin.rpc('create_audit_log', {
+    p_actor_id: req.user!.id,
+    p_action: `iban_account.${status ?? 'updated'}`,
+    p_resource_type: 'iban_account',
+    p_resource_id: req.params.id,
+    p_changes: updates,
+  });
+
   res.json({ success: true, data });
 });
 

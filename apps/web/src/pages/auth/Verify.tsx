@@ -60,7 +60,7 @@ export default function Verify() {
       >
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
           <VLogoIcon className="w-8" />
-          <span className="font-display font-bold text-foreground text-lg">ePayZW</span>
+          <span className="font-display font-bold text-foreground text-lg">ePay Smart</span>
         </Link>
 
         {state === 'verifying' && (

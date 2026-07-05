@@ -159,7 +159,7 @@ export default function About() {
                 and the experience was broken. Nobody was building the modern layer.
               </p>
               <p>
-                So we did. ePayZW is the platform we wish had existed — instant, affordable, and built
+                So we did. ePay Smart is the platform we wish had existed — instant, affordable, and built
                 specifically for how people in our part of the world actually move money.
               </p>
             </div>
@@ -295,7 +295,7 @@ export default function About() {
               </h2>
               <p className="text-foreground/45 text-xl leading-relaxed mb-10 max-w-2xl mx-auto">
                 Whether you're signing up as a user, becoming an agent, or joining our team —
-                there's a place for you in the ePayZW story.
+                there's a place for you in the ePay Smart story.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link to="/auth/register"
