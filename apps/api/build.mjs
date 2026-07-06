@@ -10,7 +10,7 @@ await build({
   bundle: true,
   platform: 'node',
   target: 'node20',
-  format: 'esm',
+  format: 'cjs',
   outfile: 'dist/index.js',
   sourcemap: true,
   external: [
@@ -19,6 +19,10 @@ await build({
     'url', 'util', 'events', 'buffer', 'querystring', 'zlib', 'child_process',
     // Keep heavy native deps external for faster startup
     'ioredis', 'bull',
+    // pino-pretty's transport spawns a worker thread by file path — that path
+    // doesn't survive being flattened into a single bundle, so both must stay
+    // external regardless of which log transport is active at runtime.
+    'pino', 'pino-pretty',
   ],
   plugins: [
     {
