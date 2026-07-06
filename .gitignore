@@ -88,3 +88,9 @@ secrets/
 *.jpeg
 *.gif
 *.webp
+
+# ...but real static assets the app ships (favicons, OG/social preview images) must be tracked
+!apps/web/public/*.png
+!apps/web/public/*.jpg
+!apps/web/public/*.jpeg
+!apps/web/public/*.webp
