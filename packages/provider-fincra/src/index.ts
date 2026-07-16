@@ -22,7 +22,11 @@ export interface PaymentProvider {
   issueCard(req: ProviderCardIssueRequest): Promise<ProviderCardIssueResponse>;
   freezeCard(providerCardId: string): Promise<void>;
   unfreezeCard(providerCardId: string): Promise<void>;
-  terminateCard(providerCardId: string): Promise<void>;
+  // Some providers (e.g. VitalPay) return the remaining card balance as
+  // part of termination so it can be refunded to the wallet; providers that
+  // don't (e.g. Fincra) just resolve void, which callers must treat as "no
+  // refund information available."
+  terminateCard(providerCardId: string): Promise<{ refunded?: number } | void>;
   getCardTransactions(providerCardId: string, params?: PaginationParams): Promise<FincraCardTransaction[]>;
   getCardDetails(providerCardId: string): Promise<FincraCardDetails>;
   fundCard(providerCardId: string, amount: number): Promise<void>;

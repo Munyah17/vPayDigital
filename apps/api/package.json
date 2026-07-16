@@ -15,6 +15,7 @@
     "@supabase/supabase-js": "^2.47.10",
     "@vpay/config": "*",
     "@vpay/provider-fincra": "*",
+    "@vpay/provider-vitalpay": "*",
     "@vpay/types": "*",
     "@vpay/utils": "*",
     "axios": "^1.7.9",

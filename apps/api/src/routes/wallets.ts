@@ -3,8 +3,11 @@ import { z } from 'zod';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth.js';
 import { supabaseAdmin } from '../utils/supabase.js';
 import { provider } from '../utils/provider.js';
+import { vitalPay } from '../utils/vitalpay.js';
 import { walletService } from '../services/walletService.js';
 import { payoutService } from '../services/payoutService.js';
+import { settleWalletTopup } from '../services/vitalPayPaymentService.js';
+import { env } from '../config/index.js';
 
 const router = Router();
 
@@ -12,6 +15,11 @@ const transferSchema = z.object({
   to_email: z.string().email(),
   amount: z.number().positive(),
   currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR']),
+});
+
+const topupSchema = z.object({
+  amount: z.number().min(5),
+  currency: z.enum(['USD', 'GBP', 'ZAR']),
 });
 
 const initiatePayoutSchema = z.object({
@@ -60,6 +68,51 @@ router.get('/exchange-rates', authenticate, async (_req: AuthenticatedRequest, r
     return;
   }
   res.json({ success: true, data: data ?? [] });
+});
+
+// POST /api/wallets/topup/initialize — start a VitalPay-hosted checkout to
+// fund the caller's own wallet. Must be registered before /:id/transactions
+// so "topup" is never captured as a wallet id.
+router.post('/topup/initialize', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  const { amount, currency } = topupSchema.parse(req.body);
+
+  const wallet = await walletService.ensureWallet(req.user!.id, currency);
+  const reference = `TOPUP-${Date.now().toString(36).toUpperCase()}-${wallet.id.slice(0, 8)}`;
+
+  const payment = await vitalPay.initializePayment({
+    amount,
+    currency,
+    email: req.user!.email,
+    reference,
+    name: req.user!.email.split('@')[0],
+    callback_url: `${env.WEB_APP_URL}/wallet?topup=complete`,
+    metadata: { wallet_topup: true, user_id: req.user!.id, wallet_id: wallet.id },
+  });
+
+  // Sandbox keys resolve synchronously (status: "successful" in the
+  // initialize response itself, per VitalPay's docs) — credit right away
+  // rather than waiting on a webhook that sandbox mode may never send.
+  // settleWalletTopup is idempotent, so if a webhook also fires for this
+  // reference later, it's a no-op.
+  await settleWalletTopup(payment, wallet.id);
+
+  res.status(201).json({
+    success: true,
+    data: {
+      reference: payment.reference,
+      status: payment.status,
+      payment_url: payment.payment_url ?? null,
+      mode: payment.mode,
+    },
+  });
+});
+
+// GET /api/wallets/topup/verify/:reference — poll after redirect back from
+// hosted checkout (live mode) or to confirm a sandbox top-up completed.
+router.get('/topup/verify/:reference', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  const payment = await vitalPay.verifyPayment(String(req.params.reference));
+  await settleWalletTopup(payment);
+  res.json({ success: true, data: { reference: payment.reference, status: payment.status, amount: payment.amount, currency: payment.currency } });
 });
 
 // GET /api/wallets/:id/transactions

@@ -181,7 +181,7 @@ export class CardService {
   async terminateCard(cardId: string, userId: string, isAdmin = false): Promise<void> {
     const { data: card } = await supabaseAdmin
       .from('cards')
-      .select('id, provider_card_id, status, user_id')
+      .select('id, provider_card_id, wallet_id, status, user_id')
       .eq('id', cardId)
       .single();
 
@@ -191,11 +191,26 @@ export class CardService {
       throw new Error(`Card already ${card.status}`);
     }
 
-    await provider.terminateCard(card.provider_card_id);
+    const result = await provider.terminateCard(card.provider_card_id);
+
+    // Providers that report a remaining balance on termination (e.g.
+    // VitalPay) get that balance returned to the wallet — previously no
+    // provider's response was read here at all, so a terminated card's
+    // remaining funds were never refunded regardless of provider.
+    const refunded = result && typeof result === 'object' ? result.refunded ?? 0 : 0;
+    if (refunded > 0) {
+      await supabaseAdmin.rpc('record_wallet_credit', {
+        p_wallet_id: card.wallet_id,
+        p_amount: refunded,
+        p_type: 'refund',
+        p_description: 'Card termination refund',
+        p_metadata: { card_id: cardId },
+      });
+    }
 
     await supabaseAdmin
       .from('cards')
-      .update({ status: 'terminated', terminated_at: new Date().toISOString() })
+      .update({ status: 'terminated', terminated_at: new Date().toISOString(), current_balance: 0 })
       .eq('id', cardId);
   }
 

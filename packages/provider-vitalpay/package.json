@@ -1,0 +1,14 @@
+{
+  "name": "@vpay/provider-vitalpay",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@vpay/provider-fincra": "*",
+    "@vpay/types": "*",
+    "@vpay/utils": "*",
+    "axios": "^1.7.9"
+  }
+}

@@ -36,6 +36,10 @@ export const env = {
   FINCRA_WEBHOOK_SECRET: required('FINCRA_WEBHOOK_SECRET'),
   FINCRA_BUSINESS_ID: required('FINCRA_BUSINESS_ID'),
 
+  VITALPAY_SECRET_KEY: optional('VITALPAY_SECRET_KEY', ''),
+  VITALPAY_BASE_URL: optional('VITALPAY_BASE_URL', 'https://kmgvitallinks.co.uk/api/v1'),
+  VITALPAY_WEBHOOK_SECRET: optional('VITALPAY_WEBHOOK_SECRET', ''),
+
   ACTIVE_PROVIDER: optional('ACTIVE_PROVIDER', 'fincra'),
   PROVIDER_TIMEOUT_MS: optional('PROVIDER_TIMEOUT_MS', '30000'),
 

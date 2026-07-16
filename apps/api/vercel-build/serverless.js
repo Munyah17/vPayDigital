@@ -35143,6 +35143,9 @@ var init_config = __esm({
       FINCRA_BASE_URL: optional("FINCRA_BASE_URL", "https://api.fincra.com"),
       FINCRA_WEBHOOK_SECRET: required("FINCRA_WEBHOOK_SECRET"),
       FINCRA_BUSINESS_ID: required("FINCRA_BUSINESS_ID"),
+      VITALPAY_SECRET_KEY: optional("VITALPAY_SECRET_KEY", ""),
+      VITALPAY_BASE_URL: optional("VITALPAY_BASE_URL", "https://kmgvitallinks.co.uk/api/v1"),
+      VITALPAY_WEBHOOK_SECRET: optional("VITALPAY_WEBHOOK_SECRET", ""),
       ACTIVE_PROVIDER: optional("ACTIVE_PROVIDER", "fincra"),
       PROVIDER_TIMEOUT_MS: optional("PROVIDER_TIMEOUT_MS", "30000"),
       WEB_APP_URL: optional("WEB_APP_URL", "http://localhost:5173"),
@@ -64802,21 +64805,290 @@ var init_supabase = __esm({
   }
 });
 
+// ../../packages/provider-vitalpay/src/index.ts
+function verifyVitalPaySignature(rawBody, signature, secret) {
+  if (!signature || !secret) return false;
+  try {
+    const expected = (0, import_crypto2.createHmac)("sha256", secret).update(rawBody).digest("hex");
+    const a = Buffer.from(expected, "hex");
+    const b = Buffer.from(signature, "hex");
+    return a.length === b.length && (0, import_crypto2.timingSafeEqual)(a, b);
+  } catch {
+    return false;
+  }
+}
+var import_crypto2, VitalPayClient, VitalPayProvider;
+var init_src3 = __esm({
+  "../../packages/provider-vitalpay/src/index.ts"() {
+    init_axios2();
+    import_crypto2 = require("crypto");
+    init_src();
+    init_src2();
+    VitalPayClient = class {
+      http;
+      constructor(config2) {
+        this.http = axios_default.create({
+          baseURL: config2.baseUrl,
+          timeout: config2.timeoutMs ?? 3e4,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${config2.secretKey}`
+          }
+        });
+        this.http.interceptors.response.use(
+          (res) => res,
+          (err) => {
+            const data = err?.response?.data;
+            const message2 = data?.error ?? data?.message ?? err.message ?? "VitalPay provider error";
+            const details = data?.errors ? `: ${JSON.stringify(data.errors)}` : "";
+            return Promise.reject(new ProviderError(`${message2}${details}`, err?.response?.status));
+          }
+        );
+      }
+      async req(method, url2, data, params) {
+        return withRetry(async () => {
+          const res = await this.http.request({ method, url: url2, data, params });
+          return res.data.data;
+        }, { retries: 2, delay: 1e3, backoff: 2 });
+      }
+      // ── Catalog ──
+      getCategories() {
+        return this.req(
+          "GET",
+          "/catalog/categories"
+        );
+      }
+      // ── Virtual Cards ──
+      getCardCatalogue() {
+        return this.req("GET", "/virtual-cards/catalogue");
+      }
+      issueVirtualCard(body) {
+        return this.req("POST", "/virtual-cards/issue", body);
+      }
+      getVirtualCard(cardUid) {
+        return this.req("GET", `/virtual-cards/${cardUid}`);
+      }
+      fundVirtualCard(cardUid, amount) {
+        return this.req("POST", `/virtual-cards/${cardUid}/fund`, { amount });
+      }
+      toggleFreezeVirtualCard(cardUid) {
+        return this.req("POST", `/virtual-cards/${cardUid}/freeze`);
+      }
+      terminateVirtualCard(cardUid) {
+        return this.req("DELETE", `/virtual-cards/${cardUid}`);
+      }
+      // ── Gift Cards ──
+      getGiftCardProducts(params) {
+        return this.req(
+          "GET",
+          "/gift-cards/products",
+          void 0,
+          params
+        );
+      }
+      purchaseGiftCard(body) {
+        return this.req("POST", "/gift-cards/purchase", body);
+      }
+      getGiftCardHistory(params) {
+        return this.req("GET", "/gift-cards/history", void 0, params);
+      }
+      // ── Payments (customer collections — this is what end-user wallet
+      // top-up and any other "charge the customer" flow should use) ──
+      initializePayment(body) {
+        return this.req("POST", "/payments/initialize", body);
+      }
+      verifyPayment(reference) {
+        return this.req("GET", `/payments/verify/${encodeURIComponent(reference)}`);
+      }
+      listPayments(params) {
+        return this.req("GET", "/payments/list", void 0, params);
+      }
+      refundPayment(body) {
+        return this.req("POST", "/payments/refund", body);
+      }
+      // ── Float top-up — VitalPay's OWN merchant-side prepaid balance, used to
+      // pre-pay for card issuance / gift cards / VAS. This is NOT an end-user
+      // facing operation — it funds our own capacity to consume VitalPay's
+      // services, analogous to a treasury top-up, not a customer wallet. ──
+      initializeFloatTopup(body) {
+        return this.req("POST", "/wallet/topup/initialize", body);
+      }
+      verifyFloatTopup(reference) {
+        return this.req("GET", `/wallet/topup/verify/${encodeURIComponent(reference)}`);
+      }
+      // ── Settlements — moves money from OUR merchant float to a bank / mobile
+      // money / wallet destination WE control. Documented as a merchant
+      // settlement primitive, not a per-user arbitrary-beneficiary payout API. ──
+      requestSettlement(body) {
+        return this.req("POST", "/settlements/request", body);
+      }
+      listSettlements(params) {
+        return this.req("GET", "/settlements/list", void 0, params);
+      }
+      // ── Webhooks ──
+      registerWebhook(body) {
+        return this.req("POST", "/webhooks", body);
+      }
+      listWebhooks() {
+        return this.req("GET", "/webhooks");
+      }
+      updateWebhook(id, body) {
+        return this.req("PUT", `/webhooks/${id}`, body);
+      }
+      deleteWebhook(id) {
+        return this.req("DELETE", `/webhooks/${id}`);
+      }
+      simulateWebhook(body) {
+        return this.req("POST", "/webhooks/simulate", body);
+      }
+    };
+    VitalPayProvider = class {
+      name = "vitalpay";
+      api;
+      webhookSecret;
+      programmeCache = null;
+      constructor(config2) {
+        this.api = new VitalPayClient(config2);
+        this.webhookSecret = config2.webhookSecret ?? "";
+      }
+      async programmeForCurrency(currency) {
+        if (!this.programmeCache) {
+          const { programmes } = await this.api.getCardCatalogue();
+          this.programmeCache = programmes;
+        }
+        const programme = this.programmeCache.find(
+          (p) => p.currency.toUpperCase() === currency.toUpperCase() && p.available
+        );
+        if (!programme) {
+          throw new ProviderError(
+            `VitalPay has no available card programme for ${currency} (it currently issues GBP Visa and USD Mastercard cards only)`,
+            422
+          );
+        }
+        return programme;
+      }
+      async issueCard(req) {
+        const programme = await this.programmeForCurrency(req.currency);
+        const card = await this.api.issueVirtualCard({
+          programme_id: programme.id,
+          label: req.cardholder_name.slice(0, 64),
+          initial_amount: req.amount,
+          customer_name: req.cardholder_name,
+          reference: req.metadata?.reference ?? void 0
+        });
+        return this.toCardIssueResponse(card);
+      }
+      toCardIssueResponse(card) {
+        const [expMonth, expYear] = (card.expiry ?? "").split("/");
+        const lastFour = (card.masked_pan.match(/(\d{4})\s*$/) ?? [])[1] ?? "0000";
+        return {
+          provider_card_id: card.card_uid,
+          masked_pan: card.masked_pan,
+          last_four: lastFour,
+          expiry_month: Number(expMonth) || 12,
+          expiry_year: Number(expYear) || (/* @__PURE__ */ new Date()).getFullYear() + 3,
+          // VitalPay never returns the full PAN or a separate raw token — the
+          // card_uid is the only stable handle we get back, so it doubles as
+          // the token here.
+          card_token: card.card_uid,
+          status: card.status
+        };
+      }
+      async freezeCard(providerCardId) {
+        await this.api.toggleFreezeVirtualCard(providerCardId);
+      }
+      async unfreezeCard(providerCardId) {
+        await this.api.toggleFreezeVirtualCard(providerCardId);
+      }
+      async terminateCard(providerCardId) {
+        const result = await this.api.terminateVirtualCard(providerCardId);
+        return { refunded: result.refunded ?? 0 };
+      }
+      async getCardDetails(providerCardId) {
+        const card = await this.api.getVirtualCard(providerCardId);
+        const [expMonth, expYear] = (card.expiry ?? "").split("/");
+        return {
+          id: card.card_uid,
+          maskedPan: card.masked_pan,
+          expiryMonth: Number(expMonth) || 0,
+          expiryYear: Number(expYear) || 0,
+          currency: card.currency,
+          status: card.status,
+          balance: card.balance
+        };
+      }
+      async getCardTransactions() {
+        return [];
+      }
+      async fundCard(providerCardId, amount) {
+        await this.api.fundVirtualCard(providerCardId, amount);
+      }
+      async createVirtualAccount() {
+        throw new ProviderError(
+          "VitalPay has no persistent virtual account API \u2014 wallet top-up uses the payments/initialize checkout flow instead",
+          501
+        );
+      }
+      async initiatePayout(req) {
+        const settlement = await this.api.requestSettlement({
+          amount: req.amount,
+          settlement_method: req.method === "mobile_money" ? "mobile_money" : req.method === "crypto" ? "wallet" : "bank_transfer",
+          account_details: {
+            account_number: req.beneficiary.account_number,
+            bank_code: req.beneficiary.bank_code,
+            account_name: req.beneficiary.name,
+            msisdn: req.beneficiary.mobile_number
+          },
+          notes: req.description
+        });
+        return {
+          provider_reference: settlement.reference,
+          status: settlement.status
+        };
+      }
+      async getPayoutStatus(providerReference) {
+        const settlements = await this.api.listSettlements();
+        const match = settlements.find((s) => s.reference === providerReference);
+        if (!match) throw new ProviderError(`Settlement ${providerReference} not found`, 404);
+        return match.status;
+      }
+      async getExchangeRate() {
+        throw new ProviderError("VitalPay does not expose an FX rate endpoint", 501);
+      }
+      verifyWebhookSignature(payload, signature) {
+        return verifyVitalPaySignature(payload, signature, this.webhookSecret);
+      }
+    };
+  }
+});
+
 // src/utils/provider.ts
+function selectProvider() {
+  if (env.ACTIVE_PROVIDER === "vitalpay") {
+    return new VitalPayProvider({
+      secretKey: env.VITALPAY_SECRET_KEY,
+      baseUrl: env.VITALPAY_BASE_URL,
+      webhookSecret: env.VITALPAY_WEBHOOK_SECRET,
+      timeoutMs: parseInt(env.PROVIDER_TIMEOUT_MS)
+    });
+  }
+  return createProvider(env.ACTIVE_PROVIDER, {
+    FINCRA_API_KEY: env.FINCRA_API_KEY,
+    FINCRA_SECRET_KEY: env.FINCRA_SECRET_KEY,
+    FINCRA_BASE_URL: env.FINCRA_BASE_URL,
+    FINCRA_WEBHOOK_SECRET: env.FINCRA_WEBHOOK_SECRET,
+    FINCRA_BUSINESS_ID: env.FINCRA_BUSINESS_ID,
+    PROVIDER_TIMEOUT_MS: env.PROVIDER_TIMEOUT_MS
+  });
+}
 var provider;
 var init_provider = __esm({
   "src/utils/provider.ts"() {
     "use strict";
     init_src2();
+    init_src3();
     init_config();
-    provider = createProvider(env.ACTIVE_PROVIDER, {
-      FINCRA_API_KEY: env.FINCRA_API_KEY,
-      FINCRA_SECRET_KEY: env.FINCRA_SECRET_KEY,
-      FINCRA_BASE_URL: env.FINCRA_BASE_URL,
-      FINCRA_WEBHOOK_SECRET: env.FINCRA_WEBHOOK_SECRET,
-      FINCRA_BUSINESS_ID: env.FINCRA_BUSINESS_ID,
-      PROVIDER_TIMEOUT_MS: env.PROVIDER_TIMEOUT_MS
-    });
+    provider = selectProvider();
   }
 });
 
@@ -64934,14 +65206,24 @@ var init_cardService = __esm({
         await supabaseAdmin.from("cards").update({ status: "active" }).eq("id", cardId);
       }
       async terminateCard(cardId, userId, isAdmin = false) {
-        const { data: card } = await supabaseAdmin.from("cards").select("id, provider_card_id, status, user_id").eq("id", cardId).single();
+        const { data: card } = await supabaseAdmin.from("cards").select("id, provider_card_id, wallet_id, status, user_id").eq("id", cardId).single();
         if (!card) throw new Error("Card not found");
         if (!isAdmin && card.user_id !== userId) throw new Error("Unauthorized");
         if (["terminated", "expired", "exhausted"].includes(card.status)) {
           throw new Error(`Card already ${card.status}`);
         }
-        await provider.terminateCard(card.provider_card_id);
-        await supabaseAdmin.from("cards").update({ status: "terminated", terminated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", cardId);
+        const result = await provider.terminateCard(card.provider_card_id);
+        const refunded = result && typeof result === "object" ? result.refunded ?? 0 : 0;
+        if (refunded > 0) {
+          await supabaseAdmin.rpc("record_wallet_credit", {
+            p_wallet_id: card.wallet_id,
+            p_amount: refunded,
+            p_type: "refund",
+            p_description: "Card termination refund",
+            p_metadata: { card_id: cardId }
+          });
+        }
+        await supabaseAdmin.from("cards").update({ status: "terminated", terminated_at: (/* @__PURE__ */ new Date()).toISOString(), current_balance: 0 }).eq("id", cardId);
       }
       async getCardTransactions(cardId, userId) {
         const { data: card } = await supabaseAdmin.from("cards").select("provider_card_id, user_id").eq("id", cardId).single();
@@ -72019,6 +72301,18 @@ router.get("/:id/transactions/local", authenticate, async (req, res) => {
 var import_express2 = __toESM(require_express2());
 init_supabase();
 init_provider();
+
+// src/utils/vitalpay.ts
+init_src3();
+init_config();
+var vitalPay = new VitalPayClient({
+  secretKey: env.VITALPAY_SECRET_KEY,
+  baseUrl: env.VITALPAY_BASE_URL,
+  webhookSecret: env.VITALPAY_WEBHOOK_SECRET,
+  timeoutMs: parseInt(env.PROVIDER_TIMEOUT_MS)
+});
+
+// src/routes/wallets.ts
 init_walletService();
 
 // src/services/payoutService.ts
@@ -72131,12 +72425,47 @@ var PayoutService = class {
 };
 var payoutService = new PayoutService();
 
+// src/services/vitalPayPaymentService.ts
+init_supabase();
+init_logger();
+var isUniqueViolation = (error) => error?.code === "23505" || (error?.message?.includes("duplicate key") ?? false);
+async function settleWalletTopup(payment, walletId) {
+  if (payment.status !== "successful") return;
+  const metadata = payment.metadata ?? {};
+  const resolvedWalletId = walletId ?? metadata.wallet_id;
+  if (!resolvedWalletId) {
+    logger.warn({ reference: payment.reference }, "VitalPay payment has no resolvable wallet_id \u2014 not a wallet top-up, skipping");
+    return;
+  }
+  const { error } = await supabaseAdmin.rpc("record_wallet_credit", {
+    p_wallet_id: resolvedWalletId,
+    p_amount: payment.amount,
+    p_type: "deposit",
+    p_description: "Wallet top-up via VitalPay",
+    p_reference: payment.reference,
+    p_metadata: { vitalpay_reference: payment.reference, platform_reference: payment.platform_reference }
+  });
+  if (error) {
+    if (isUniqueViolation(error)) {
+      logger.info({ reference: payment.reference }, "VitalPay top-up already credited \u2014 idempotent skip");
+      return;
+    }
+    logger.error({ error, reference: payment.reference }, "Failed to credit wallet for VitalPay top-up");
+    throw new Error(`Failed to credit wallet: ${error.message}`);
+  }
+}
+
 // src/routes/wallets.ts
+init_config();
 var router2 = (0, import_express2.Router)();
 var transferSchema = external_exports.object({
   to_email: external_exports.string().email(),
   amount: external_exports.number().positive(),
   currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"])
+});
+var topupSchema = external_exports.object({
+  amount: external_exports.number().min(5),
+  currency: external_exports.enum(["USD", "GBP", "ZAR"])
 });
 var initiatePayoutSchema = external_exports.object({
   amount: external_exports.number().min(1),
@@ -72169,6 +72498,35 @@ router2.get("/exchange-rates", authenticate, async (_req, res) => {
     return;
   }
   res.json({ success: true, data: data ?? [] });
+});
+router2.post("/topup/initialize", authenticate, async (req, res) => {
+  const { amount, currency } = topupSchema.parse(req.body);
+  const wallet = await walletService.ensureWallet(req.user.id, currency);
+  const reference = `TOPUP-${Date.now().toString(36).toUpperCase()}-${wallet.id.slice(0, 8)}`;
+  const payment = await vitalPay.initializePayment({
+    amount,
+    currency,
+    email: req.user.email,
+    reference,
+    name: req.user.email.split("@")[0],
+    callback_url: `${env.WEB_APP_URL}/wallet?topup=complete`,
+    metadata: { wallet_topup: true, user_id: req.user.id, wallet_id: wallet.id }
+  });
+  await settleWalletTopup(payment, wallet.id);
+  res.status(201).json({
+    success: true,
+    data: {
+      reference: payment.reference,
+      status: payment.status,
+      payment_url: payment.payment_url ?? null,
+      mode: payment.mode
+    }
+  });
+});
+router2.get("/topup/verify/:reference", authenticate, async (req, res) => {
+  const payment = await vitalPay.verifyPayment(String(req.params.reference));
+  await settleWalletTopup(payment);
+  res.json({ success: true, data: { reference: payment.reference, status: payment.status, amount: payment.amount, currency: payment.currency } });
 });
 router2.get("/:id/transactions", authenticate, async (req, res) => {
   const { page = 1, limit = 20, type, status } = req.query;
@@ -72284,6 +72642,13 @@ var import_express3 = __toESM(require_express2());
 init_supabase();
 init_cardService();
 init_logger();
+var BRAND_SEARCH_TERMS = {
+  google_play: "Google Play",
+  playstation: "PlayStation",
+  disney_plus: "Disney",
+  visa_gift: "Visa",
+  mastercard_gift: "Mastercard"
+};
 var VoucherService = class {
   async issueVoucher(params) {
     const isAdmin = ["super_admin", "staff"].includes(params.issuer_role ?? "");
@@ -72373,15 +72738,59 @@ var VoucherService = class {
       };
     }
     if (voucherType === "gift_card") {
+      const message2 = await this.purchaseGiftCardForVoucher(result, params.user_id);
       return {
         voucher: result,
-        message: `${result.gift_card_brand} gift card redeemed! Check your email for the redemption code.`
+        message: message2
       };
     }
     return {
       voucher: result,
       message: "Voucher redeemed successfully!"
     };
+  }
+  /**
+   * Actually purchases a real gift card via VitalPay instead of just
+   * claiming one was sent — the previous implementation returned a
+   * "check your email" message with no fulfillment call anywhere behind it.
+   *
+   * KNOWN GAP: redeem_voucher() already marked the voucher 'redeemed'
+   * atomically before this runs. If the VitalPay purchase fails here, the
+   * voucher is burned with nothing delivered — there's no compensating
+   * transaction yet. Failures are logged loudly and the user is told to
+   * contact support with the voucher code rather than silently swallowing
+   * the error, but this needs a proper reconciliation job (retry queue on
+   * vouchers with provider_reference IS NULL) before real money value
+   * flows through this path.
+   */
+  async purchaseGiftCardForVoucher(voucher, userId) {
+    const { data: profile } = await supabaseAdmin.from("profiles").select("email").eq("id", userId).single();
+    if (!profile?.email) {
+      logger.error({ voucher_id: voucher.id }, "Gift card redemption: no recipient email on profile");
+      return `${voucher.gift_card_brand} gift card redeemed, but we couldn't find an email to deliver it to \u2014 contact support with code reference ${voucher.id}.`;
+    }
+    try {
+      const brand = voucher.gift_card_brand;
+      const searchTerm = BRAND_SEARCH_TERMS[brand] ?? brand.replace(/_/g, " ");
+      const { products } = await vitalPay.getGiftCardProducts({ per_page: 50 });
+      const product = products.find((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      if (!product) {
+        logger.error({ voucher_id: voucher.id, brand }, "Gift card redemption: no matching VitalPay product found");
+        return `${voucher.gift_card_brand} gift card redemption is delayed \u2014 no matching product found. Contact support with code reference ${voucher.id}.`;
+      }
+      const order = await vitalPay.purchaseGiftCard({
+        product_id: product.product_id,
+        amount: voucher.amount,
+        currency: voucher.currency,
+        recipient_email: profile.email,
+        reference: `GIFT-${voucher.id}`
+      });
+      await supabaseAdmin.from("vouchers").update({ provider_reference: order.reference, service_metadata: { vitalpay_order: order } }).eq("id", voucher.id);
+      return `${voucher.gift_card_brand} gift card purchased! It'll be emailed to ${profile.email} shortly.`;
+    } catch (err) {
+      logger.error({ err, voucher_id: voucher.id }, "Gift card purchase via VitalPay failed after voucher was redeemed \u2014 needs manual reconciliation");
+      return `${voucher.gift_card_brand} gift card redemption is delayed \u2014 our team has been notified. Contact support with code reference ${voucher.id} if it doesn't arrive soon.`;
+    }
   }
   async getVoucherByCode(code) {
     const { data, error } = await supabaseAdmin.from("vouchers").select("id, code, type, gift_card_brand, amount, currency, status, expires_at").eq("code", code.toUpperCase()).single();
@@ -73560,7 +73969,7 @@ router5.delete("/:id", authenticate, async (req, res) => {
 });
 
 // src/webhooks/fincraWebhook.ts
-var import_crypto2 = require("crypto");
+var import_crypto3 = require("crypto");
 init_supabase();
 init_provider();
 init_logger();
@@ -73573,7 +73982,7 @@ async function handleFincraWebhook(req, res) {
     return;
   }
   const payload = req.body;
-  const stableId = payload.data?.id ?? payload.data?.reference ?? payload.data?.transactionId ?? (0, import_crypto2.createHash)("sha256").update(rawBody).digest("hex").slice(0, 32);
+  const stableId = payload.data?.id ?? payload.data?.reference ?? payload.data?.transactionId ?? (0, import_crypto3.createHash)("sha256").update(rawBody).digest("hex").slice(0, 32);
   const idempotencyKey = `${payload.event}-${stableId}`;
   const eventType = mapFincraEvent(payload.event);
   const { data: claimRows, error: claimErr } = await supabaseAdmin.rpc("claim_webhook_event", {
@@ -73703,6 +74112,116 @@ function mapFincraEvent(fincraEvent) {
   return mapping[fincraEvent] ?? fincraEvent;
 }
 
+// src/webhooks/vitalPayWebhook.ts
+init_src3();
+init_supabase();
+init_config();
+init_logger();
+async function handleVitalPayWebhook(req, res) {
+  const signature = req.headers["x-vitalpay-signature"];
+  const rawBody = req.rawBody ?? JSON.stringify(req.body);
+  if (!env.VITALPAY_WEBHOOK_SECRET) {
+    logger.error("VitalPay webhook received but VITALPAY_WEBHOOK_SECRET is not configured \u2014 rejecting");
+    res.status(401).json({ error: "Webhook not configured" });
+    return;
+  }
+  if (!verifyVitalPaySignature(rawBody, signature, env.VITALPAY_WEBHOOK_SECRET)) {
+    logger.warn({ url: req.url }, "Invalid VitalPay webhook signature");
+    res.status(401).json({ error: "Invalid signature" });
+    return;
+  }
+  const payload = req.body;
+  const eventType = mapVitalPayEvent(payload.event);
+  const stableId = payload.data?.reference ?? payload.data?.platform_reference;
+  if (!stableId) {
+    logger.warn({ event: payload.event }, "VitalPay webhook payload has no reference \u2014 cannot dedupe, processing best-effort");
+  }
+  const idempotencyKey = `${payload.event}-${stableId ?? Date.now()}`;
+  const { data: claimRows, error: claimErr } = await supabaseAdmin.rpc("claim_webhook_event", {
+    p_idempotency_key: idempotencyKey,
+    p_event_type: eventType,
+    p_source: "vitalpay",
+    p_payload: payload.data,
+    p_signature: signature
+  });
+  if (claimErr) {
+    logger.error({ claimErr, event: payload.event }, "Failed to claim VitalPay webhook event");
+    res.status(500).json({ success: false, error: "Failed to record webhook event" });
+    return;
+  }
+  const claim = Array.isArray(claimRows) ? claimRows[0] : claimRows;
+  if (!claim?.claimed) {
+    res.json({ success: true, message: "Already processed or in progress" });
+    return;
+  }
+  try {
+    await processVitalPayEvent(payload.event, payload.data);
+    await supabaseAdmin.from("webhook_events").update({ status: "delivered", processed_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", claim.id);
+    res.json({ success: true, received: true });
+  } catch (err) {
+    logger.error({ err, event: payload.event }, "VitalPay webhook processing failed");
+    await supabaseAdmin.from("webhook_events").update({ status: "failed", error_message: err instanceof Error ? err.message : "Unknown error" }).eq("id", claim.id);
+    res.status(500).json({ success: false, error: "Webhook processing failed" });
+  }
+}
+async function processVitalPayEvent(event, data) {
+  switch (event) {
+    case "payment.success": {
+      await settleWalletTopup(data);
+      break;
+    }
+    case "payment.failed":
+    case "payment.pending": {
+      logger.info({ reference: data.reference, event }, "VitalPay payment did not complete");
+      break;
+    }
+    case "refund.processed": {
+      logger.warn({ reference: data.reference }, "VitalPay refund.processed received \u2014 no automatic wallet debit wired up yet");
+      break;
+    }
+    case "service.completed":
+    case "service.failed": {
+      const reference = data.reference;
+      if (!reference) break;
+      const { data: voucher } = await supabaseAdmin.from("vouchers").select("id, service_metadata").eq("provider_reference", reference).maybeSingle();
+      if (!voucher) {
+        logger.info({ reference }, "VitalPay service event for unknown reference \u2014 not a tracked gift card order");
+        break;
+      }
+      await supabaseAdmin.from("vouchers").update({
+        service_metadata: {
+          ...voucher.service_metadata,
+          fulfillment_status: event === "service.completed" ? "completed" : "failed",
+          fulfillment_payload: data
+        }
+      }).eq("id", voucher.id);
+      if (event === "service.failed") {
+        logger.error({ voucher_id: voucher.id, reference }, "VitalPay gift card fulfillment failed after voucher redemption \u2014 needs manual reconciliation");
+      }
+      break;
+    }
+    case "settlement.completed": {
+      logger.info({ reference: data.reference }, "VitalPay settlement completed");
+      break;
+    }
+    default:
+      logger.info({ event }, "Unhandled VitalPay webhook event type");
+  }
+}
+function mapVitalPayEvent(vitalPayEvent) {
+  const mapping = {
+    "payment.success": "wallet.funded",
+    "payment.failed": "payment.failed",
+    "payment.pending": "payment.pending",
+    "refund.processed": "refund.processed",
+    "settlement.completed": "settlement.completed",
+    "service.processing": "service.processing",
+    "service.completed": "service.completed",
+    "service.failed": "service.failed"
+  };
+  return mapping[vitalPayEvent] ?? vitalPayEvent;
+}
+
 // src/app.ts
 init_supabase();
 var app = (0, import_express6.default)();
@@ -73748,6 +74267,16 @@ app.post(
     next();
   },
   handleFincraWebhook
+);
+app.post(
+  "/webhooks/vitalpay",
+  import_express6.default.raw({ type: "application/json" }),
+  (req, _res, next) => {
+    req.rawBody = req.body.toString();
+    req.body = JSON.parse(req.body.toString());
+    next();
+  },
+  handleVitalPayWebhook
 );
 app.use(import_express6.default.json({ limit: "10kb" }));
 app.use(import_express6.default.urlencoded({ extended: true, limit: "10kb" }));

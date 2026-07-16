@@ -4,8 +4,19 @@
 
 import { supabaseAdmin } from '../utils/supabase.js';
 import { cardService } from './cardService.js';
+import { vitalPay } from '../utils/vitalpay.js';
 import { logger } from '../utils/logger.js';
 import type { Voucher, VoucherType, GiftCardBrand, WalletCurrency, CardNetwork } from '@vpay/types';
+
+// GiftCardBrand enum values don't always match VitalPay's product naming —
+// map the ones that differ; anything else is searched for by its own name.
+const BRAND_SEARCH_TERMS: Partial<Record<GiftCardBrand, string>> = {
+  google_play: 'Google Play',
+  playstation: 'PlayStation',
+  disney_plus: 'Disney',
+  visa_gift: 'Visa',
+  mastercard_gift: 'Mastercard',
+};
 
 export interface IssueVoucherParams {
   issuer_id: string;
@@ -174,9 +185,10 @@ export class VoucherService {
     }
 
     if (voucherType === 'gift_card') {
+      const message = await this.purchaseGiftCardForVoucher(result, params.user_id);
       return {
         voucher: result as Voucher,
-        message: `${result.gift_card_brand} gift card redeemed! Check your email for the redemption code.`,
+        message,
       };
     }
 
@@ -184,6 +196,66 @@ export class VoucherService {
       voucher: result as Voucher,
       message: 'Voucher redeemed successfully!',
     };
+  }
+
+  /**
+   * Actually purchases a real gift card via VitalPay instead of just
+   * claiming one was sent — the previous implementation returned a
+   * "check your email" message with no fulfillment call anywhere behind it.
+   *
+   * KNOWN GAP: redeem_voucher() already marked the voucher 'redeemed'
+   * atomically before this runs. If the VitalPay purchase fails here, the
+   * voucher is burned with nothing delivered — there's no compensating
+   * transaction yet. Failures are logged loudly and the user is told to
+   * contact support with the voucher code rather than silently swallowing
+   * the error, but this needs a proper reconciliation job (retry queue on
+   * vouchers with provider_reference IS NULL) before real money value
+   * flows through this path.
+   */
+  private async purchaseGiftCardForVoucher(
+    voucher: { id: string; gift_card_brand: string; amount: number; currency: string },
+    userId: string
+  ): Promise<string> {
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('email')
+      .eq('id', userId)
+      .single();
+
+    if (!profile?.email) {
+      logger.error({ voucher_id: voucher.id }, 'Gift card redemption: no recipient email on profile');
+      return `${voucher.gift_card_brand} gift card redeemed, but we couldn't find an email to deliver it to — contact support with code reference ${voucher.id}.`;
+    }
+
+    try {
+      const brand = voucher.gift_card_brand as GiftCardBrand;
+      const searchTerm = BRAND_SEARCH_TERMS[brand] ?? brand.replace(/_/g, ' ');
+      const { products } = await vitalPay.getGiftCardProducts({ per_page: 50 });
+      const product = products.find(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      if (!product) {
+        logger.error({ voucher_id: voucher.id, brand }, 'Gift card redemption: no matching VitalPay product found');
+        return `${voucher.gift_card_brand} gift card redemption is delayed — no matching product found. Contact support with code reference ${voucher.id}.`;
+      }
+
+      const order = await vitalPay.purchaseGiftCard({
+        product_id: product.product_id,
+        amount: voucher.amount,
+        currency: voucher.currency,
+        recipient_email: profile.email,
+        reference: `GIFT-${voucher.id}`,
+      });
+
+      await supabaseAdmin
+        .from('vouchers')
+        .update({ provider_reference: order.reference, service_metadata: { vitalpay_order: order } })
+        .eq('id', voucher.id);
+
+      return `${voucher.gift_card_brand} gift card purchased! It'll be emailed to ${profile.email} shortly.`;
+    } catch (err) {
+      logger.error({ err, voucher_id: voucher.id }, 'Gift card purchase via VitalPay failed after voucher was redeemed — needs manual reconciliation');
+      return `${voucher.gift_card_brand} gift card redemption is delayed — our team has been notified. Contact support with code reference ${voucher.id} if it doesn't arrive soon.`;
+    }
   }
 
   async getVoucherByCode(code: string) {
