@@ -64872,7 +64872,7 @@ var init_src3 = __esm({
         return this.req("POST", `/virtual-cards/${cardUid}/fund`, { amount });
       }
       toggleFreezeVirtualCard(cardUid) {
-        return this.req("POST", `/virtual-cards/${cardUid}/freeze`);
+        return this.req("POST", `/virtual-cards/${cardUid}/freeze`, {});
       }
       terminateVirtualCard(cardUid) {
         return this.req("DELETE", `/virtual-cards/${cardUid}`);
@@ -64891,6 +64891,13 @@ var init_src3 = __esm({
       }
       getGiftCardHistory(params) {
         return this.req("GET", "/gift-cards/history", void 0, params);
+      }
+      // ── Electricity Tokens (ZW / ZESA-ZETDC only, per docs) ──
+      purchaseElectricityToken(body) {
+        return this.req("POST", "/electricity/purchase", body);
+      }
+      getElectricityHistory(params) {
+        return this.req("GET", "/electricity/history", void 0, params);
       }
       // ── Payments (customer collections — this is what end-user wallet
       // top-up and any other "charge the customer" flow should use) ──
@@ -64982,15 +64989,15 @@ var init_src3 = __esm({
         const [expMonth, expYear] = (card.expiry ?? "").split("/");
         const lastFour = (card.masked_pan.match(/(\d{4})\s*$/) ?? [])[1] ?? "0000";
         return {
-          provider_card_id: card.card_uid,
+          provider_card_id: card.id,
           masked_pan: card.masked_pan,
           last_four: lastFour,
           expiry_month: Number(expMonth) || 12,
           expiry_year: Number(expYear) || (/* @__PURE__ */ new Date()).getFullYear() + 3,
           // VitalPay never returns the full PAN or a separate raw token — the
-          // card_uid is the only stable handle we get back, so it doubles as
+          // card id is the only stable handle we get back, so it doubles as
           // the token here.
-          card_token: card.card_uid,
+          card_token: card.id,
           status: card.status
         };
       }
@@ -65001,14 +65008,15 @@ var init_src3 = __esm({
         await this.api.toggleFreezeVirtualCard(providerCardId);
       }
       async terminateCard(providerCardId) {
-        const result = await this.api.terminateVirtualCard(providerCardId);
-        return { refunded: result.refunded ?? 0 };
+        const card = await this.api.getVirtualCard(providerCardId);
+        await this.api.terminateVirtualCard(providerCardId);
+        return { refunded: card.balance };
       }
       async getCardDetails(providerCardId) {
         const card = await this.api.getVirtualCard(providerCardId);
         const [expMonth, expYear] = (card.expiry ?? "").split("/");
         return {
-          id: card.card_uid,
+          id: card.id,
           maskedPan: card.masked_pan,
           expiryMonth: Number(expMonth) || 0,
           expiryYear: Number(expYear) || 0,
@@ -65206,14 +65214,15 @@ var init_cardService = __esm({
         await supabaseAdmin.from("cards").update({ status: "active" }).eq("id", cardId);
       }
       async terminateCard(cardId, userId, isAdmin = false) {
-        const { data: card } = await supabaseAdmin.from("cards").select("id, provider_card_id, wallet_id, status, user_id").eq("id", cardId).single();
+        const { data: card } = await supabaseAdmin.from("cards").select("id, provider_card_id, wallet_id, current_balance, status, user_id").eq("id", cardId).single();
         if (!card) throw new Error("Card not found");
         if (!isAdmin && card.user_id !== userId) throw new Error("Unauthorized");
         if (["terminated", "expired", "exhausted"].includes(card.status)) {
           throw new Error(`Card already ${card.status}`);
         }
         const result = await provider.terminateCard(card.provider_card_id);
-        const refunded = result && typeof result === "object" ? result.refunded ?? 0 : 0;
+        const providerRefund = result && typeof result === "object" ? result.refunded : void 0;
+        const refunded = typeof providerRefund === "number" ? providerRefund : Number(card.current_balance ?? 0);
         if (refunded > 0) {
           await supabaseAdmin.rpc("record_wallet_credit", {
             p_wallet_id: card.wallet_id,
@@ -72437,9 +72446,10 @@ async function settleWalletTopup(payment, walletId) {
     logger.warn({ reference: payment.reference }, "VitalPay payment has no resolvable wallet_id \u2014 not a wallet top-up, skipping");
     return;
   }
+  const amount = Number(payment.amount);
   const { error } = await supabaseAdmin.rpc("record_wallet_credit", {
     p_wallet_id: resolvedWalletId,
-    p_amount: payment.amount,
+    p_amount: amount,
     p_type: "deposit",
     p_description: "Wallet top-up via VitalPay",
     p_reference: payment.reference,

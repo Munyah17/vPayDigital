@@ -181,7 +181,7 @@ export class CardService {
   async terminateCard(cardId: string, userId: string, isAdmin = false): Promise<void> {
     const { data: card } = await supabaseAdmin
       .from('cards')
-      .select('id, provider_card_id, wallet_id, status, user_id')
+      .select('id, provider_card_id, wallet_id, current_balance, status, user_id')
       .eq('id', cardId)
       .single();
 
@@ -193,11 +193,16 @@ export class CardService {
 
     const result = await provider.terminateCard(card.provider_card_id);
 
-    // Providers that report a remaining balance on termination (e.g.
-    // VitalPay) get that balance returned to the wallet — previously no
-    // provider's response was read here at all, so a terminated card's
-    // remaining funds were never refunded regardless of provider.
-    const refunded = result && typeof result === 'object' ? result.refunded ?? 0 : 0;
+    // Prefer an explicit refund figure from the provider's response when
+    // it gives one; otherwise fall back to our own tracked current_balance
+    // (VitalPay's termination response has no such field despite the docs'
+    // example showing one — confirmed by direct testing — it just zeroes
+    // the card's balance on their end without saying how much that was).
+    // Previously no provider's response was read here at all, so a
+    // terminated card's remaining funds were never refunded regardless of
+    // provider.
+    const providerRefund = result && typeof result === 'object' ? result.refunded : undefined;
+    const refunded = typeof providerRefund === 'number' ? providerRefund : Number(card.current_balance ?? 0);
     if (refunded > 0) {
       await supabaseAdmin.rpc('record_wallet_credit', {
         p_wallet_id: card.wallet_id,

@@ -36,9 +36,16 @@ export async function settleWalletTopup(payment: VitalPayPayment, walletId?: str
     return;
   }
 
+  // VitalPay returns amount as a numeric STRING ("25.00"), not a number —
+  // confirmed against a real sandbox call. Coerce explicitly rather than
+  // trusting the type declaration, since passing a string through to a
+  // DECIMAL RPC param works by accident via PostgREST's coercion but
+  // silently breaks the moment any arithmetic is done on it in JS.
+  const amount = Number(payment.amount);
+
   const { error } = await supabaseAdmin.rpc('record_wallet_credit', {
     p_wallet_id: resolvedWalletId,
-    p_amount: payment.amount,
+    p_amount: amount,
     p_type: 'deposit',
     p_description: 'Wallet top-up via VitalPay',
     p_reference: payment.reference,

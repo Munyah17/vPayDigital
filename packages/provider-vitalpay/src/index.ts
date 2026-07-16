@@ -33,7 +33,10 @@ export interface VitalPayCardProgramme {
 }
 
 export interface VitalPayCard {
-  card_uid: string; label: string; masked_pan: string; expiry: string;
+  // The docs' example payloads show "card_uid" but every real sandbox
+  // response (issue/get/fund/freeze/terminate) uses "id" instead —
+  // confirmed by direct testing. There is no card_uid field in practice.
+  id: string; label: string; masked_pan: string; expiry: string;
   currency: string; balance: number; status: string;
 }
 
@@ -44,13 +47,29 @@ export interface VitalPayGiftCardProduct {
 }
 
 export interface VitalPayGiftCardOrder {
+  // The docs' example shows "redemption_code" and "product_id" in the
+  // purchase response, but the real response has neither — confirmed by
+  // direct testing. It returns pin_code/serial_number instead, and status
+  // resolves to "completed" synchronously in sandbox rather than
+  // "processing". Keep all of these optional since live mode may differ
+  // again (the docs promise redemption_code arrives via webhook for
+  // system-of-record use, which hasn't been observed directly).
   reference: string; service: string; status: string;
-  product_id: number; amount: number; currency: string;
+  amount: number; currency: string;
+  product_id?: number;
+  pin_code?: string;
+  serial_number?: string;
+  redeem_url?: string | null;
+  recipient_email?: string;
   redemption_code?: string;
 }
 
 export interface VitalPayPayment {
-  reference: string; platform_reference?: string; amount: number; currency: string;
+  reference: string; platform_reference?: string;
+  // Confirmed against a real sandbox call: this comes back as a numeric
+  // string ("25.00"), not a JSON number. Callers must Number() it before
+  // doing arithmetic.
+  amount: number | string; currency: string;
   status: string; mode?: string; payment_url?: string | null;
   payment_method?: string; customer_email?: string; completed_at?: string;
 }
@@ -63,6 +82,16 @@ export interface VitalPayFloatTopup {
 export interface VitalPaySettlement {
   reference: string; amount: number; fee: number; net_amount: number;
   status: string; settlement_method?: string; requested_at: string; completed_at?: string;
+}
+
+export interface VitalPayElectricityOrder {
+  // The docs' example shows "token_pieces" (array) and "unit", but the real
+  // sandbox response has a single "token" string and no "unit" — confirmed
+  // by direct testing. Keeping both shapes optional in case live mode
+  // matches the documented one instead.
+  reference: string; service: string; meter_number: string;
+  amount: number; currency: string; status: string;
+  token?: string; token_pieces?: string[]; units?: number; unit?: string;
 }
 
 export interface VitalPayWebhook {
@@ -128,11 +157,18 @@ export class VitalPayClient {
   }
 
   toggleFreezeVirtualCard(cardUid: string) {
-    return this.req<{ card_uid: string; status: string }>('POST', `/virtual-cards/${cardUid}/freeze`);
+    // The server 411s ("Length Required") on a bodyless POST — confirmed by
+    // direct testing. An explicit empty JSON body satisfies it.
+    return this.req<VitalPayCard>('POST', `/virtual-cards/${cardUid}/freeze`, {});
   }
 
   terminateVirtualCard(cardUid: string) {
-    return this.req<{ card_uid: string; status: string; refunded: number }>('DELETE', `/virtual-cards/${cardUid}`);
+    // Despite the docs' example showing a "refunded" field, the real
+    // response has none — balance just drops to 0 with a message saying the
+    // remainder was returned to the gateway account. Callers must compute
+    // the refund amount from their own records (e.g. the card's balance
+    // before calling this), not from this response.
+    return this.req<VitalPayCard>('DELETE', `/virtual-cards/${cardUid}`);
   }
 
   // ── Gift Cards ──
@@ -148,6 +184,15 @@ export class VitalPayClient {
 
   getGiftCardHistory(params?: { status?: string; from?: string; to?: string; per_page?: number }) {
     return this.req<{ items: VitalPayGiftCardOrder[]; meta: unknown }>('GET', '/gift-cards/history', undefined, params);
+  }
+
+  // ── Electricity Tokens (ZW / ZESA-ZETDC only, per docs) ──
+  purchaseElectricityToken(body: { meter_number: string; amount: number; currency: string; country: string; reference: string }) {
+    return this.req<VitalPayElectricityOrder>('POST', '/electricity/purchase', body);
+  }
+
+  getElectricityHistory(params?: { status?: string; from?: string; to?: string; per_page?: number }) {
+    return this.req<{ items: VitalPayElectricityOrder[]; meta: unknown }>('GET', '/electricity/history', undefined, params);
   }
 
   // ── Payments (customer collections — this is what end-user wallet
@@ -285,15 +330,15 @@ export class VitalPayProvider implements PaymentProvider {
     const [expMonth, expYear] = (card.expiry ?? '').split('/');
     const lastFour = (card.masked_pan.match(/(\d{4})\s*$/) ?? [])[1] ?? '0000';
     return {
-      provider_card_id: card.card_uid,
+      provider_card_id: card.id,
       masked_pan: card.masked_pan,
       last_four: lastFour,
       expiry_month: Number(expMonth) || 12,
       expiry_year: Number(expYear) || new Date().getFullYear() + 3,
       // VitalPay never returns the full PAN or a separate raw token — the
-      // card_uid is the only stable handle we get back, so it doubles as
+      // card id is the only stable handle we get back, so it doubles as
       // the token here.
-      card_token: card.card_uid,
+      card_token: card.id,
       status: card.status,
     };
   }
@@ -311,15 +356,23 @@ export class VitalPayProvider implements PaymentProvider {
   }
 
   async terminateCard(providerCardId: string): Promise<{ refunded?: number }> {
-    const result = await this.api.terminateVirtualCard(providerCardId);
-    return { refunded: result.refunded ?? 0 };
+    // Despite the docs' example, the real termination response has no
+    // "refunded" field (confirmed by direct testing) — balance just drops
+    // to 0. VitalPay has no card-spend-transaction webhook or endpoint, so
+    // our own locally-tracked current_balance can't be trusted either (it
+    // never decreases for spend we have no visibility into). Fetch the
+    // balance right before terminating instead — VitalPay's own numbers are
+    // the only reliable source of truth for what's actually left.
+    const card = await this.api.getVirtualCard(providerCardId);
+    await this.api.terminateVirtualCard(providerCardId);
+    return { refunded: card.balance };
   }
 
   async getCardDetails(providerCardId: string): Promise<FincraCardDetails> {
     const card = await this.api.getVirtualCard(providerCardId);
     const [expMonth, expYear] = (card.expiry ?? '').split('/');
     return {
-      id: card.card_uid,
+      id: card.id,
       maskedPan: card.masked_pan,
       expiryMonth: Number(expMonth) || 0,
       expiryYear: Number(expYear) || 0,
