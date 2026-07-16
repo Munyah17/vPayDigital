@@ -64846,13 +64846,6 @@ var init_cardService = __esm({
         if (wallet.balance < params.amount) {
           throw new Error(`Insufficient balance. Available: ${wallet.balance}, Required: ${params.amount}`);
         }
-        const providerResponse = await provider.issueCard({
-          cardholder_name: params.cardholder_name,
-          currency: params.currency,
-          amount: params.amount,
-          card_type: params.card_type,
-          network: params.network
-        });
         const { error: debitErr } = await supabaseAdmin.rpc("record_wallet_debit", {
           p_wallet_id: wallet.id,
           p_amount: params.amount,
@@ -64861,13 +64854,27 @@ var init_cardService = __esm({
           p_metadata: { card_type: params.card_type, network: params.network }
         });
         if (debitErr) {
-          logger.error({ debitErr }, "Wallet debit failed after card issue \u2014 requires reconciliation");
-          try {
-            await provider.terminateCard(providerResponse.provider_card_id);
-          } catch (terminateErr) {
-            logger.error({ terminateErr, provider_card_id: providerResponse.provider_card_id }, "Failed to terminate card after debit failure");
-          }
-          throw new Error("Failed to debit wallet for card issuance");
+          throw new Error(`Failed to debit wallet for card issuance: ${debitErr.message}`);
+        }
+        let providerResponse;
+        try {
+          providerResponse = await provider.issueCard({
+            cardholder_name: params.cardholder_name,
+            currency: params.currency,
+            amount: params.amount,
+            card_type: params.card_type,
+            network: params.network
+          });
+        } catch (err) {
+          logger.error({ err }, "Provider card issuance failed \u2014 refunding wallet debit");
+          await supabaseAdmin.rpc("record_wallet_credit", {
+            p_wallet_id: wallet.id,
+            p_amount: params.amount,
+            p_type: "refund",
+            p_description: `Card issuance failed refund: ${params.network.toUpperCase()} ${params.card_type}`,
+            p_metadata: { card_type: params.card_type, network: params.network, original_failure: String(err) }
+          });
+          throw err;
         }
         const now = /* @__PURE__ */ new Date();
         const expiryDate = params.expires_at ? new Date(params.expires_at) : new Date(now.getFullYear() + 2, now.getMonth(), 1);
@@ -72012,7 +72019,125 @@ router.get("/:id/transactions/local", authenticate, async (req, res) => {
 var import_express2 = __toESM(require_express2());
 init_supabase();
 init_provider();
+init_walletService();
+
+// src/services/payoutService.ts
+init_supabase();
+init_provider();
+init_logger();
+
+// ../../packages/config/src/index.ts
+var FEE_CONFIG = {
+  cardIssuanceFlat: 0.5,
+  cardIssuancePercent: 0.015,
+  fxSpread: 0.015,
+  payoutFlat: 1,
+  payoutPercent: 0.01
+};
+
+// src/services/payoutService.ts
+var PayoutService = class {
+  async initiatePayout(params) {
+    const fee = this.calculateFee(params.amount, params.method);
+    const totalDebit = params.amount + fee;
+    const { data: wallet, error: walletErr } = await supabaseAdmin.from("wallets").select("id, balance, status").eq("user_id", params.user_id).eq("currency", params.currency).eq("wallet_type", "consumer").single();
+    if (walletErr || !wallet) throw new Error("Wallet not found");
+    if (wallet.status !== "active") throw new Error("Wallet is not active");
+    if (wallet.balance < totalDebit) throw new Error("Insufficient balance");
+    const { data: payout, error: payoutErr } = await supabaseAdmin.from("payout_requests").insert({
+      user_id: params.user_id,
+      wallet_id: wallet.id,
+      amount: params.amount,
+      fee,
+      net_amount: params.amount,
+      currency: params.currency,
+      method: params.method,
+      status: "pending",
+      beneficiary_name: params.beneficiary_name,
+      beneficiary_account: params.beneficiary_account,
+      beneficiary_bank: params.beneficiary_bank,
+      beneficiary_bank_code: params.beneficiary_bank_code,
+      beneficiary_country: params.beneficiary_country,
+      crypto_address: params.crypto_address,
+      crypto_network: params.crypto_network,
+      mobile_number: params.mobile_number,
+      mobile_provider: params.mobile_provider,
+      notes: params.notes
+    }).select().single();
+    if (payoutErr || !payout) throw new Error(`Failed to create payout: ${payoutErr?.message}`);
+    const { error: debitErr } = await supabaseAdmin.rpc("record_wallet_debit", {
+      p_wallet_id: wallet.id,
+      p_amount: totalDebit,
+      p_type: "withdrawal",
+      p_description: `Payout ${payout.reference}`,
+      p_metadata: { payout_id: payout.id, method: params.method, fee }
+    });
+    if (debitErr) {
+      await supabaseAdmin.from("payout_requests").update({ status: "failed", notes: `Wallet debit failed: ${debitErr.message}` }).eq("id", payout.id);
+      throw new Error("Failed to debit wallet for payout");
+    }
+    try {
+      const providerResp = await provider.initiatePayout({
+        amount: params.amount,
+        currency: params.currency,
+        method: params.method,
+        beneficiary: {
+          name: params.beneficiary_name,
+          account_number: params.beneficiary_account,
+          bank_code: params.beneficiary_bank_code,
+          bank_name: params.beneficiary_bank,
+          country: params.beneficiary_country,
+          mobile_number: params.mobile_number,
+          crypto_address: params.crypto_address,
+          crypto_network: params.crypto_network
+        },
+        reference: payout.reference,
+        description: params.notes ?? "vPay Payout"
+      });
+      await supabaseAdmin.from("payout_requests").update({
+        status: "processing",
+        provider_reference: providerResp.provider_reference,
+        provider_status: providerResp.status
+      }).eq("id", payout.id);
+      const updated = await this.getPayout(payout.id);
+      return updated;
+    } catch (err) {
+      logger.error({ err, payout_id: payout.id }, "Payout provider call failed \u2014 refunding");
+      await supabaseAdmin.rpc("record_wallet_credit", {
+        p_wallet_id: wallet.id,
+        p_amount: totalDebit,
+        p_type: "refund",
+        p_description: `Payout failed refund ${payout.reference}`,
+        p_metadata: { payout_id: payout.id, original_failure: String(err) }
+      });
+      await supabaseAdmin.from("payout_requests").update({ status: "failed", notes: `Provider error: ${err.message}` }).eq("id", payout.id);
+      throw err;
+    }
+  }
+  async getPayoutsByUser(userId, limit = 50) {
+    const { data, error } = await supabaseAdmin.from("payout_requests").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(limit);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  }
+  async getPayout(payoutId) {
+    const { data, error } = await supabaseAdmin.from("payout_requests").select("*").eq("id", payoutId).single();
+    if (error || !data) throw new Error("Payout not found");
+    return data;
+  }
+  calculateFee(amount, method) {
+    if (method === "internal") return 0;
+    return FEE_CONFIG.payoutFlat + amount * FEE_CONFIG.payoutPercent;
+  }
+};
+var payoutService = new PayoutService();
+
+// src/routes/wallets.ts
 var router2 = (0, import_express2.Router)();
+var transferSchema = external_exports.object({
+  to_email: external_exports.string().email(),
+  amount: external_exports.number().positive(),
+  currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"])
+});
 var initiatePayoutSchema = external_exports.object({
   amount: external_exports.number().min(1),
   currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]),
@@ -72093,17 +72218,8 @@ router2.post("/:id/virtual-account", authenticate, async (req, res) => {
   res.json({ success: true, data: { account_number: vaResult.account_number, bank_name: vaResult.bank_name } });
 });
 router2.post("/transfer", authenticate, async (req, res) => {
-  const { to_email, amount, currency } = req.body;
-  if (!to_email || !amount || amount <= 0) {
-    res.status(400).json({ success: false, error: "to_email and positive amount are required" });
-    return;
-  }
-  const [recipientRes, senderWalletRes] = await Promise.all([
-    supabaseAdmin.from("profiles").select("id").eq("email", to_email).single(),
-    supabaseAdmin.from("wallets").select("id, balance, status").eq("user_id", req.user.id).eq("currency", currency).eq("status", "active").single()
-  ]);
-  const recipient = recipientRes.data;
-  const senderWallet = senderWalletRes.data;
+  const { to_email, amount, currency } = transferSchema.parse(req.body);
+  const { data: recipient } = await supabaseAdmin.from("profiles").select("id").eq("email", to_email).single();
   if (!recipient) {
     res.status(404).json({ success: false, error: "Recipient not found" });
     return;
@@ -72112,98 +72228,48 @@ router2.post("/transfer", authenticate, async (req, res) => {
     res.status(400).json({ success: false, error: "Cannot transfer to yourself" });
     return;
   }
-  if (!senderWallet) {
-    res.status(404).json({ success: false, error: `No ${currency} wallet found` });
+  try {
+    await walletService.transfer({
+      from_user_id: req.user.id,
+      to_user_id: recipient.id,
+      amount,
+      currency,
+      description: `Transfer to ${to_email}`
+    });
+  } catch (err) {
+    const message2 = err instanceof Error ? err.message : "Transfer failed";
+    const status = message2.includes("Insufficient balance") ? 402 : message2.includes("not found") ? 404 : 500;
+    res.status(status).json({ success: false, error: message2 });
     return;
   }
-  if (senderWallet.balance < amount) {
-    res.status(402).json({ success: false, error: "Insufficient balance" });
-    return;
-  }
-  const { data: recipientWallet } = await supabaseAdmin.from("wallets").select("id").eq("user_id", recipient.id).eq("currency", currency).eq("status", "active").single();
-  if (!recipientWallet) {
-    res.status(404).json({ success: false, error: `Recipient has no ${currency} wallet` });
-    return;
-  }
-  const reference = `TXN-${Date.now().toString(36).toUpperCase()}`;
-  await supabaseAdmin.rpc("record_wallet_debit", {
-    p_wallet_id: senderWallet.id,
-    p_amount: amount,
-    p_type: "transfer",
-    p_description: `Transfer to ${to_email}`,
-    p_reference: reference
-  });
-  await supabaseAdmin.rpc("record_wallet_credit", {
-    p_wallet_id: recipientWallet.id,
-    p_amount: amount,
-    p_type: "transfer",
-    p_description: `Transfer from ${req.user.email}`,
-    p_reference: `${reference}-R`
-  });
   res.json({ success: true, message: `${amount} ${currency} sent to ${to_email}` });
 });
 router2.post("/payout", authenticate, async (req, res) => {
   const body = initiatePayoutSchema.parse(req.body);
-  const { data: wallet } = await supabaseAdmin.from("wallets").select("id, balance, status").eq("user_id", req.user.id).eq("currency", body.currency).single();
-  if (!wallet) {
-    res.status(404).json({ success: false, error: "Wallet not found" });
-    return;
-  }
-  const fee = Math.max(body.amount * 0.01 + 1, 1.5);
-  const totalRequired = body.amount + fee;
-  if (wallet.balance < totalRequired) {
-    res.status(402).json({
-      success: false,
-      error: `Insufficient balance. Available: ${wallet.balance}, Required: ${totalRequired} (including ${fee} fee)`
-    });
-    return;
-  }
-  const reference = `PAY-${Date.now().toString(36).toUpperCase()}`;
-  const providerResult = await provider.initiatePayout({
-    amount: body.amount,
-    currency: body.currency,
-    method: body.method,
-    reference,
-    description: body.notes,
-    beneficiary: {
-      name: body.beneficiary_name,
-      account_number: body.beneficiary_account,
-      bank_code: body.beneficiary_bank_code,
-      bank_name: body.beneficiary_bank,
-      country: body.beneficiary_country,
-      mobile_number: body.mobile_number,
+  let payout;
+  try {
+    payout = await payoutService.initiatePayout({
+      user_id: req.user.id,
+      amount: body.amount,
+      currency: body.currency,
+      method: body.method,
+      beneficiary_name: body.beneficiary_name,
+      beneficiary_account: body.beneficiary_account,
+      beneficiary_bank: body.beneficiary_bank,
+      beneficiary_bank_code: body.beneficiary_bank_code,
+      beneficiary_country: body.beneficiary_country,
       crypto_address: body.crypto_address,
-      crypto_network: body.crypto_network
-    }
-  });
-  await supabaseAdmin.rpc("record_wallet_debit", {
-    p_wallet_id: wallet.id,
-    p_amount: totalRequired,
-    p_type: "withdrawal",
-    p_description: `Payout: ${body.method} to ${body.beneficiary_name}`,
-    p_reference: reference
-  });
-  const { data: payout } = await supabaseAdmin.from("payout_requests").insert({
-    user_id: req.user.id,
-    wallet_id: wallet.id,
-    amount: body.amount,
-    fee,
-    net_amount: body.amount,
-    currency: body.currency,
-    method: body.method,
-    status: "processing",
-    beneficiary_name: body.beneficiary_name,
-    beneficiary_account: body.beneficiary_account,
-    beneficiary_bank: body.beneficiary_bank,
-    beneficiary_country: body.beneficiary_country,
-    crypto_address: body.crypto_address,
-    crypto_network: body.crypto_network,
-    mobile_number: body.mobile_number,
-    mobile_provider: body.mobile_provider,
-    provider_reference: providerResult.provider_reference,
-    reference,
-    notes: body.notes
-  }).select().single();
+      crypto_network: body.crypto_network,
+      mobile_number: body.mobile_number,
+      mobile_provider: body.mobile_provider,
+      notes: body.notes
+    });
+  } catch (err) {
+    const message2 = err instanceof Error ? err.message : "Payout failed";
+    const status = message2.includes("Insufficient balance") ? 402 : message2.includes("not found") || message2.includes("not active") ? 404 : 502;
+    res.status(status).json({ success: false, error: message2 });
+    return;
+  }
   res.status(201).json({
     success: true,
     data: payout,
@@ -72238,13 +72304,14 @@ var VoucherService = class {
     const expiresAt = /* @__PURE__ */ new Date();
     expiresAt.setDate(expiresAt.getDate() + (params.expires_in_days ?? 30));
     if (!isAdmin && walletId) {
-      await supabaseAdmin.rpc("record_wallet_debit", {
+      const { error: debitErr } = await supabaseAdmin.rpc("record_wallet_debit", {
         p_wallet_id: walletId,
         p_amount: totalCost,
         p_type: "voucher_redemption",
         p_description: `Voucher issuance: ${params.type} ${params.gift_card_brand ?? ""} $${params.amount}`,
         p_metadata: { voucher_type: params.type, amount: params.amount }
       });
+      if (debitErr) throw new Error(`Failed to debit float wallet: ${debitErr.message}`);
     }
     const { data: voucher, error } = await supabaseAdmin.from("vouchers").insert({
       code,
@@ -72427,15 +72494,558 @@ init_supabase();
 
 // src/providers/lorum.ts
 init_logger();
+var LorumProvider = class {
+  name = "lorum";
+  config;
+  httpClient;
+  constructor(config2) {
+    this.config = config2;
+    this.httpClient = fetch;
+  }
+  async requestIban(params) {
+    if (!this.config.enabled) {
+      throw new Error("Lorum provider is not enabled");
+    }
+    try {
+      const response = await this.httpClient(
+        `${this.config.baseUrl}/api/v1/accounts`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.config.apiKey}`
+          },
+          body: JSON.stringify({
+            email: params.email,
+            full_name: params.fullName,
+            user_id: params.userId,
+            currency: params.currency,
+            country: params.country,
+            account_type: "individual"
+          })
+        }
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        logger.error(`Lorum IBAN request failed: ${JSON.stringify(error)}`);
+        throw new Error(`Lorum API error: ${error.message || response.statusText}`);
+      }
+      const data = await response.json();
+      return {
+        iban: data.iban,
+        bic: data.bic,
+        bankName: data.bank_name || "Lorum Financial",
+        accountName: data.account_name || params.fullName,
+        providerAccountId: data.account_id,
+        currency: params.currency,
+        country: params.country
+      };
+    } catch (error) {
+      logger.error(`Lorum provider error: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  }
+  async getAccount(providerAccountId) {
+    if (!this.config.enabled) {
+      throw new Error("Lorum provider is not enabled");
+    }
+    try {
+      const response = await this.httpClient(
+        `${this.config.baseUrl}/api/v1/accounts/${providerAccountId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${this.config.apiKey}`
+          }
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`Lorum API error: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return {
+        iban: data.iban,
+        bic: data.bic,
+        bankName: data.bank_name || "Lorum Financial",
+        accountName: data.account_name,
+        providerAccountId: data.account_id,
+        currency: data.currency,
+        country: data.country
+      };
+    } catch (error) {
+      logger.error(`Lorum getAccount error: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  }
+  async healthCheck() {
+    const health = {
+      provider: this.name,
+      healthy: false,
+      lastChecked: /* @__PURE__ */ new Date()
+    };
+    if (!this.config.enabled) {
+      health.message = "Provider is disabled in configuration";
+      return health;
+    }
+    try {
+      const response = await this.httpClient(
+        `${this.config.baseUrl}/health`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${this.config.apiKey}`
+          }
+        }
+      );
+      if (response.ok) {
+        health.healthy = true;
+        health.message = "Lorum API is healthy";
+      } else {
+        health.message = `Lorum API returned ${response.status}`;
+      }
+    } catch (error) {
+      health.message = `Health check failed: ${error instanceof Error ? error.message : String(error)}`;
+    }
+    return health;
+  }
+  async validateConfig() {
+    if (!this.config.apiKey) {
+      logger.error("Lorum provider: Missing API key");
+      return false;
+    }
+    if (!this.config.baseUrl) {
+      logger.error("Lorum provider: Missing base URL");
+      return false;
+    }
+    return true;
+  }
+};
 
 // src/providers/currencycloud.ts
 init_logger();
+var CurrencyCloudProvider = class {
+  name = "currencycloud";
+  config;
+  httpClient;
+  authToken;
+  constructor(config2) {
+    this.config = config2;
+    this.httpClient = fetch;
+  }
+  async getAuthToken() {
+    if (this.authToken) return this.authToken;
+    try {
+      const response = await this.httpClient(
+        `${this.config.baseUrl}/v2/authenticate/api`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: new URLSearchParams({
+            login_id: this.config.apiKey || "",
+            api_key: this.config.apiSecret || ""
+          }).toString()
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`Currencycloud auth failed: ${response.statusText}`);
+      }
+      const data = await response.json();
+      this.authToken = data.auth_token;
+      return this.authToken;
+    } catch (error) {
+      logger.error(`Currencycloud auth error: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  }
+  async requestIban(params) {
+    if (!this.config.enabled) {
+      throw new Error("Currencycloud provider is not enabled");
+    }
+    try {
+      const token = await this.getAuthToken();
+      const response = await this.httpClient(
+        `${this.config.baseUrl}/v2/virtual_accounts/create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-Auth-Token": token
+          },
+          body: new URLSearchParams({
+            account_name: params.fullName,
+            account_holder_id: params.userId,
+            currency: params.currency,
+            country: params.country || "GB"
+          }).toString()
+        }
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        logger.error(`Currencycloud IBAN request failed: ${JSON.stringify(error)}`);
+        throw new Error(`Currencycloud API error: ${error.errors?.[0]?.message || response.statusText}`);
+      }
+      const data = await response.json();
+      return {
+        iban: data.iban,
+        bic: data.bic_swift,
+        bankName: data.bank_name || "Currencycloud Partner Bank",
+        accountName: data.account_name,
+        providerAccountId: data.id,
+        currency: params.currency,
+        country: params.country
+      };
+    } catch (error) {
+      logger.error(`Currencycloud provider error: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  }
+  async getAccount(providerAccountId) {
+    if (!this.config.enabled) {
+      throw new Error("Currencycloud provider is not enabled");
+    }
+    try {
+      const token = await this.getAuthToken();
+      const response = await this.httpClient(
+        `${this.config.baseUrl}/v2/virtual_accounts/${providerAccountId}`,
+        {
+          method: "GET",
+          headers: {
+            "X-Auth-Token": token
+          }
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`Currencycloud API error: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return {
+        iban: data.iban,
+        bic: data.bic_swift,
+        bankName: data.bank_name || "Currencycloud Partner Bank",
+        accountName: data.account_name,
+        providerAccountId: data.id,
+        currency: data.currency,
+        country: data.country
+      };
+    } catch (error) {
+      logger.error(`Currencycloud getAccount error: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  }
+  async healthCheck() {
+    const health = {
+      provider: this.name,
+      healthy: false,
+      lastChecked: /* @__PURE__ */ new Date()
+    };
+    if (!this.config.enabled) {
+      health.message = "Provider is disabled in configuration";
+      return health;
+    }
+    try {
+      const token = await this.getAuthToken();
+      const response = await this.httpClient(
+        `${this.config.baseUrl}/v2/reference/beneficiary_required_details`,
+        {
+          method: "GET",
+          headers: {
+            "X-Auth-Token": token
+          }
+        }
+      );
+      if (response.ok) {
+        health.healthy = true;
+        health.message = "Currencycloud API is healthy";
+      } else {
+        health.message = `Currencycloud API returned ${response.status}`;
+      }
+    } catch (error) {
+      health.message = `Health check failed: ${error instanceof Error ? error.message : String(error)}`;
+    }
+    return health;
+  }
+  async validateConfig() {
+    if (!this.config.apiKey || !this.config.apiSecret) {
+      logger.error("Currencycloud provider: Missing API credentials");
+      return false;
+    }
+    if (!this.config.baseUrl) {
+      logger.error("Currencycloud provider: Missing base URL");
+      return false;
+    }
+    return true;
+  }
+};
 
 // src/providers/openpayd.ts
 init_logger();
+var OpenPaydProvider = class {
+  name = "openpayd";
+  config;
+  httpClient;
+  constructor(config2) {
+    this.config = config2;
+    this.httpClient = fetch;
+  }
+  async requestIban(params) {
+    if (!this.config.enabled) {
+      throw new Error("OpenPayd provider is not enabled");
+    }
+    try {
+      const response = await this.httpClient(
+        `${this.config.baseUrl}/accounts`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.config.apiKey}`
+          },
+          body: JSON.stringify({
+            account_holder: {
+              id: params.userId,
+              name: params.fullName,
+              email: params.email
+            },
+            currency: params.currency.toUpperCase(),
+            country: params.country,
+            account_type: "virtual_iban",
+            collection_payment_enabled: true
+          })
+        }
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        logger.error(`OpenPayd IBAN request failed: ${JSON.stringify(error)}`);
+        throw new Error(`OpenPayd API error: ${error.message || response.statusText}`);
+      }
+      const data = await response.json();
+      return {
+        iban: data.iban,
+        bic: data.bic || data.swift_code,
+        bankName: data.bank_name || "OpenPayd Partner Bank",
+        accountName: data.account_name || params.fullName,
+        providerAccountId: data.account_id,
+        currency: params.currency,
+        country: params.country
+      };
+    } catch (error) {
+      logger.error(`OpenPayd provider error: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  }
+  async getAccount(providerAccountId) {
+    if (!this.config.enabled) {
+      throw new Error("OpenPayd provider is not enabled");
+    }
+    try {
+      const response = await this.httpClient(
+        `${this.config.baseUrl}/accounts/${providerAccountId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${this.config.apiKey}`
+          }
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`OpenPayd API error: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return {
+        iban: data.iban,
+        bic: data.bic || data.swift_code,
+        bankName: data.bank_name || "OpenPayd Partner Bank",
+        accountName: data.account_name,
+        providerAccountId: data.account_id,
+        currency: data.currency,
+        country: data.country
+      };
+    } catch (error) {
+      logger.error(`OpenPayd getAccount error: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  }
+  async healthCheck() {
+    const health = {
+      provider: this.name,
+      healthy: false,
+      lastChecked: /* @__PURE__ */ new Date()
+    };
+    if (!this.config.enabled) {
+      health.message = "Provider is disabled in configuration";
+      return health;
+    }
+    try {
+      const response = await this.httpClient(
+        `${this.config.baseUrl}/health`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${this.config.apiKey}`
+          }
+        }
+      );
+      if (response.ok) {
+        health.healthy = true;
+        health.message = "OpenPayd API is healthy";
+      } else {
+        health.message = `OpenPayd API returned ${response.status}`;
+      }
+    } catch (error) {
+      health.message = `Health check failed: ${error instanceof Error ? error.message : String(error)}`;
+    }
+    return health;
+  }
+  async validateConfig() {
+    if (!this.config.apiKey) {
+      logger.error("OpenPayd provider: Missing API key");
+      return false;
+    }
+    if (!this.config.baseUrl) {
+      logger.error("OpenPayd provider: Missing base URL");
+      return false;
+    }
+    return true;
+  }
+};
 
 // src/providers/airwallex.ts
 init_logger();
+var AirwallexProvider = class {
+  name = "airwallex";
+  config;
+  httpClient;
+  constructor(config2) {
+    this.config = config2;
+    this.httpClient = fetch;
+  }
+  async requestIban(params) {
+    if (!this.config.enabled) {
+      throw new Error("Airwallex provider is not enabled");
+    }
+    try {
+      const response = await this.httpClient(
+        `${this.config.baseUrl}/api/v1/accounts`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.config.apiKey}`
+          },
+          body: JSON.stringify({
+            account_holder: {
+              id: params.userId,
+              name: params.fullName,
+              email: params.email
+            },
+            currency: params.currency,
+            country: params.country || "GB",
+            account_type: "virtual",
+            features: {
+              local_payment_collection: true,
+              sepa: true,
+              swift: true
+            }
+          })
+        }
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        logger.error(`Airwallex IBAN request failed: ${JSON.stringify(error)}`);
+        throw new Error(`Airwallex API error: ${error.message || response.statusText}`);
+      }
+      const data = await response.json();
+      return {
+        iban: data.iban,
+        bic: data.bic || data.swift_code,
+        bankName: data.bank_name || "Airwallex",
+        accountName: data.account_name || params.fullName,
+        providerAccountId: data.account_id,
+        currency: params.currency,
+        country: params.country
+      };
+    } catch (error) {
+      logger.error(`Airwallex provider error: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  }
+  async getAccount(providerAccountId) {
+    if (!this.config.enabled) {
+      throw new Error("Airwallex provider is not enabled");
+    }
+    try {
+      const response = await this.httpClient(
+        `${this.config.baseUrl}/api/v1/accounts/${providerAccountId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${this.config.apiKey}`
+          }
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`Airwallex API error: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return {
+        iban: data.iban,
+        bic: data.bic || data.swift_code,
+        bankName: data.bank_name || "Airwallex",
+        accountName: data.account_name,
+        providerAccountId: data.account_id,
+        currency: data.currency,
+        country: data.country
+      };
+    } catch (error) {
+      logger.error(`Airwallex getAccount error: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  }
+  async healthCheck() {
+    const health = {
+      provider: this.name,
+      healthy: false,
+      lastChecked: /* @__PURE__ */ new Date()
+    };
+    if (!this.config.enabled) {
+      health.message = "Provider is disabled in configuration";
+      return health;
+    }
+    try {
+      const response = await this.httpClient(
+        `${this.config.baseUrl}/api/v1/health`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${this.config.apiKey}`
+          }
+        }
+      );
+      if (response.ok) {
+        health.healthy = true;
+        health.message = "Airwallex API is healthy";
+      } else {
+        health.message = `Airwallex API returned ${response.status}`;
+      }
+    } catch (error) {
+      health.message = `Health check failed: ${error instanceof Error ? error.message : String(error)}`;
+    }
+    return health;
+  }
+  async validateConfig() {
+    if (!this.config.apiKey) {
+      logger.error("Airwallex provider: Missing API key");
+      return false;
+    }
+    if (!this.config.baseUrl) {
+      logger.error("Airwallex provider: Missing base URL");
+      return false;
+    }
+    return true;
+  }
+};
 
 // src/providers/registry.ts
 init_logger();
@@ -72603,6 +73213,95 @@ function getProviderRegistry() {
   }
   return registryInstance;
 }
+var initPromise = null;
+function ensureProvidersInitialized() {
+  if (!initPromise) {
+    initPromise = initializeProviders();
+  }
+  return initPromise;
+}
+async function initializeProviders() {
+  const registry = getProviderRegistry();
+  if (process.env.LORUM_API_KEY) {
+    const lorum = new LorumProvider({
+      name: "lorum",
+      apiKey: process.env.LORUM_API_KEY,
+      baseUrl: process.env.LORUM_BASE_URL || "https://sandbox.lorum.com",
+      environment: process.env.LORUM_ENVIRONMENT === "production" ? "production" : "sandbox",
+      enabled: process.env.LORUM_ENABLED !== "false",
+      priority: 1
+    });
+    registry.registerProvider("lorum", lorum, {
+      name: "lorum",
+      apiKey: process.env.LORUM_API_KEY,
+      baseUrl: process.env.LORUM_BASE_URL || "https://sandbox.lorum.com",
+      environment: process.env.LORUM_ENVIRONMENT === "production" ? "production" : "sandbox",
+      enabled: process.env.LORUM_ENABLED !== "false",
+      priority: 1
+    });
+  }
+  if (process.env.CURRENCYCLOUD_API_KEY) {
+    const currencycloud = new CurrencyCloudProvider({
+      name: "currencycloud",
+      apiKey: process.env.CURRENCYCLOUD_API_KEY,
+      apiSecret: process.env.CURRENCYCLOUD_API_SECRET,
+      baseUrl: process.env.CURRENCYCLOUD_BASE_URL || "https://api-sandbox.currencycloud.com",
+      environment: process.env.CURRENCYCLOUD_ENVIRONMENT === "production" ? "production" : "sandbox",
+      enabled: process.env.CURRENCYCLOUD_ENABLED !== "false",
+      priority: 2
+    });
+    registry.registerProvider("currencycloud", currencycloud, {
+      name: "currencycloud",
+      apiKey: process.env.CURRENCYCLOUD_API_KEY,
+      apiSecret: process.env.CURRENCYCLOUD_API_SECRET,
+      baseUrl: process.env.CURRENCYCLOUD_BASE_URL || "https://api-sandbox.currencycloud.com",
+      environment: process.env.CURRENCYCLOUD_ENVIRONMENT === "production" ? "production" : "sandbox",
+      enabled: process.env.CURRENCYCLOUD_ENABLED !== "false",
+      priority: 2
+    });
+  }
+  if (process.env.OPENPAYD_API_KEY) {
+    const openpayd = new OpenPaydProvider({
+      name: "openpayd",
+      apiKey: process.env.OPENPAYD_API_KEY,
+      baseUrl: process.env.OPENPAYD_BASE_URL || "https://sandbox-api.openpayd.com",
+      environment: process.env.OPENPAYD_ENVIRONMENT === "production" ? "production" : "sandbox",
+      enabled: process.env.OPENPAYD_ENABLED !== "false",
+      priority: 3
+    });
+    registry.registerProvider("openpayd", openpayd, {
+      name: "openpayd",
+      apiKey: process.env.OPENPAYD_API_KEY,
+      baseUrl: process.env.OPENPAYD_BASE_URL || "https://sandbox-api.openpayd.com",
+      environment: process.env.OPENPAYD_ENVIRONMENT === "production" ? "production" : "sandbox",
+      enabled: process.env.OPENPAYD_ENABLED !== "false",
+      priority: 3
+    });
+  }
+  if (process.env.AIRWALLEX_API_KEY) {
+    const airwallex = new AirwallexProvider({
+      name: "airwallex",
+      apiKey: process.env.AIRWALLEX_API_KEY,
+      baseUrl: process.env.AIRWALLEX_BASE_URL || "https://api-sandbox.airwallex.com",
+      environment: process.env.AIRWALLEX_ENVIRONMENT === "production" ? "production" : "sandbox",
+      enabled: process.env.AIRWALLEX_ENABLED !== "false",
+      priority: 4
+    });
+    registry.registerProvider("airwallex", airwallex, {
+      name: "airwallex",
+      apiKey: process.env.AIRWALLEX_API_KEY,
+      baseUrl: process.env.AIRWALLEX_BASE_URL || "https://api-sandbox.airwallex.com",
+      environment: process.env.AIRWALLEX_ENVIRONMENT === "production" ? "production" : "sandbox",
+      enabled: process.env.AIRWALLEX_ENABLED !== "false",
+      priority: 4
+    });
+  }
+  const valid = await registry.validateAll();
+  if (!valid) {
+    logger.warn("Some provider configurations are invalid");
+  }
+  logger.info(`Provider registry initialized with ${registry.getAllProviders().size} providers`);
+}
 
 // src/services/bankingService.ts
 init_logger();
@@ -72730,7 +73429,7 @@ router4.post("/iban/request", authenticate, async (req, res) => {
     throw err;
   }
 });
-router4.post("/iban/switch-provider", authenticate, async (req, res) => {
+router4.post("/iban/switch-provider", authenticate, requireAdmin, async (req, res) => {
   try {
     const { newProvider } = req.body;
     if (!newProvider) {
@@ -72747,7 +73446,7 @@ router4.post("/iban/switch-provider", authenticate, async (req, res) => {
     throw err;
   }
 });
-router4.get("/providers", authenticate, async (req, res) => {
+router4.get("/providers", authenticate, requireAdmin, async (req, res) => {
   try {
     const registry = getProviderRegistry();
     const health = await registry.getHealthStatus();
@@ -72767,7 +73466,7 @@ router4.get("/providers", authenticate, async (req, res) => {
     res.status(500).json({ success: false, error: "Failed to get provider status" });
   }
 });
-router4.post("/providers/health", authenticate, async (req, res) => {
+router4.post("/providers/health", authenticate, requireAdmin, async (req, res) => {
   try {
     const registry = getProviderRegistry();
     const health = await registry.getHealthStatus();
@@ -72848,6 +73547,7 @@ router5.delete("/:id", authenticate, async (req, res) => {
 });
 
 // src/webhooks/fincraWebhook.ts
+var import_crypto2 = require("crypto");
 init_supabase();
 init_provider();
 init_logger();
@@ -72860,36 +73560,38 @@ async function handleFincraWebhook(req, res) {
     return;
   }
   const payload = req.body;
-  const idempotencyKey = `${payload.event}-${payload.data?.id ?? Date.now()}`;
-  const { data: existing } = await supabaseAdmin.from("webhook_events").select("id, status").eq("idempotency_key", idempotencyKey).maybeSingle();
-  if (existing?.status === "delivered") {
-    res.json({ success: true, message: "Already processed" });
+  const stableId = payload.data?.id ?? payload.data?.reference ?? payload.data?.transactionId ?? (0, import_crypto2.createHash)("sha256").update(rawBody).digest("hex").slice(0, 32);
+  const idempotencyKey = `${payload.event}-${stableId}`;
+  const eventType = mapFincraEvent(payload.event);
+  const { data: claimRows, error: claimErr } = await supabaseAdmin.rpc("claim_webhook_event", {
+    p_idempotency_key: idempotencyKey,
+    p_event_type: eventType,
+    p_source: "fincra",
+    p_payload: payload.data,
+    p_signature: signature
+  });
+  if (claimErr) {
+    logger.error({ claimErr, event: payload.event }, "Failed to claim webhook event");
+    res.status(500).json({ success: false, error: "Failed to record webhook event" });
     return;
   }
-  const eventType = mapFincraEvent(payload.event);
-  const { data: webhookEvent } = await supabaseAdmin.from("webhook_events").upsert({
-    event_type: eventType,
-    source: "fincra",
-    payload: payload.data,
-    signature,
-    status: "pending",
-    idempotency_key: idempotencyKey
-  }, { onConflict: "idempotency_key" }).select().single();
-  res.json({ success: true, received: true });
+  const claim = Array.isArray(claimRows) ? claimRows[0] : claimRows;
+  if (!claim?.claimed) {
+    res.json({ success: true, message: "Already processed or in progress" });
+    return;
+  }
+  const webhookEventId = claim.id;
   try {
     await processWebhookEvent(eventType, payload.data);
-    if (webhookEvent) {
-      await supabaseAdmin.from("webhook_events").update({ status: "delivered", processed_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", webhookEvent.id);
-    }
+    await supabaseAdmin.from("webhook_events").update({ status: "delivered", processed_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", webhookEventId);
+    res.json({ success: true, received: true });
   } catch (err) {
     logger.error({ err, event: payload.event }, "Webhook processing failed");
-    if (webhookEvent) {
-      await supabaseAdmin.from("webhook_events").update({
-        status: "failed",
-        error_message: err instanceof Error ? err.message : "Unknown error",
-        attempts: webhookEvent.attempts + 1
-      }).eq("id", webhookEvent.id);
-    }
+    await supabaseAdmin.from("webhook_events").update({
+      status: "failed",
+      error_message: err instanceof Error ? err.message : "Unknown error"
+    }).eq("id", webhookEventId);
+    res.status(500).json({ success: false, error: "Webhook processing failed" });
   }
 }
 async function processWebhookEvent(eventType, data) {
@@ -73038,6 +73740,14 @@ app.use(import_express6.default.json({ limit: "10kb" }));
 app.use(import_express6.default.urlencoded({ extended: true, limit: "10kb" }));
 app.use((req, _res, next) => {
   logger.info({ method: req.method, url: req.url }, "Incoming request");
+  next();
+});
+app.use(async (_req, _res, next) => {
+  try {
+    await ensureProvidersInitialized();
+  } catch (err) {
+    logger.warn({ err }, "Provider initialization warning \u2014 continuing without full provider registry");
+  }
   next();
 });
 app.get("/health", (_req, res) => {

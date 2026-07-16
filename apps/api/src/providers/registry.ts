@@ -213,6 +213,26 @@ export function getProviderRegistry(): ProviderRegistry {
   return registryInstance;
 }
 
+let initPromise: Promise<void> | null = null;
+
+/**
+ * Lazily initialize the provider registry exactly once per process.
+ *
+ * index.ts (the Railway/local entry) calls initializeProviders() directly
+ * before app.listen(). serverless.ts (the Vercel entry) has no equivalent
+ * startup hook — it just exports the Express app — so without this, the
+ * registry stayed permanently empty on Vercel and every IBAN request failed
+ * with "No available IBAN providers" regardless of configured credentials.
+ * Safe to call from a middleware on every request: after the first call
+ * resolves, subsequent calls just return the cached promise.
+ */
+export function ensureProvidersInitialized(): Promise<void> {
+  if (!initPromise) {
+    initPromise = initializeProviders();
+  }
+  return initPromise;
+}
+
 /**
  * Initialize all providers with configuration from environment
  */

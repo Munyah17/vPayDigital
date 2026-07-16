@@ -45,16 +45,11 @@ export class CardService {
       throw new Error(`Insufficient balance. Available: ${wallet.balance}, Required: ${params.amount}`);
     }
 
-    // 2. Call provider to issue card
-    const providerResponse = await provider.issueCard({
-      cardholder_name: params.cardholder_name,
-      currency: params.currency,
-      amount: params.amount,
-      card_type: params.card_type,
-      network: params.network,
-    });
-
-    // 3. Debit wallet atomically
+    // 2. Debit wallet atomically FIRST. record_wallet_debit row-locks the
+    // wallet and re-checks the balance server-side, so this is the safe
+    // place for the money-moving step to happen — calling the provider
+    // first and debiting after would risk issuing a funded card with no
+    // corresponding debit if the debit then failed.
     const { error: debitErr } = await supabaseAdmin.rpc('record_wallet_debit', {
       p_wallet_id: wallet.id,
       p_amount: params.amount,
@@ -64,14 +59,31 @@ export class CardService {
     });
 
     if (debitErr) {
-      logger.error({ debitErr }, 'Wallet debit failed after card issue — requires reconciliation');
-      // Attempt to terminate the card
-      try {
-        await provider.terminateCard(providerResponse.provider_card_id);
-      } catch (terminateErr) {
-        logger.error({ terminateErr, provider_card_id: providerResponse.provider_card_id }, 'Failed to terminate card after debit failure');
-      }
-      throw new Error('Failed to debit wallet for card issuance');
+      throw new Error(`Failed to debit wallet for card issuance: ${debitErr.message}`);
+    }
+
+    // 3. Call provider to issue card. If this fails, refund the debit —
+    // no card was ever created at the provider, so there's nothing to roll
+    // back on their end.
+    let providerResponse;
+    try {
+      providerResponse = await provider.issueCard({
+        cardholder_name: params.cardholder_name,
+        currency: params.currency,
+        amount: params.amount,
+        card_type: params.card_type,
+        network: params.network,
+      });
+    } catch (err) {
+      logger.error({ err }, 'Provider card issuance failed — refunding wallet debit');
+      await supabaseAdmin.rpc('record_wallet_credit', {
+        p_wallet_id: wallet.id,
+        p_amount: params.amount,
+        p_type: 'refund',
+        p_description: `Card issuance failed refund: ${params.network.toUpperCase()} ${params.card_type}`,
+        p_metadata: { card_type: params.card_type, network: params.network, original_failure: String(err) },
+      });
+      throw err;
     }
 
     // 4. Persist card record

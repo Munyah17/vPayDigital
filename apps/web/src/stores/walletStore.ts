@@ -19,18 +19,23 @@ interface WalletState {
   fetchNotifications: () => Promise<void>;
   setActiveWallet: (wallet: Wallet) => void;
   markNotificationRead: (id: string) => Promise<void>;
+  reset: () => void;
 }
+
+const initialState = {
+  wallets: [] as Wallet[],
+  activeWallet: null as Wallet | null,
+  transactions: [] as WalletTransaction[],
+  cards: [] as Card[],
+  notifications: [] as Notification[],
+  unreadCount: 0,
+  isLoading: false,
+};
 
 export const useWalletStore = create<WalletState>()(
   devtools(
     (set, get) => ({
-      wallets: [],
-      activeWallet: null,
-      transactions: [],
-      cards: [],
-      notifications: [],
-      unreadCount: 0,
-      isLoading: false,
+      ...initialState,
 
       fetchWallets: async () => {
         set({ isLoading: true });
@@ -93,6 +98,8 @@ export const useWalletStore = create<WalletState>()(
           unreadCount: Math.max(0, state.unreadCount - 1),
         }));
       },
+
+      reset: () => set({ ...initialState }),
     })
   )
 );

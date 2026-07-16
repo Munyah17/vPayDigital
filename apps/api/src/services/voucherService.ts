@@ -66,13 +66,14 @@ export class VoucherService {
 
     // Debit wallet — agents only (admins issue from platform pool, no debit)
     if (!isAdmin && walletId) {
-      await supabaseAdmin.rpc('record_wallet_debit', {
+      const { error: debitErr } = await supabaseAdmin.rpc('record_wallet_debit', {
         p_wallet_id: walletId,
         p_amount: totalCost,
         p_type: 'voucher_redemption',
         p_description: `Voucher issuance: ${params.type} ${params.gift_card_brand ?? ''} $${params.amount}`,
         p_metadata: { voucher_type: params.type, amount: params.amount },
       });
+      if (debitErr) throw new Error(`Failed to debit float wallet: ${debitErr.message}`);
     }
 
     // Create voucher record

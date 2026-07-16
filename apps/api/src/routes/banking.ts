@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { authenticate, AuthenticatedRequest } from '../middleware/auth.js';
+import { authenticate, requireAdmin, AuthenticatedRequest } from '../middleware/auth.js';
 import { bankingService } from '../services/bankingService.js';
 import { getProviderRegistry } from '../providers/registry.js';
 import { logger } from '../utils/logger.js';
@@ -36,7 +36,7 @@ router.post('/iban/request', authenticate, async (req: AuthenticatedRequest, res
 });
 
 // POST /api/banking/iban/switch-provider — admin: switch provider for pending IBAN
-router.post('/iban/switch-provider', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/iban/switch-provider', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { newProvider } = req.body;
     if (!newProvider) {
@@ -56,9 +56,8 @@ router.post('/iban/switch-provider', authenticate, async (req: AuthenticatedRequ
 });
 
 // GET /api/banking/providers — admin: get provider status and health
-router.get('/providers', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/providers', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    // TODO: Add admin authorization check
     const registry = getProviderRegistry();
     const health = await registry.getHealthStatus();
     const providers = Array.from(registry.getAllProviders().entries()).map(([name, provider]) => ({
@@ -80,9 +79,8 @@ router.get('/providers', authenticate, async (req: AuthenticatedRequest, res: Re
 });
 
 // POST /api/banking/providers/health — admin: trigger health check on all providers
-router.post('/providers/health', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/providers/health', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    // TODO: Add admin authorization check
     const registry = getProviderRegistry();
     const health = await registry.getHealthStatus();
     res.json({ success: true, data: health });

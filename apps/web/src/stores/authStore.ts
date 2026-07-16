@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, devtools } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
+import { useWalletStore } from './walletStore';
 import type { Profile } from '@vpay/types';
 
 interface AuthState {
@@ -8,6 +9,7 @@ interface AuthState {
   profile: Profile | null;
   isLoading: boolean;
   isInitialized: boolean;
+  profileError: string | null;
 
   setUser: (user: { id: string; email: string } | null) => void;
   setProfile: (profile: Profile | null) => void;
@@ -27,6 +29,7 @@ export const useAuthStore = create<AuthState>()(
         profile: null,
         isLoading: true,
         isInitialized: false,
+        profileError: null,
 
         setUser: (user) => set({ user }),
         setProfile: (profile) => set({ profile }),
@@ -51,7 +54,12 @@ export const useAuthStore = create<AuthState>()(
                   set({ user: { id: session.user.id, email: session.user.email! } });
                   await get().refreshProfile();
                 } else {
+                  // Session ended (explicit sign-out, expiry, or another tab
+                  // signing out) — clear wallet/card/transaction/notification
+                  // state too, or the next user on this device can briefly
+                  // see the previous user's real balances before refetch.
                   set({ user: null, profile: null });
+                  useWalletStore.getState().reset();
                 }
               });
             }
@@ -64,19 +72,31 @@ export const useAuthStore = create<AuthState>()(
           const { user } = get();
           if (!user) return;
 
-          const { data } = await supabase
+          const { data, error } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', user.id)
             .single();
 
-          if (data) set({ profile: data as Profile });
+          if (error) {
+            // Don't silently leave profile null on a transient network/DB
+            // error — AuthGuard treats "no profile" the same as "not logged
+            // in" and would otherwise bounce a genuinely authenticated user
+            // back to the landing page with no explanation.
+            set({ profileError: error.message });
+            return;
+          }
+
+          set({ profile: data as Profile, profileError: null });
         },
 
         signOut: async () => {
           // Clear local state immediately and unconditionally, so a slow or failed
-          // remote call can never leave the UI looking "stuck" signed in.
+          // remote call can never leave the UI looking "stuck" signed in — and so
+          // the next user on a shared device never sees this user's wallets/cards
+          // while the post-login refetch is still in flight.
           set({ user: null, profile: null });
+          useWalletStore.getState().reset();
           try {
             await Promise.race([
               supabase.auth.signOut(),

@@ -1,12 +1,15 @@
 import { app } from './app.js';
 import { env } from './config/index.js';
 import { logger } from './utils/logger.js';
-import { initializeProviders } from './providers/registry.js';
+import { ensureProvidersInitialized } from './providers/registry.js';
 
 async function startServer() {
   try {
-    // Initialize IBAN providers before starting server
-    await initializeProviders();
+    // Initialize IBAN providers before starting server. app.ts's own
+    // middleware also calls this (memoized, so it's a no-op here after),
+    // which is what covers the Vercel serverless entry that never runs
+    // this file.
+    await ensureProvidersInitialized();
     logger.info('IBAN providers initialized successfully');
   } catch (err) {
     logger.warn(`Provider initialization warning: ${err instanceof Error ? err.message : String(err)}`);

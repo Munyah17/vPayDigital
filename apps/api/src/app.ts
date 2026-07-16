@@ -19,6 +19,7 @@ import { beneficiaryRouter } from './routes/beneficiaries.js';
 import { handleFincraWebhook } from './webhooks/fincraWebhook.js';
 import { authenticate, requireAdmin, requireAgent, requireSuperAdmin, AuthenticatedRequest } from './middleware/auth.js';
 import { supabaseAdmin } from './utils/supabase.js';
+import { ensureProvidersInitialized } from './providers/registry.js';
 
 const app = express();
 
@@ -85,6 +86,18 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 // ─── Request Logging ──────────────────────────────────────────────────────────
 app.use((req, _res, next) => {
   logger.info({ method: req.method, url: req.url }, 'Incoming request');
+  next();
+});
+
+// ─── IBAN Provider Registry ───────────────────────────────────────────────────
+// index.ts (Railway/local) initializes this before listen(); serverless.ts
+// (Vercel) has no such startup hook, so it's lazily initialized here instead.
+app.use(async (_req, _res, next) => {
+  try {
+    await ensureProvidersInitialized();
+  } catch (err) {
+    logger.warn({ err }, 'Provider initialization warning — continuing without full provider registry');
+  }
   next();
 });
 

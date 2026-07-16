@@ -3,6 +3,7 @@
 // =============================================================================
 
 import { Request, Response } from 'express';
+import { createHash } from 'crypto';
 import { supabaseAdmin } from '../utils/supabase.js';
 import { provider } from '../utils/provider.js';
 import { logger } from '../utils/logger.js';
@@ -24,62 +25,72 @@ export async function handleFincraWebhook(req: Request, res: Response): Promise<
     timestamp?: string;
   };
 
-  // Idempotency check using event ID + type
-  const idempotencyKey = `${payload.event}-${(payload.data?.id as string) ?? Date.now()}`;
+  // Idempotency key: prefer a stable identifier from the event itself. If
+  // none is present, hash the raw body instead of falling back to
+  // Date.now() — a timestamp fallback would give every delivery of the same
+  // eventless payload a unique key, silently disabling dedup for it.
+  const stableId = (payload.data?.id as string)
+    ?? (payload.data?.reference as string)
+    ?? (payload.data?.transactionId as string)
+    ?? createHash('sha256').update(rawBody).digest('hex').slice(0, 32);
+  const idempotencyKey = `${payload.event}-${stableId}`;
 
-  const { data: existing } = await supabaseAdmin
-    .from('webhook_events')
-    .select('id, status')
-    .eq('idempotency_key', idempotencyKey)
-    .maybeSingle();
+  const eventType = mapFincraEvent(payload.event);
 
-  if (existing?.status === 'delivered') {
-    res.json({ success: true, message: 'Already processed' });
+  // Atomically claim this event: only one concurrent/duplicate delivery of
+  // the same idempotency key gets claimed = true. Everyone else (including
+  // near-simultaneous retries racing each other) is told to stand down
+  // instead of both proceeding to double-credit or double-reverse funds.
+  const { data: claimRows, error: claimErr } = await supabaseAdmin.rpc('claim_webhook_event', {
+    p_idempotency_key: idempotencyKey,
+    p_event_type: eventType,
+    p_source: 'fincra',
+    p_payload: payload.data,
+    p_signature: signature,
+  });
+
+  if (claimErr) {
+    logger.error({ claimErr, event: payload.event }, 'Failed to claim webhook event');
+    res.status(500).json({ success: false, error: 'Failed to record webhook event' });
     return;
   }
 
-  // Map Fincra event to our event type
-  const eventType = mapFincraEvent(payload.event);
+  const claim = Array.isArray(claimRows) ? claimRows[0] : claimRows;
+  if (!claim?.claimed) {
+    res.json({ success: true, message: 'Already processed or in progress' });
+    return;
+  }
 
-  // Record webhook event
-  const { data: webhookEvent } = await supabaseAdmin
-    .from('webhook_events')
-    .upsert({
-      event_type: eventType,
-      source: 'fincra',
-      payload: payload.data,
-      signature,
-      status: 'pending',
-      idempotency_key: idempotencyKey,
-    }, { onConflict: 'idempotency_key' })
-    .select()
-    .single();
+  const webhookEventId = claim.id as string;
 
-  // Acknowledge immediately — process asynchronously
-  res.json({ success: true, received: true });
-
-  // Process event
+  // Do the work BEFORE responding. On Vercel's serverless model the
+  // execution context can be frozen the instant a response is sent, so
+  // acknowledging first and processing "in the background" risked the
+  // wallet-crediting work never actually running.
   try {
     await processWebhookEvent(eventType, payload.data);
 
-    if (webhookEvent) {
-      await supabaseAdmin
-        .from('webhook_events')
-        .update({ status: 'delivered', processed_at: new Date().toISOString() })
-        .eq('id', webhookEvent.id);
-    }
+    await supabaseAdmin
+      .from('webhook_events')
+      .update({ status: 'delivered', processed_at: new Date().toISOString() })
+      .eq('id', webhookEventId);
+
+    res.json({ success: true, received: true });
   } catch (err) {
     logger.error({ err, event: payload.event }, 'Webhook processing failed');
-    if (webhookEvent) {
-      await supabaseAdmin
-        .from('webhook_events')
-        .update({
-          status: 'failed',
-          error_message: err instanceof Error ? err.message : 'Unknown error',
-          attempts: (webhookEvent as { attempts: number }).attempts + 1,
-        })
-        .eq('id', webhookEvent.id);
-    }
+    await supabaseAdmin
+      .from('webhook_events')
+      .update({
+        status: 'failed',
+        error_message: err instanceof Error ? err.message : 'Unknown error',
+      })
+      .eq('id', webhookEventId);
+
+    // Respond with an error so the provider's own retry logic re-delivers
+    // this event — previously this always ACKed 200 even on failure, so a
+    // genuinely failed webhook (e.g. a transient DB error) would never be
+    // retried by Fincra.
+    res.status(500).json({ success: false, error: 'Webhook processing failed' });
   }
 }
 

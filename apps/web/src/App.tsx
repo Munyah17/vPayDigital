@@ -99,8 +99,26 @@ function AdminLoader() {
 }
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { isInitialized, profile } = useAuthStore();
+  const { isInitialized, profile, user, profileError, refreshProfile } = useAuthStore();
   if (!isInitialized) return <PageLoader />;
+  // A logged-in user whose profile fetch failed (network blip, transient DB
+  // error) is NOT the same as a logged-out user — redirecting to landing
+  // here made a real session look like it had silently logged the user out.
+  if (user && !profile && profileError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex flex-col items-center gap-4 text-center px-4">
+          <p className="text-sm text-muted-foreground">Couldn't load your account. Check your connection and try again.</p>
+          <button
+            onClick={() => refreshProfile()}
+            className="px-4 py-2 rounded-lg bg-brand-gradient text-white text-sm font-medium"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
   if (!profile) return <Navigate to="/" replace />;
   return <>{children}</>;
 }

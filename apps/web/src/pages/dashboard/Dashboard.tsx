@@ -204,8 +204,8 @@ export default function Dashboard() {
                   key={wallet.id}
                   wallet={wallet}
                   isActive={wallet.id === activeWallet?.id}
-                  onTopUp={() => navigate('/wallet/topup')}
-                  onSend={() => navigate('/wallet/send')}
+                  onTopUp={() => navigate('/wallet?action=topup')}
+                  onSend={() => navigate('/wallet?action=send')}
                 />
               ))
             ) : (

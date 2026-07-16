@@ -3,8 +3,16 @@ import { z } from 'zod';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth.js';
 import { supabaseAdmin } from '../utils/supabase.js';
 import { provider } from '../utils/provider.js';
+import { walletService } from '../services/walletService.js';
+import { payoutService } from '../services/payoutService.js';
 
 const router = Router();
+
+const transferSchema = z.object({
+  to_email: z.string().email(),
+  amount: z.number().positive(),
+  currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR']),
+});
 
 const initiatePayoutSchema = z.object({
   amount: z.number().min(1),
@@ -137,54 +145,37 @@ router.post('/:id/virtual-account', authenticate, async (req: AuthenticatedReque
 
 // POST /api/wallets/transfer — internal transfer to another user by email
 router.post('/transfer', authenticate, async (req: AuthenticatedRequest, res: Response) => {
-  const { to_email, amount, currency } = req.body as { to_email: string; amount: number; currency: string };
+  const { to_email, amount, currency } = transferSchema.parse(req.body);
 
-  if (!to_email || !amount || amount <= 0) {
-    res.status(400).json({ success: false, error: 'to_email and positive amount are required' });
-    return;
-  }
-
-  // Fetch recipient profile and sender wallet in parallel
-  const [recipientRes, senderWalletRes] = await Promise.all([
-    supabaseAdmin.from('profiles').select('id').eq('email', to_email).single(),
-    supabaseAdmin.from('wallets').select('id, balance, status').eq('user_id', req.user!.id).eq('currency', currency).eq('status', 'active').single(),
-  ]);
-
-  const recipient = recipientRes.data;
-  const senderWallet = senderWalletRes.data;
+  const { data: recipient } = await supabaseAdmin
+    .from('profiles')
+    .select('id')
+    .eq('email', to_email)
+    .single();
 
   if (!recipient) { res.status(404).json({ success: false, error: 'Recipient not found' }); return; }
   if (recipient.id === req.user!.id) { res.status(400).json({ success: false, error: 'Cannot transfer to yourself' }); return; }
-  if (!senderWallet) { res.status(404).json({ success: false, error: `No ${currency} wallet found` }); return; }
-  if (senderWallet.balance < amount) { res.status(402).json({ success: false, error: 'Insufficient balance' }); return; }
 
-  const { data: recipientWallet } = await supabaseAdmin
-    .from('wallets')
-    .select('id')
-    .eq('user_id', recipient.id)
-    .eq('currency', currency)
-    .eq('status', 'active')
-    .single();
-
-  if (!recipientWallet) { res.status(404).json({ success: false, error: `Recipient has no ${currency} wallet` }); return; }
-
-  const reference = `TXN-${Date.now().toString(36).toUpperCase()}`;
-
-  await supabaseAdmin.rpc('record_wallet_debit', {
-    p_wallet_id: senderWallet.id,
-    p_amount: amount,
-    p_type: 'transfer',
-    p_description: `Transfer to ${to_email}`,
-    p_reference: reference,
-  });
-
-  await supabaseAdmin.rpc('record_wallet_credit', {
-    p_wallet_id: recipientWallet.id,
-    p_amount: amount,
-    p_type: 'transfer',
-    p_description: `Transfer from ${req.user!.email}`,
-    p_reference: `${reference}-R`,
-  });
+  // walletService.transfer() checks the debit/credit RPC results and throws on
+  // failure instead of silently proceeding — a race that changes the sender's
+  // balance between the pre-check and the debit call must not credit the
+  // recipient anyway.
+  try {
+    await walletService.transfer({
+      from_user_id: req.user!.id,
+      to_user_id: recipient.id,
+      amount,
+      currency,
+      description: `Transfer to ${to_email}`,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Transfer failed';
+    const status = message.includes('Insufficient balance') ? 402
+      : message.includes('not found') ? 404
+      : 500;
+    res.status(status).json({ success: false, error: message });
+    return;
+  }
 
   res.json({ success: true, message: `${amount} ${currency} sent to ${to_email}` });
 });
@@ -193,88 +184,36 @@ router.post('/transfer', authenticate, async (req: AuthenticatedRequest, res: Re
 router.post('/payout', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   const body = initiatePayoutSchema.parse(req.body);
 
-  // Get wallet
-  const { data: wallet } = await supabaseAdmin
-    .from('wallets')
-    .select('id, balance, status')
-    .eq('user_id', req.user!.id)
-    .eq('currency', body.currency)
-    .single();
-
-  if (!wallet) {
-    res.status(404).json({ success: false, error: 'Wallet not found' });
-    return;
-  }
-
-  // Calculate fee (1% + $1 flat)
-  const fee = Math.max(body.amount * 0.01 + 1, 1.5);
-  const totalRequired = body.amount + fee;
-
-  if (wallet.balance < totalRequired) {
-    res.status(402).json({
-      success: false,
-      error: `Insufficient balance. Available: ${wallet.balance}, Required: ${totalRequired} (including ${fee} fee)`,
-    });
-    return;
-  }
-
-  // Generate reference
-  const reference = `PAY-${Date.now().toString(36).toUpperCase()}`;
-
-  // Initiate payout with provider
-  const providerResult = await provider.initiatePayout({
-    amount: body.amount,
-    currency: body.currency,
-    method: body.method,
-    reference,
-    description: body.notes,
-    beneficiary: {
-      name: body.beneficiary_name,
-      account_number: body.beneficiary_account,
-      bank_code: body.beneficiary_bank_code,
-      bank_name: body.beneficiary_bank,
-      country: body.beneficiary_country,
-      mobile_number: body.mobile_number,
-      crypto_address: body.crypto_address,
-      crypto_network: body.crypto_network,
-    },
-  });
-
-  // Debit wallet
-  await supabaseAdmin.rpc('record_wallet_debit', {
-    p_wallet_id: wallet.id,
-    p_amount: totalRequired,
-    p_type: 'withdrawal',
-    p_description: `Payout: ${body.method} to ${body.beneficiary_name}`,
-    p_reference: reference,
-  });
-
-  // Record payout request
-  const { data: payout } = await supabaseAdmin
-    .from('payout_requests')
-    .insert({
+  // payoutService debits the wallet BEFORE calling the provider and
+  // auto-refunds if the provider call fails — the inline version here used
+  // to call the provider first with no rollback if the debit failed after,
+  // which could pay out real funds with no corresponding wallet debit.
+  let payout;
+  try {
+    payout = await payoutService.initiatePayout({
       user_id: req.user!.id,
-      wallet_id: wallet.id,
       amount: body.amount,
-      fee,
-      net_amount: body.amount,
       currency: body.currency,
       method: body.method,
-      status: 'processing',
       beneficiary_name: body.beneficiary_name,
       beneficiary_account: body.beneficiary_account,
       beneficiary_bank: body.beneficiary_bank,
+      beneficiary_bank_code: body.beneficiary_bank_code,
       beneficiary_country: body.beneficiary_country,
       crypto_address: body.crypto_address,
       crypto_network: body.crypto_network,
       mobile_number: body.mobile_number,
       mobile_provider: body.mobile_provider,
-      provider_reference: providerResult.provider_reference,
-      reference,
       notes: body.notes,
-    })
-    .select()
-    .single();
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Payout failed';
+    const status = message.includes('Insufficient balance') ? 402
+      : message.includes('not found') || message.includes('not active') ? 404
+      : 502;
+    res.status(status).json({ success: false, error: message });
+    return;
+  }
 
   res.status(201).json({
     success: true,

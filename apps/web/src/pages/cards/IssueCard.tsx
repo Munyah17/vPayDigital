@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,11 +21,8 @@ type Form = z.infer<typeof schema>;
 export default function IssueCard() {
   const navigate = useNavigate();
   const { profile } = useAuthStore();
+  const isConsumer = profile?.role === 'consumer';
 
-  if (profile?.role === 'consumer') {
-    navigate('/cards/request', { replace: true });
-    return null;
-  }
   const { register, handleSubmit, formState: { errors } } = useForm<Form>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -45,6 +43,16 @@ export default function IssueCard() {
     },
     onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed to issue card'),
   });
+
+  // Redirecting during render (rather than in an effect) is a React
+  // anti-pattern — it can trigger "Cannot update a component while
+  // rendering a different component" and, combined with an early return,
+  // would skip the hooks above on some renders (Rules of Hooks violation).
+  useEffect(() => {
+    if (isConsumer) navigate('/cards/request', { replace: true });
+  }, [isConsumer, navigate]);
+
+  if (isConsumer) return null;
 
   return (
     <div className="p-4 lg:p-6 max-w-2xl mx-auto space-y-6">
