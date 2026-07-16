@@ -11,9 +11,10 @@ interface WalletCardProps {
   onSend?: () => void;
 }
 
+// NGN/GHS/ZWL are intentionally excluded — banned currencies per platform
+// policy (Zimbabwe is USD-only; no ZWL/ZiG/NGN/GHS anywhere in the product).
 const CURRENCY_FLAGS: Record<string, string> = {
-  USD: '🇺🇸', EUR: '🇪🇺', GBP: '🇬🇧', ZAR: '🇿🇦',
-  NGN: '🇳🇬', GHS: '🇬🇭', KES: '🇰🇪', ZWL: '🇿🇼',
+  USD: '🇺🇸', EUR: '🇪🇺', GBP: '🇬🇧', ZAR: '🇿🇦', KES: '🇰🇪',
 };
 
 const CURRENCY_GRADIENTS: Record<string, string> = {
@@ -21,8 +22,6 @@ const CURRENCY_GRADIENTS: Record<string, string> = {
   EUR: 'from-blue-600/20 to-blue-800/10',
   GBP: 'from-purple-600/20 to-purple-800/10',
   ZAR: 'from-green-600/20 to-green-800/10',
-  NGN: 'from-indigo-600/20 to-indigo-800/10',
-  GHS: 'from-yellow-600/20 to-yellow-800/10',
   KES: 'from-red-600/20 to-red-800/10',
 };
 

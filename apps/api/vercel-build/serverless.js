@@ -72494,6 +72494,19 @@ init_supabase();
 
 // src/providers/lorum.ts
 init_logger();
+
+// src/providers/httpUtils.ts
+async function safeJson(response) {
+  const text = await response.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { message: text.slice(0, 500) };
+  }
+}
+
+// src/providers/lorum.ts
 var LorumProvider = class {
   name = "lorum";
   config;
@@ -72526,11 +72539,11 @@ var LorumProvider = class {
         }
       );
       if (!response.ok) {
-        const error = await response.json();
+        const error = await safeJson(response);
         logger.error(`Lorum IBAN request failed: ${JSON.stringify(error)}`);
         throw new Error(`Lorum API error: ${error.message || response.statusText}`);
       }
-      const data = await response.json();
+      const data = await safeJson(response);
       return {
         iban: data.iban,
         bic: data.bic,
@@ -72562,7 +72575,7 @@ var LorumProvider = class {
       if (!response.ok) {
         throw new Error(`Lorum API error: ${response.statusText}`);
       }
-      const data = await response.json();
+      const data = await safeJson(response);
       return {
         iban: data.iban,
         bic: data.bic,
@@ -72651,7 +72664,7 @@ var CurrencyCloudProvider = class {
       if (!response.ok) {
         throw new Error(`Currencycloud auth failed: ${response.statusText}`);
       }
-      const data = await response.json();
+      const data = await safeJson(response);
       this.authToken = data.auth_token;
       return this.authToken;
     } catch (error) {
@@ -72682,11 +72695,11 @@ var CurrencyCloudProvider = class {
         }
       );
       if (!response.ok) {
-        const error = await response.json();
+        const error = await safeJson(response);
         logger.error(`Currencycloud IBAN request failed: ${JSON.stringify(error)}`);
         throw new Error(`Currencycloud API error: ${error.errors?.[0]?.message || response.statusText}`);
       }
-      const data = await response.json();
+      const data = await safeJson(response);
       return {
         iban: data.iban,
         bic: data.bic_swift,
@@ -72719,7 +72732,7 @@ var CurrencyCloudProvider = class {
       if (!response.ok) {
         throw new Error(`Currencycloud API error: ${response.statusText}`);
       }
-      const data = await response.json();
+      const data = await safeJson(response);
       return {
         iban: data.iban,
         bic: data.bic_swift,
@@ -72816,11 +72829,11 @@ var OpenPaydProvider = class {
         }
       );
       if (!response.ok) {
-        const error = await response.json();
+        const error = await safeJson(response);
         logger.error(`OpenPayd IBAN request failed: ${JSON.stringify(error)}`);
         throw new Error(`OpenPayd API error: ${error.message || response.statusText}`);
       }
-      const data = await response.json();
+      const data = await safeJson(response);
       return {
         iban: data.iban,
         bic: data.bic || data.swift_code,
@@ -72852,7 +72865,7 @@ var OpenPaydProvider = class {
       if (!response.ok) {
         throw new Error(`OpenPayd API error: ${response.statusText}`);
       }
-      const data = await response.json();
+      const data = await safeJson(response);
       return {
         iban: data.iban,
         bic: data.bic || data.swift_code,
@@ -72952,11 +72965,11 @@ var AirwallexProvider = class {
         }
       );
       if (!response.ok) {
-        const error = await response.json();
+        const error = await safeJson(response);
         logger.error(`Airwallex IBAN request failed: ${JSON.stringify(error)}`);
         throw new Error(`Airwallex API error: ${error.message || response.statusText}`);
       }
-      const data = await response.json();
+      const data = await safeJson(response);
       return {
         iban: data.iban,
         bic: data.bic || data.swift_code,
@@ -72988,7 +73001,7 @@ var AirwallexProvider = class {
       if (!response.ok) {
         throw new Error(`Airwallex API error: ${response.statusText}`);
       }
-      const data = await response.json();
+      const data = await safeJson(response);
       return {
         iban: data.iban,
         bic: data.bic || data.swift_code,
@@ -73515,7 +73528,7 @@ var createBeneficiarySchema = external_exports.object({
   bank_name: external_exports.string().optional(),
   bank_code: external_exports.string().optional(),
   country: external_exports.string().optional(),
-  currency: external_exports.string().optional(),
+  currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]).optional(),
   routing_number: external_exports.string().optional(),
   swift_code: external_exports.string().optional(),
   mobile_number: external_exports.string().optional(),

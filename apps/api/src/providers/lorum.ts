@@ -4,6 +4,7 @@
 
 import type { IbanProvider, IbanRequestParams, IbanAccount, ProviderConfig, ProviderHealth } from './types.js';
 import { logger } from '../utils/logger.js';
+import { safeJson } from './httpUtils.js';
 
 export class LorumProvider implements IbanProvider {
   name = 'lorum';
@@ -41,12 +42,12 @@ export class LorumProvider implements IbanProvider {
       );
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = await safeJson(response);
         logger.error(`Lorum IBAN request failed: ${JSON.stringify(error)}`);
         throw new Error(`Lorum API error: ${error.message || response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await safeJson(response);
 
       return {
         iban: data.iban,
@@ -83,7 +84,7 @@ export class LorumProvider implements IbanProvider {
         throw new Error(`Lorum API error: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await safeJson(response);
 
       return {
         iban: data.iban,

@@ -4,6 +4,7 @@
 
 import type { IbanProvider, IbanRequestParams, IbanAccount, ProviderConfig, ProviderHealth } from './types.js';
 import { logger } from '../utils/logger.js';
+import { safeJson } from './httpUtils.js';
 
 export class CurrencyCloudProvider implements IbanProvider {
   name = 'currencycloud';
@@ -38,7 +39,7 @@ export class CurrencyCloudProvider implements IbanProvider {
         throw new Error(`Currencycloud auth failed: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await safeJson(response);
       this.authToken = data.auth_token;
       return this.authToken;
     } catch (error) {
@@ -73,12 +74,12 @@ export class CurrencyCloudProvider implements IbanProvider {
       );
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = await safeJson(response);
         logger.error(`Currencycloud IBAN request failed: ${JSON.stringify(error)}`);
         throw new Error(`Currencycloud API error: ${error.errors?.[0]?.message || response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await safeJson(response);
 
       return {
         iban: data.iban,
@@ -117,7 +118,7 @@ export class CurrencyCloudProvider implements IbanProvider {
         throw new Error(`Currencycloud API error: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await safeJson(response);
 
       return {
         iban: data.iban,

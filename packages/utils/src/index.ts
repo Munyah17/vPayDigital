@@ -6,9 +6,10 @@ import type { WalletCurrency } from '@vpay/types';
 
 // ─── Currency Formatting ──────────────────────────────────────────────────────
 
+// NGN/GHS/ZWL are intentionally excluded — banned currencies per platform
+// policy (Zimbabwe is USD-only; no ZWL/ZiG/NGN/GHS anywhere in the product).
 const CURRENCY_LOCALES: Record<string, string> = {
-  USD: 'en-US', EUR: 'de-DE', GBP: 'en-GB', ZAR: 'en-ZA',
-  NGN: 'en-NG', GHS: 'en-GH', KES: 'sw-KE', ZWL: 'en-ZW',
+  USD: 'en-US', EUR: 'de-DE', GBP: 'en-GB', ZAR: 'en-ZA', KES: 'sw-KE',
 };
 
 export function formatCurrency(

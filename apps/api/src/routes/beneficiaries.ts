@@ -13,7 +13,7 @@ const createBeneficiarySchema = z.object({
   bank_name: z.string().optional(),
   bank_code: z.string().optional(),
   country: z.string().optional(),
-  currency: z.string().optional(),
+  currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR']).optional(),
   routing_number: z.string().optional(),
   swift_code: z.string().optional(),
   mobile_number: z.string().optional(),

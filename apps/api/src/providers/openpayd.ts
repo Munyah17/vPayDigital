@@ -4,6 +4,7 @@
 
 import type { IbanProvider, IbanRequestParams, IbanAccount, ProviderConfig, ProviderHealth } from './types.js';
 import { logger } from '../utils/logger.js';
+import { safeJson } from './httpUtils.js';
 
 export class OpenPaydProvider implements IbanProvider {
   name = 'openpayd';
@@ -44,12 +45,12 @@ export class OpenPaydProvider implements IbanProvider {
       );
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = await safeJson(response);
         logger.error(`OpenPayd IBAN request failed: ${JSON.stringify(error)}`);
         throw new Error(`OpenPayd API error: ${error.message || response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await safeJson(response);
 
       return {
         iban: data.iban,
@@ -86,7 +87,7 @@ export class OpenPaydProvider implements IbanProvider {
         throw new Error(`OpenPayd API error: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await safeJson(response);
 
       return {
         iban: data.iban,

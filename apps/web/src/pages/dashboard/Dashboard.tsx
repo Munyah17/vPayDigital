@@ -58,10 +58,23 @@ export default function Dashboard() {
     enabled: !!activeWallet,
   });
 
+  const { data: ratesData } = useQuery({
+    queryKey: ['exchange-rates'],
+    queryFn: () => api.get('/api/wallets/exchange-rates'),
+    staleTime: 60_000,
+  });
+
   const transactions: WalletTransaction[] = txData?.data?.data ?? [];
+  // "Total Portfolio Value" previously only summed USD wallets, silently
+  // hiding EUR/GBP/ZAR/KES balances under a label implying the full total.
+  // Convert every wallet to USD using live rates; a wallet whose currency
+  // has no rate on record just falls back to its raw balance rather than
+  // being dropped, so it's never invisible even if the conversion is off.
+  const rates: Array<{ from_currency: string; to_currency: string; rate: number }> = ratesData?.data?.data ?? [];
   const totalBalance = wallets.reduce((sum, w) => {
     if (w.currency === 'USD') return sum + w.balance;
-    return sum;
+    const rate = rates.find(r => r.from_currency === w.currency && r.to_currency === 'USD')?.rate;
+    return sum + w.balance * (rate ?? 1);
   }, 0);
 
   const greeting = () => {

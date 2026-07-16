@@ -4,6 +4,7 @@
 
 import type { IbanProvider, IbanRequestParams, IbanAccount, ProviderConfig, ProviderHealth } from './types.js';
 import { logger } from '../utils/logger.js';
+import { safeJson } from './httpUtils.js';
 
 export class AirwallexProvider implements IbanProvider {
   name = 'airwallex';
@@ -48,12 +49,12 @@ export class AirwallexProvider implements IbanProvider {
       );
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = await safeJson(response);
         logger.error(`Airwallex IBAN request failed: ${JSON.stringify(error)}`);
         throw new Error(`Airwallex API error: ${error.message || response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await safeJson(response);
 
       return {
         iban: data.iban,
@@ -90,7 +91,7 @@ export class AirwallexProvider implements IbanProvider {
         throw new Error(`Airwallex API error: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await safeJson(response);
 
       return {
         iban: data.iban,

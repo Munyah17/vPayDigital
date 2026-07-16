@@ -1,9 +1,0 @@
-{
-  "experimentalServices": {
-    "api": {
-      "entrypoint": "apps/api",
-      "routePrefix": "/",
-      "buildCommand": "cd ../.. && npm install && npm run build:api"
-    }
-  }
-}

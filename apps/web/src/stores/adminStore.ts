@@ -22,6 +22,8 @@ interface AdminStore {
   signOut: () => Promise<void>;
 }
 
+let adminAuthListenerSubscribed = false;
+
 export const useAdminStore = create<AdminStore>()(
   persist(
     (set) => ({
@@ -38,14 +40,20 @@ export const useAdminStore = create<AdminStore>()(
           set({ profile: null, isInitialized: true });
         }
 
-        supabase.auth.onAuthStateChange(async (_event, session) => {
-          if (session?.user) {
-            const profile = await fetchAdminProfile(session.user.id);
-            set({ profile });
-          } else {
-            set({ profile: null });
-          }
-        });
+        // Guard against duplicate subscriptions if initialize() is ever
+        // called more than once (e.g. dev remounts / StrictMode) — matches
+        // the same guard in authStore.
+        if (!adminAuthListenerSubscribed) {
+          adminAuthListenerSubscribed = true;
+          supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (session?.user) {
+              const profile = await fetchAdminProfile(session.user.id);
+              set({ profile });
+            } else {
+              set({ profile: null });
+            }
+          });
+        }
       },
 
       signOut: async () => {
