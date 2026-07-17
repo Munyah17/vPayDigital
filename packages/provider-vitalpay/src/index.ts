@@ -9,7 +9,6 @@ import { createHmac, timingSafeEqual } from 'crypto';
 import type {
   ProviderCardIssueRequest,
   ProviderCardIssueResponse,
-  ProviderPayoutRequest,
   ProviderPayoutResponse,
   ProviderVirtualAccountResponse,
 } from '@vpay/types';
@@ -82,16 +81,6 @@ export interface VitalPayFloatTopup {
 export interface VitalPaySettlement {
   reference: string; amount: number; fee: number; net_amount: number;
   status: string; settlement_method?: string; requested_at: string; completed_at?: string;
-}
-
-export interface VitalPayElectricityOrder {
-  // The docs' example shows "token_pieces" (array) and "unit", but the real
-  // sandbox response has a single "token" string and no "unit" — confirmed
-  // by direct testing. Keeping both shapes optional in case live mode
-  // matches the documented one instead.
-  reference: string; service: string; meter_number: string;
-  amount: number; currency: string; status: string;
-  token?: string; token_pieces?: string[]; units?: number; unit?: string;
 }
 
 export interface VitalPayWebhook {
@@ -184,15 +173,6 @@ export class VitalPayClient {
 
   getGiftCardHistory(params?: { status?: string; from?: string; to?: string; per_page?: number }) {
     return this.req<{ items: VitalPayGiftCardOrder[]; meta: unknown }>('GET', '/gift-cards/history', undefined, params);
-  }
-
-  // ── Electricity Tokens (ZW / ZESA-ZETDC only, per docs) ──
-  purchaseElectricityToken(body: { meter_number: string; amount: number; currency: string; country: string; reference: string }) {
-    return this.req<VitalPayElectricityOrder>('POST', '/electricity/purchase', body);
-  }
-
-  getElectricityHistory(params?: { status?: string; from?: string; to?: string; per_page?: number }) {
-    return this.req<{ items: VitalPayElectricityOrder[]; meta: unknown }>('GET', '/electricity/history', undefined, params);
   }
 
   // ── Payments (customer collections — this is what end-user wallet
@@ -409,39 +389,25 @@ export class VitalPayProvider implements PaymentProvider {
     );
   }
 
-  async initiatePayout(req: ProviderPayoutRequest): Promise<ProviderPayoutResponse> {
-    // CAUTION: VitalPay's only payout-shaped endpoint is
-    // /settlements/request, which is documented as moving money from OUR
-    // merchant float to a bank/mobile-money/wallet destination — a
-    // merchant settlement primitive, not a confirmed per-user,
-    // arbitrary-beneficiary disbursement API. This mapping exists so the
-    // interface is satisfiable, but routing real end-user payouts through
-    // it needs confirmation from VitalPay/KMG first — an unconfirmed
-    // assumption here could misroute funds.
-    const settlement = await this.api.requestSettlement({
-      amount: req.amount,
-      settlement_method: req.method === 'mobile_money' ? 'mobile_money'
-        : req.method === 'crypto' ? 'wallet'
-        : 'bank_transfer',
-      account_details: {
-        account_number: req.beneficiary.account_number,
-        bank_code: req.beneficiary.bank_code,
-        account_name: req.beneficiary.name,
-        msisdn: req.beneficiary.mobile_number,
-      },
-      notes: req.description,
-    });
-    return {
-      provider_reference: settlement.reference,
-      status: settlement.status,
-    };
+  async initiatePayout(): Promise<ProviderPayoutResponse> {
+    // Deliberately disabled rather than left live on a guess. VitalPay's
+    // only payout-shaped endpoint is /settlements/request, documented as
+    // moving money from OUR merchant float to a bank/mobile-money/wallet
+    // destination WE control — a merchant settlement primitive, not a
+    // confirmed per-user, arbitrary-beneficiary disbursement API. Silently
+    // routing real end-user payout requests through it could misroute
+    // funds. Re-enable (see requestSettlement/listSettlements on the
+    // client, still present below) only after confirming with VitalPay/KMG
+    // that arbitrary customer-supplied beneficiary details are actually
+    // supported by settlements.
+    throw new ProviderError(
+      'VitalPay payouts are not enabled — its Settlements API is a merchant-float primitive, not confirmed to support arbitrary user payouts',
+      501
+    );
   }
 
-  async getPayoutStatus(providerReference: string): Promise<string> {
-    const settlements = await this.api.listSettlements();
-    const match = settlements.find((s) => s.reference === providerReference);
-    if (!match) throw new ProviderError(`Settlement ${providerReference} not found`, 404);
-    return match.status;
+  async getPayoutStatus(): Promise<string> {
+    throw new ProviderError('VitalPay payouts are not enabled', 501);
   }
 
   async getExchangeRate(): Promise<number> {

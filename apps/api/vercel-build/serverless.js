@@ -64892,13 +64892,6 @@ var init_src3 = __esm({
       getGiftCardHistory(params) {
         return this.req("GET", "/gift-cards/history", void 0, params);
       }
-      // ── Electricity Tokens (ZW / ZESA-ZETDC only, per docs) ──
-      purchaseElectricityToken(body) {
-        return this.req("POST", "/electricity/purchase", body);
-      }
-      getElectricityHistory(params) {
-        return this.req("GET", "/electricity/history", void 0, params);
-      }
       // ── Payments (customer collections — this is what end-user wallet
       // top-up and any other "charge the customer" flow should use) ──
       initializePayment(body) {
@@ -65037,28 +65030,14 @@ var init_src3 = __esm({
           501
         );
       }
-      async initiatePayout(req) {
-        const settlement = await this.api.requestSettlement({
-          amount: req.amount,
-          settlement_method: req.method === "mobile_money" ? "mobile_money" : req.method === "crypto" ? "wallet" : "bank_transfer",
-          account_details: {
-            account_number: req.beneficiary.account_number,
-            bank_code: req.beneficiary.bank_code,
-            account_name: req.beneficiary.name,
-            msisdn: req.beneficiary.mobile_number
-          },
-          notes: req.description
-        });
-        return {
-          provider_reference: settlement.reference,
-          status: settlement.status
-        };
+      async initiatePayout() {
+        throw new ProviderError(
+          "VitalPay payouts are not enabled \u2014 its Settlements API is a merchant-float primitive, not confirmed to support arbitrary user payouts",
+          501
+        );
       }
-      async getPayoutStatus(providerReference) {
-        const settlements = await this.api.listSettlements();
-        const match = settlements.find((s) => s.reference === providerReference);
-        if (!match) throw new ProviderError(`Settlement ${providerReference} not found`, 404);
-        return match.status;
+      async getPayoutStatus() {
+        throw new ProviderError("VitalPay payouts are not enabled", 501);
       }
       async getExchangeRate() {
         throw new ProviderError("VitalPay does not expose an FX rate endpoint", 501);
