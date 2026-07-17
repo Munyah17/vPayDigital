@@ -94,3 +94,10 @@ secrets/
 !apps/web/public/*.jpg
 !apps/web/public/*.jpeg
 !apps/web/public/*.webp
+
+.vercel
+.env*
+
+# Claude Code local settings — settings.local.json can contain live tokens
+# pasted during a session (e.g. VERCEL_TOKEN permission entries)
+.claude/settings.local.json
