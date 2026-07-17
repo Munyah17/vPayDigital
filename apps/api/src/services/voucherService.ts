@@ -213,9 +213,16 @@ export class VoucherService {
    * flows through this path.
    */
   private async purchaseGiftCardForVoucher(
-    voucher: { id: string; gift_card_brand: string; amount: number; currency: string },
+    voucher: { voucher_id: string; gift_card_brand: string; amount: number; currency: string },
     userId: string
   ): Promise<string> {
+    // redeem_voucher() returns voucher_id, not id — this previously read
+    // voucher.id (always undefined), which broke both the support-contact
+    // reference shown to the user AND the .eq('id', voucher.id) update
+    // below, which matched zero rows and silently never recorded the
+    // VitalPay order against the voucher even on a successful purchase.
+    const voucherId = voucher.voucher_id;
+
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('email')
@@ -223,8 +230,8 @@ export class VoucherService {
       .single();
 
     if (!profile?.email) {
-      logger.error({ voucher_id: voucher.id }, 'Gift card redemption: no recipient email on profile');
-      return `${voucher.gift_card_brand} gift card redeemed, but we couldn't find an email to deliver it to — contact support with code reference ${voucher.id}.`;
+      logger.error({ voucher_id: voucherId }, 'Gift card redemption: no recipient email on profile');
+      return `${voucher.gift_card_brand} gift card redeemed, but we couldn't find an email to deliver it to — contact support with code reference ${voucherId}.`;
     }
 
     try {
@@ -234,8 +241,8 @@ export class VoucherService {
       const product = products.find(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
       if (!product) {
-        logger.error({ voucher_id: voucher.id, brand }, 'Gift card redemption: no matching VitalPay product found');
-        return `${voucher.gift_card_brand} gift card redemption is delayed — no matching product found. Contact support with code reference ${voucher.id}.`;
+        logger.error({ voucher_id: voucherId, brand }, 'Gift card redemption: no matching VitalPay product found');
+        return `${voucher.gift_card_brand} gift card redemption is delayed — no matching product found. Contact support with code reference ${voucherId}.`;
       }
 
       const order = await vitalPay.purchaseGiftCard({
@@ -243,18 +250,18 @@ export class VoucherService {
         amount: voucher.amount,
         currency: voucher.currency,
         recipient_email: profile.email,
-        reference: `GIFT-${voucher.id}`,
+        reference: `GIFT-${voucherId}`,
       });
 
       await supabaseAdmin
         .from('vouchers')
         .update({ provider_reference: order.reference, service_metadata: { vitalpay_order: order } })
-        .eq('id', voucher.id);
+        .eq('id', voucherId);
 
       return `${voucher.gift_card_brand} gift card purchased! It'll be emailed to ${profile.email} shortly.`;
     } catch (err) {
-      logger.error({ err, voucher_id: voucher.id }, 'Gift card purchase via VitalPay failed after voucher was redeemed — needs manual reconciliation');
-      return `${voucher.gift_card_brand} gift card redemption is delayed — our team has been notified. Contact support with code reference ${voucher.id} if it doesn't arrive soon.`;
+      logger.error({ err, voucher_id: voucherId }, 'Gift card purchase via VitalPay failed after voucher was redeemed — needs manual reconciliation');
+      return `${voucher.gift_card_brand} gift card redemption is delayed — our team has been notified. Contact support with code reference ${voucherId} if it doesn't arrive soon.`;
     }
   }
 
