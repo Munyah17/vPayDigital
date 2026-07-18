@@ -23,6 +23,19 @@ export interface IssueCardParams {
 
 export class CardService {
   async issueCard(params: IssueCardParams): Promise<Card> {
+    // Fetch the actual cardholder's email — VitalPay's /virtual-cards/issue
+    // accepts an optional customer_email, which we weren't passing at all.
+    // Whether VitalPay emails the full PAN/CVV to that address on issuance
+    // is unconfirmed, but it's the standard PCI-scope-reduction pattern for
+    // card-issuing APIs (matches how EcoCash SMSes card details directly to
+    // the cardholder rather than exposing them to the merchant's backend),
+    // and passing it costs nothing even if unused.
+    const { data: cardholderProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('email')
+      .eq('id', params.user_id)
+      .single();
+
     // 1. Verify user has sufficient balance (deducted from agent float or consumer wallet)
     const walletType = params.issued_by_agent ? 'agent_float' : 'consumer';
     const { data: wallet, error: walletErr } = await supabaseAdmin
@@ -69,6 +82,7 @@ export class CardService {
     try {
       providerResponse = await provider.issueCard({
         cardholder_name: params.cardholder_name,
+        cardholder_email: cardholderProfile?.email,
         currency: params.currency,
         amount: params.amount,
         card_type: params.card_type,

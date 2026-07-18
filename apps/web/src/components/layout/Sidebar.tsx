@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, CreditCard, Wallet, Ticket, ArrowUpDown,
   User, Settings, LogOut, ChevronLeft, HelpCircle,
-  Users, BarChart3, Zap, Landmark
+  Users, BarChart3, Zap, Landmark, Smartphone
 } from 'lucide-react';
 import { VLogoIcon } from '../ui/VLogoIcon';
 import { useAuthStore } from '../../stores/authStore';
@@ -29,6 +29,7 @@ const navItems: NavItem[] = [
   { label: 'Cards', icon: CreditCard, to: '/cards' },
   { label: 'Wallet', icon: Wallet, to: '/wallet' },
   { label: 'Banking', icon: Landmark, to: '/banking' },
+  { label: 'Bills & Top-ups', icon: Smartphone, to: '/bills' },
   { label: 'Vouchers', icon: Ticket, to: '/vouchers' },
   { label: 'Transactions', icon: ArrowUpDown, to: '/transactions' },
   { label: 'Profile', icon: User, to: '/profile' },

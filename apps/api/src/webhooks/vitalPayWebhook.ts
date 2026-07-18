@@ -101,8 +101,11 @@ async function processVitalPayEvent(event: string, data: Record<string, unknown>
 
     case 'service.completed':
     case 'service.failed': {
-      // Gift card fulfillment outcome — matches the reference voucherService
-      // set as vouchers.provider_reference when it called /gift-cards/purchase.
+      // Fires for gift cards (matches vouchers.provider_reference, set by
+      // voucherService when it called /gift-cards/purchase) AND for
+      // airtime/electricity (matches vas_orders.provider_reference, set by
+      // vasService) — both set provider_reference to VitalPay's own
+      // reference/platform_reference at purchase time.
       const reference = data.reference as string | undefined;
       if (!reference) break;
 
@@ -112,24 +115,58 @@ async function processVitalPayEvent(event: string, data: Record<string, unknown>
         .eq('provider_reference', reference)
         .maybeSingle();
 
-      if (!voucher) {
-        logger.info({ reference }, 'VitalPay service event for unknown reference — not a tracked gift card order');
+      if (voucher) {
+        await supabaseAdmin
+          .from('vouchers')
+          .update({
+            service_metadata: {
+              ...(voucher.service_metadata as Record<string, unknown>),
+              fulfillment_status: event === 'service.completed' ? 'completed' : 'failed',
+              fulfillment_payload: data,
+            },
+          })
+          .eq('id', voucher.id);
+
+        if (event === 'service.failed') {
+          logger.error({ voucher_id: voucher.id, reference }, 'VitalPay gift card fulfillment failed after voucher redemption — needs manual reconciliation');
+        }
         break;
       }
 
-      await supabaseAdmin
-        .from('vouchers')
-        .update({
-          service_metadata: {
-            ...(voucher.service_metadata as Record<string, unknown>),
-            fulfillment_status: event === 'service.completed' ? 'completed' : 'failed',
-            fulfillment_payload: data,
-          },
-        })
-        .eq('id', voucher.id);
+      const { data: vasOrder } = await supabaseAdmin
+        .from('vas_orders')
+        .select('id, wallet_id, amount, status')
+        .eq('provider_reference', reference)
+        .maybeSingle();
 
-      if (event === 'service.failed') {
-        logger.error({ voucher_id: voucher.id, reference }, 'VitalPay gift card fulfillment failed after voucher redemption — needs manual reconciliation');
+      if (!vasOrder) {
+        logger.info({ reference }, 'VitalPay service event for unknown reference — not a tracked order');
+        break;
+      }
+
+      if (vasOrder.status === 'completed' || vasOrder.status === 'failed') {
+        logger.info({ order_id: vasOrder.id, reference }, 'VAS order already finalized — idempotent skip');
+        break;
+      }
+
+      if (event === 'service.completed') {
+        await supabaseAdmin
+          .from('vas_orders')
+          .update({ status: 'completed', provider_payload: data })
+          .eq('id', vasOrder.id);
+      } else {
+        await supabaseAdmin
+          .from('vas_orders')
+          .update({ status: 'failed', provider_payload: data, failure_reason: (data.message as string) ?? 'Provider reported failure' })
+          .eq('id', vasOrder.id);
+        await supabaseAdmin.rpc('record_wallet_credit', {
+          p_wallet_id: vasOrder.wallet_id,
+          p_amount: vasOrder.amount,
+          p_type: 'refund',
+          p_description: `VAS order failed refund: ${reference}`,
+          p_metadata: { order_id: vasOrder.id },
+        });
+        logger.warn({ order_id: vasOrder.id, reference }, 'VAS order failed after async processing — wallet refunded');
       }
       break;
     }

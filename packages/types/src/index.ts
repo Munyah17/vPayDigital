@@ -443,6 +443,7 @@ export interface OtpPayload {
 
 export interface ProviderCardIssueRequest {
   cardholder_name: string;
+  cardholder_email?: string;
   currency: string;
   amount: number;
   card_type: CardType;

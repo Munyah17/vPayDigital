@@ -23,6 +23,7 @@ const IssueCard = lazy(() => import('./pages/cards/IssueCard'));
 const RequestCard = lazy(() => import('./pages/cards/RequestCard'));
 
 const Wallet = lazy(() => import('./pages/wallet/Wallet'));
+const Bills = lazy(() => import('./pages/wallet/Bills'));
 const BankingServices = lazy(() => import('./pages/banking/BankingServices'));
 
 const Vouchers = lazy(() => import('./pages/vouchers/Vouchers'));
@@ -179,6 +180,7 @@ export default function App() {
               <Route path="wallet" element={<Wallet />} />
               <Route path="wallet/payout" element={<PayoutPage />} />
               <Route path="banking" element={<BankingServices />} />
+              <Route path="bills" element={<Bills />} />
 
               <Route path="vouchers" element={<Vouchers />} />
               <Route path="vouchers/redeem" element={<RedeemVoucher />} />

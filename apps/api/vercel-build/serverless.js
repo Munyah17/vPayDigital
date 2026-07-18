@@ -1305,17 +1305,17 @@ var require_router = __commonJS({
     var toString3 = Object.prototype.toString;
     var proto = module2.exports = function(options) {
       var opts = options || {};
-      function router6(req, res, next) {
-        router6.handle(req, res, next);
+      function router7(req, res, next) {
+        router7.handle(req, res, next);
       }
-      setPrototypeOf(router6, proto);
-      router6.params = {};
-      router6._params = [];
-      router6.caseSensitive = opts.caseSensitive;
-      router6.mergeParams = opts.mergeParams;
-      router6.strict = opts.strict;
-      router6.stack = [];
-      return router6;
+      setPrototypeOf(router7, proto);
+      router7.params = {};
+      router7._params = [];
+      router7.caseSensitive = opts.caseSensitive;
+      router7.mergeParams = opts.mergeParams;
+      router7.strict = opts.strict;
+      router7.stack = [];
+      return router7;
     };
     proto.param = function param(name, fn) {
       if (typeof name === "function") {
@@ -21896,7 +21896,7 @@ var require_application = __commonJS({
   "../../node_modules/express/lib/application.js"(exports2, module2) {
     "use strict";
     var finalhandler = require_finalhandler();
-    var Router7 = require_router();
+    var Router8 = require_router();
     var methods = require_methods();
     var middleware = require_init();
     var query = require_query();
@@ -21961,7 +21961,7 @@ var require_application = __commonJS({
     };
     app2.lazyrouter = function lazyrouter() {
       if (!this._router) {
-        this._router = new Router7({
+        this._router = new Router8({
           caseSensitive: this.enabled("case sensitive routing"),
           strict: this.enabled("strict routing")
         });
@@ -21970,17 +21970,17 @@ var require_application = __commonJS({
       }
     };
     app2.handle = function handle(req, res, callback) {
-      var router6 = this._router;
+      var router7 = this._router;
       var done = callback || finalhandler(req, res, {
         env: this.get("env"),
         onerror: logerror.bind(this)
       });
-      if (!router6) {
+      if (!router7) {
         debug("no routes defined on app");
         done();
         return;
       }
-      router6.handle(req, res, done);
+      router7.handle(req, res, done);
     };
     app2.use = function use(fn) {
       var offset = 0;
@@ -22000,15 +22000,15 @@ var require_application = __commonJS({
         throw new TypeError("app.use() requires a middleware function");
       }
       this.lazyrouter();
-      var router6 = this._router;
+      var router7 = this._router;
       fns.forEach(function(fn2) {
         if (!fn2 || !fn2.handle || !fn2.set) {
-          return router6.use(path2, fn2);
+          return router7.use(path2, fn2);
         }
         debug(".use app under %s", path2);
         fn2.mountpath = path2;
         fn2.parent = this;
-        router6.use(path2, function mounted_app(req, res, next) {
+        router7.use(path2, function mounted_app(req, res, next) {
           var orig = req.app;
           fn2.handle(req, res, function(err) {
             setPrototypeOf(req, orig.request);
@@ -23825,7 +23825,7 @@ var require_express = __commonJS({
     var mixin = require_merge_descriptors();
     var proto = require_application();
     var Route = require_route();
-    var Router7 = require_router();
+    var Router8 = require_router();
     var req = require_request();
     var res = require_response();
     exports2 = module2.exports = createApplication;
@@ -23848,7 +23848,7 @@ var require_express = __commonJS({
     exports2.request = req;
     exports2.response = res;
     exports2.Route = Route;
-    exports2.Router = Router7;
+    exports2.Router = Router8;
     exports2.json = bodyParser.json;
     exports2.query = require_query();
     exports2.raw = bodyParser.raw;
@@ -41589,10 +41589,10 @@ var init_fetch = __esm({
         },
         env2
       );
-      const { fetch: envFetch, Request, Response: Response6 } = env2;
+      const { fetch: envFetch, Request, Response: Response7 } = env2;
       const isFetchSupported = envFetch ? isFunction2(envFetch) : typeof fetch === "function";
       const isRequestSupported = isFunction2(Request);
-      const isResponseSupported = isFunction2(Response6);
+      const isResponseSupported = isFunction2(Response7);
       if (!isFetchSupported) {
         return false;
       }
@@ -41614,7 +41614,7 @@ var init_fetch = __esm({
         }
         return duplexAccessed && !hasContentType;
       });
-      const supportsResponseStream = isResponseSupported && isReadableStreamSupported && test(() => utils_default.isReadableStream(new Response6("").body));
+      const supportsResponseStream = isResponseSupported && isReadableStreamSupported && test(() => utils_default.isReadableStream(new Response7("").body));
       const resolvers = {
         stream: supportsResponseStream && ((res) => res.body)
       };
@@ -41791,7 +41791,7 @@ var init_fetch = __esm({
               }
               onProgress && onProgress(loadedBytes);
             };
-            response = new Response6(
+            response = new Response7(
               trackStream(response.body, DEFAULT_CHUNK_SIZE, onChunkProgress, () => {
                 flush && flush();
                 unsubscribe && unsubscribe();
@@ -41865,8 +41865,8 @@ var init_fetch = __esm({
     seedCache = /* @__PURE__ */ new Map();
     getFetch = (config2) => {
       let env2 = config2 && config2.env || {};
-      const { fetch: fetch2, Request, Response: Response6 } = env2;
-      const seeds = [Request, Response6, fetch2];
+      const { fetch: fetch2, Request, Response: Response7 } = env2;
+      const seeds = [Request, Response7, fetch2];
       let len = seeds.length, i = len, seed, target, map = seedCache;
       while (i--) {
         seed = seeds[i];
@@ -64892,6 +64892,23 @@ var init_src3 = __esm({
       getGiftCardHistory(params) {
         return this.req("GET", "/gift-cards/history", void 0, params);
       }
+      // ── Electricity Tokens (ZW / ZESA-ZETDC only, per docs) ──
+      purchaseElectricityToken(body) {
+        return this.req("POST", "/electricity/purchase", body);
+      }
+      getElectricityHistory(params) {
+        return this.req("GET", "/electricity/history", void 0, params);
+      }
+      // ── Airtime & Data ──
+      getAirtimeOperators(params) {
+        return this.req("GET", "/airtime/operators", void 0, params);
+      }
+      purchaseAirtime(body) {
+        return this.req("POST", "/airtime/purchase", body);
+      }
+      getAirtimeHistory(params) {
+        return this.req("GET", "/airtime/history", void 0, params);
+      }
       // ── Payments (customer collections — this is what end-user wallet
       // top-up and any other "charge the customer" flow should use) ──
       initializePayment(body) {
@@ -64974,6 +64991,12 @@ var init_src3 = __esm({
           label: req.cardholder_name.slice(0, 64),
           initial_amount: req.amount,
           customer_name: req.cardholder_name,
+          // Passing this in case VitalPay emails full card details to the
+          // cardholder on issuance — their docs never confirm or deny this,
+          // but it's the standard mechanism issuer APIs use to deliver a raw
+          // PAN to the actual cardholder without the merchant's backend (us)
+          // ever seeing it. Costs nothing to send even if unused.
+          customer_email: req.cardholder_email,
           reference: req.metadata?.reference ?? void 0
         });
         return this.toCardIssueResponse(card);
@@ -65094,6 +65117,7 @@ var init_cardService = __esm({
     init_logger();
     CardService = class {
       async issueCard(params) {
+        const { data: cardholderProfile } = await supabaseAdmin.from("profiles").select("email").eq("id", params.user_id).single();
         const walletType = params.issued_by_agent ? "agent_float" : "consumer";
         const { data: wallet, error: walletErr } = await supabaseAdmin.from("wallets").select("id, balance, status").eq("user_id", params.issued_by_agent ?? params.user_id).eq("currency", params.currency).eq("wallet_type", walletType).single();
         if (walletErr || !wallet) {
@@ -65119,6 +65143,7 @@ var init_cardService = __esm({
         try {
           providerResponse = await provider.issueCard({
             cardholder_name: params.cardholder_name,
+            cardholder_email: cardholderProfile?.email,
             currency: params.currency,
             amount: params.amount,
             card_type: params.card_type,
@@ -65374,7 +65399,7 @@ Object.defineProperty(Layer.prototype, "handle", {
 patchRouterParam();
 
 // src/app.ts
-var import_express6 = __toESM(require_express2());
+var import_express7 = __toESM(require_express2());
 
 // ../../node_modules/helmet/index.mjs
 var dangerouslyDisableDefaultSrc = /* @__PURE__ */ Symbol("dangerouslyDisableDefaultSrc");
@@ -73958,6 +73983,189 @@ router5.delete("/:id", authenticate, async (req, res) => {
   res.json({ success: true, message: "Beneficiary removed" });
 });
 
+// src/routes/vas.ts
+var import_express6 = __toESM(require_express2());
+init_supabase();
+
+// src/services/vasService.ts
+init_supabase();
+init_logger();
+async function debitWallet(userId, currency, amount, description, metadata) {
+  const { data: wallet, error: walletErr } = await supabaseAdmin.from("wallets").select("id, balance, status").eq("user_id", userId).eq("currency", currency).eq("wallet_type", "consumer").single();
+  if (walletErr || !wallet) throw new Error(`No ${currency} wallet found`);
+  if (wallet.status !== "active") throw new Error("Wallet is not active");
+  if (wallet.balance < amount) throw new Error(`Insufficient balance. Available: ${wallet.balance}, Required: ${amount}`);
+  const { error: debitErr } = await supabaseAdmin.rpc("record_wallet_debit", {
+    p_wallet_id: wallet.id,
+    p_amount: amount,
+    p_type: "vas_purchase",
+    p_description: description,
+    p_metadata: metadata
+  });
+  if (debitErr) throw new Error(`Failed to debit wallet: ${debitErr.message}`);
+  return wallet.id;
+}
+async function refundWallet(walletId, amount, description, metadata) {
+  await supabaseAdmin.rpc("record_wallet_credit", {
+    p_wallet_id: walletId,
+    p_amount: amount,
+    p_type: "refund",
+    p_description: description,
+    p_metadata: metadata
+  });
+}
+var vasService = {
+  async purchaseAirtime(params) {
+    const reference = `AIR-${Date.now().toString(36).toUpperCase()}`;
+    const walletId = await debitWallet(
+      params.user_id,
+      params.currency,
+      params.amount,
+      `${params.type ?? "Airtime"} top-up: ${params.phone}`,
+      { service: "airtime", operator_id: params.operator_id, phone: params.phone }
+    );
+    const { data: order, error: insertErr } = await supabaseAdmin.from("vas_orders").insert({
+      user_id: params.user_id,
+      wallet_id: walletId,
+      service_type: params.type === "data" ? "data" : "airtime",
+      amount: params.amount,
+      currency: params.currency,
+      operator_id: params.operator_id,
+      phone: params.phone,
+      reference,
+      status: "processing"
+    }).select().single();
+    if (insertErr || !order) throw new Error(`Failed to record order: ${insertErr?.message}`);
+    try {
+      const result = await vitalPay.purchaseAirtime({
+        operator_id: params.operator_id,
+        phone: params.phone,
+        amount: params.amount,
+        currency: params.currency,
+        reference,
+        type: params.type
+      });
+      await supabaseAdmin.from("vas_orders").update({
+        status: result.status === "completed" ? "completed" : "processing",
+        provider_reference: result.reference,
+        provider_payload: result
+      }).eq("id", order.id);
+      return { ...order, status: result.status, provider_payload: result };
+    } catch (err) {
+      logger.error({ err, order_id: order.id }, "Airtime purchase failed \u2014 refunding wallet");
+      await supabaseAdmin.from("vas_orders").update({
+        status: "failed",
+        failure_reason: err instanceof Error ? err.message : String(err)
+      }).eq("id", order.id);
+      await refundWallet(walletId, params.amount, `Airtime purchase failed refund: ${params.phone}`, { order_id: order.id });
+      throw err;
+    }
+  },
+  async purchaseElectricity(params) {
+    const reference = `ELEC-${Date.now().toString(36).toUpperCase()}`;
+    const country = params.country ?? "ZW";
+    const walletId = await debitWallet(
+      params.user_id,
+      params.currency,
+      params.amount,
+      `Electricity token: ${params.meter_number}`,
+      { service: "electricity", meter_number: params.meter_number }
+    );
+    const { data: order, error: insertErr } = await supabaseAdmin.from("vas_orders").insert({
+      user_id: params.user_id,
+      wallet_id: walletId,
+      service_type: "electricity",
+      amount: params.amount,
+      currency: params.currency,
+      meter_number: params.meter_number,
+      reference,
+      status: "processing"
+    }).select().single();
+    if (insertErr || !order) throw new Error(`Failed to record order: ${insertErr?.message}`);
+    try {
+      const result = await vitalPay.purchaseElectricityToken({
+        meter_number: params.meter_number,
+        amount: params.amount,
+        currency: params.currency,
+        country,
+        reference
+      });
+      const tokenPieces = result.token_pieces ?? (result.token ? [result.token] : []);
+      await supabaseAdmin.from("vas_orders").update({
+        status: result.status === "completed" ? "completed" : "processing",
+        provider_reference: result.reference,
+        provider_payload: result,
+        token_pieces: tokenPieces,
+        units: result.units ?? null
+      }).eq("id", order.id);
+      return { ...order, status: result.status, token_pieces: tokenPieces, units: result.units };
+    } catch (err) {
+      logger.error({ err, order_id: order.id }, "Electricity purchase failed \u2014 refunding wallet");
+      await supabaseAdmin.from("vas_orders").update({
+        status: "failed",
+        failure_reason: err instanceof Error ? err.message : String(err)
+      }).eq("id", order.id);
+      await refundWallet(walletId, params.amount, `Electricity purchase failed refund: ${params.meter_number}`, { order_id: order.id });
+      throw err;
+    }
+  }
+};
+
+// src/routes/vas.ts
+var router6 = (0, import_express6.Router)();
+var purchaseAirtimeSchema = external_exports.object({
+  operator_id: external_exports.string().min(1),
+  phone: external_exports.string().min(6),
+  amount: external_exports.number().min(0.5),
+  currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]),
+  type: external_exports.enum(["airtime", "data"]).optional()
+});
+var purchaseElectricitySchema = external_exports.object({
+  meter_number: external_exports.string().min(1).max(30),
+  amount: external_exports.number().min(5),
+  currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]),
+  country: external_exports.string().length(2).optional()
+});
+router6.get("/airtime/operators", authenticate, async (req, res) => {
+  const countryIso = req.query.country_iso;
+  const { operators } = await vitalPay.getAirtimeOperators({ country_iso: countryIso });
+  res.json({ success: true, data: operators });
+});
+router6.post("/airtime/purchase", authenticate, async (req, res) => {
+  const body = purchaseAirtimeSchema.parse(req.body);
+  try {
+    const order = await vasService.purchaseAirtime({ user_id: req.user.id, ...body });
+    res.status(201).json({ success: true, data: order });
+  } catch (err) {
+    const message2 = err instanceof Error ? err.message : "Airtime purchase failed";
+    const status = message2.includes("Insufficient balance") ? 402 : message2.includes("wallet") ? 404 : 502;
+    res.status(status).json({ success: false, error: message2 });
+  }
+});
+router6.post("/electricity/purchase", authenticate, async (req, res) => {
+  const body = purchaseElectricitySchema.parse(req.body);
+  try {
+    const order = await vasService.purchaseElectricity({ user_id: req.user.id, ...body });
+    res.status(201).json({ success: true, data: order });
+  } catch (err) {
+    const message2 = err instanceof Error ? err.message : "Electricity purchase failed";
+    const status = message2.includes("Insufficient balance") ? 402 : message2.includes("wallet") ? 404 : 502;
+    res.status(status).json({ success: false, error: message2 });
+  }
+});
+router6.get("/orders", authenticate, async (req, res) => {
+  const { service_type, page = "1", limit = "20" } = req.query;
+  const offset = (Number(page) - 1) * Number(limit);
+  let query = supabaseAdmin.from("vas_orders").select("*", { count: "exact" }).eq("user_id", req.user.id).order("created_at", { ascending: false }).range(offset, offset + Number(limit) - 1);
+  if (service_type) query = query.eq("service_type", service_type);
+  const { data, count, error } = await query;
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
+});
+
 // src/webhooks/fincraWebhook.ts
 var import_crypto3 = require("crypto");
 init_supabase();
@@ -74174,19 +74382,40 @@ async function processVitalPayEvent(event, data) {
       const reference = data.reference;
       if (!reference) break;
       const { data: voucher } = await supabaseAdmin.from("vouchers").select("id, service_metadata").eq("provider_reference", reference).maybeSingle();
-      if (!voucher) {
-        logger.info({ reference }, "VitalPay service event for unknown reference \u2014 not a tracked gift card order");
+      if (voucher) {
+        await supabaseAdmin.from("vouchers").update({
+          service_metadata: {
+            ...voucher.service_metadata,
+            fulfillment_status: event === "service.completed" ? "completed" : "failed",
+            fulfillment_payload: data
+          }
+        }).eq("id", voucher.id);
+        if (event === "service.failed") {
+          logger.error({ voucher_id: voucher.id, reference }, "VitalPay gift card fulfillment failed after voucher redemption \u2014 needs manual reconciliation");
+        }
         break;
       }
-      await supabaseAdmin.from("vouchers").update({
-        service_metadata: {
-          ...voucher.service_metadata,
-          fulfillment_status: event === "service.completed" ? "completed" : "failed",
-          fulfillment_payload: data
-        }
-      }).eq("id", voucher.id);
-      if (event === "service.failed") {
-        logger.error({ voucher_id: voucher.id, reference }, "VitalPay gift card fulfillment failed after voucher redemption \u2014 needs manual reconciliation");
+      const { data: vasOrder } = await supabaseAdmin.from("vas_orders").select("id, wallet_id, amount, status").eq("provider_reference", reference).maybeSingle();
+      if (!vasOrder) {
+        logger.info({ reference }, "VitalPay service event for unknown reference \u2014 not a tracked order");
+        break;
+      }
+      if (vasOrder.status === "completed" || vasOrder.status === "failed") {
+        logger.info({ order_id: vasOrder.id, reference }, "VAS order already finalized \u2014 idempotent skip");
+        break;
+      }
+      if (event === "service.completed") {
+        await supabaseAdmin.from("vas_orders").update({ status: "completed", provider_payload: data }).eq("id", vasOrder.id);
+      } else {
+        await supabaseAdmin.from("vas_orders").update({ status: "failed", provider_payload: data, failure_reason: data.message ?? "Provider reported failure" }).eq("id", vasOrder.id);
+        await supabaseAdmin.rpc("record_wallet_credit", {
+          p_wallet_id: vasOrder.wallet_id,
+          p_amount: vasOrder.amount,
+          p_type: "refund",
+          p_description: `VAS order failed refund: ${reference}`,
+          p_metadata: { order_id: vasOrder.id }
+        });
+        logger.warn({ order_id: vasOrder.id, reference }, "VAS order failed after async processing \u2014 wallet refunded");
       }
       break;
     }
@@ -74214,7 +74443,7 @@ function mapVitalPayEvent(vitalPayEvent) {
 
 // src/app.ts
 init_supabase();
-var app = (0, import_express6.default)();
+var app = (0, import_express7.default)();
 app.set("trust proxy", 1);
 app.use(helmet({
   contentSecurityPolicy: {
@@ -74250,7 +74479,7 @@ app.use("/api/auth", strictLimiter);
 app.use((0, import_compression.default)());
 app.post(
   "/webhooks/fincra",
-  import_express6.default.raw({ type: "application/json" }),
+  import_express7.default.raw({ type: "application/json" }),
   (req, _res, next) => {
     req.rawBody = req.body.toString();
     req.body = JSON.parse(req.body.toString());
@@ -74260,7 +74489,7 @@ app.post(
 );
 app.post(
   "/webhooks/vitalpay",
-  import_express6.default.raw({ type: "application/json" }),
+  import_express7.default.raw({ type: "application/json" }),
   (req, _res, next) => {
     req.rawBody = req.body.toString();
     req.body = JSON.parse(req.body.toString());
@@ -74268,8 +74497,8 @@ app.post(
   },
   handleVitalPayWebhook
 );
-app.use(import_express6.default.json({ limit: "10kb" }));
-app.use(import_express6.default.urlencoded({ extended: true, limit: "10kb" }));
+app.use(import_express7.default.json({ limit: "10kb" }));
+app.use(import_express7.default.urlencoded({ extended: true, limit: "10kb" }));
 app.use((req, _res, next) => {
   logger.info({ method: req.method, url: req.url }, "Incoming request");
   next();
@@ -74290,6 +74519,7 @@ app.use("/api/wallets", router2);
 app.use("/api/vouchers", router3);
 app.use("/api/banking", router4);
 app.use("/api/beneficiaries", router5);
+app.use("/api/vas", router6);
 app.get("/api/profile", authenticate, async (req, res) => {
   const { data, error } = await supabaseAdmin.from("profiles").select("*, agent_profiles!agent_profiles_user_id_fkey(*)").eq("id", req.user.id).single();
   if (error) {

@@ -16,6 +16,7 @@ import { walletRouter } from './routes/wallets.js';
 import { voucherRouter } from './routes/vouchers.js';
 import { bankingRouter } from './routes/banking.js';
 import { beneficiaryRouter } from './routes/beneficiaries.js';
+import { vasRouter } from './routes/vas.js';
 import { handleFincraWebhook } from './webhooks/fincraWebhook.js';
 import { handleVitalPayWebhook } from './webhooks/vitalPayWebhook.js';
 import { authenticate, requireAdmin, requireAgent, requireSuperAdmin, AuthenticatedRequest } from './middleware/auth.js';
@@ -124,6 +125,7 @@ app.use('/api/wallets', walletRouter);
 app.use('/api/vouchers', voucherRouter);
 app.use('/api/banking', bankingRouter);
 app.use('/api/beneficiaries', beneficiaryRouter);
+app.use('/api/vas', vasRouter);
 
 // ─── Profile Routes ───────────────────────────────────────────────────────────
 app.get('/api/profile', authenticate, async (req: AuthenticatedRequest, res) => {

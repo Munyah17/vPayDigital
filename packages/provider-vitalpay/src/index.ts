@@ -63,6 +63,32 @@ export interface VitalPayGiftCardOrder {
   redemption_code?: string;
 }
 
+export interface VitalPayElectricityOrder {
+  // Confirmed by direct testing: the real sandbox response has a single
+  // "token" string and no "unit" field, unlike the docs' example
+  // ("token_pieces" array + "unit"). Both shapes kept optional in case live
+  // mode matches the documented one instead.
+  reference: string; service: string; meter_number: string;
+  amount: number; currency: string; status: string;
+  token?: string; token_pieces?: string[]; units?: number; unit?: string;
+}
+
+export interface VitalPayAirtimeOperator {
+  operator_id: string; name: string; country_iso: string; currency: string;
+  min_amount: number; max_amount: number;
+  supported_types: Array<'airtime' | 'data'>; logo_url?: string;
+}
+
+export interface VitalPayAirtimeOrder {
+  // NOT yet confirmed against a real sandbox call (unlike cards/gift-cards/
+  // electricity/payments above) — this follows the documented shape as-is.
+  // Verify field names against a real response before trusting them the
+  // way the other integrations here were corrected.
+  reference: string; service: string; operator_id: string; phone: string;
+  amount: number; currency: string; status: string; type?: 'airtime' | 'data';
+  created_at?: string;
+}
+
 export interface VitalPayPayment {
   reference: string; platform_reference?: string;
   // Confirmed against a real sandbox call: this comes back as a numeric
@@ -173,6 +199,28 @@ export class VitalPayClient {
 
   getGiftCardHistory(params?: { status?: string; from?: string; to?: string; per_page?: number }) {
     return this.req<{ items: VitalPayGiftCardOrder[]; meta: unknown }>('GET', '/gift-cards/history', undefined, params);
+  }
+
+  // ── Electricity Tokens (ZW / ZESA-ZETDC only, per docs) ──
+  purchaseElectricityToken(body: { meter_number: string; amount: number; currency: string; country: string; reference: string }) {
+    return this.req<VitalPayElectricityOrder>('POST', '/electricity/purchase', body);
+  }
+
+  getElectricityHistory(params?: { status?: string; from?: string; to?: string; per_page?: number }) {
+    return this.req<{ items: VitalPayElectricityOrder[]; meta: unknown }>('GET', '/electricity/history', undefined, params);
+  }
+
+  // ── Airtime & Data ──
+  getAirtimeOperators(params?: { country_iso?: string }) {
+    return this.req<{ operators: VitalPayAirtimeOperator[] }>('GET', '/airtime/operators', undefined, params);
+  }
+
+  purchaseAirtime(body: { operator_id: string; phone: string; amount: number; currency: string; reference: string; type?: 'airtime' | 'data' }) {
+    return this.req<VitalPayAirtimeOrder>('POST', '/airtime/purchase', body);
+  }
+
+  getAirtimeHistory(params?: { type?: string; status?: string; from?: string; to?: string; per_page?: number }) {
+    return this.req<{ items: VitalPayAirtimeOrder[]; meta: unknown }>('GET', '/airtime/history', undefined, params);
   }
 
   // ── Payments (customer collections — this is what end-user wallet
@@ -301,6 +349,12 @@ export class VitalPayProvider implements PaymentProvider {
       label: req.cardholder_name.slice(0, 64),
       initial_amount: req.amount,
       customer_name: req.cardholder_name,
+      // Passing this in case VitalPay emails full card details to the
+      // cardholder on issuance — their docs never confirm or deny this,
+      // but it's the standard mechanism issuer APIs use to deliver a raw
+      // PAN to the actual cardholder without the merchant's backend (us)
+      // ever seeing it. Costs nothing to send even if unused.
+      customer_email: req.cardholder_email,
       reference: (req.metadata?.reference as string) ?? undefined,
     });
     return this.toCardIssueResponse(card);
