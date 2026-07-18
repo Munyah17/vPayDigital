@@ -186,6 +186,10 @@ function SendDialog({ onClose, onSuccess }: { onClose: () => void; onSuccess: ()
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeWallet) return;
+    if (!(parseFloat(amount) > 0)) {
+      toast.error('Enter an amount greater than 0');
+      return;
+    }
     setLoading(true);
     try {
       await api.post('/api/wallets/transfer', {
@@ -215,15 +219,20 @@ function SendDialog({ onClose, onSuccess }: { onClose: () => void; onSuccess: ()
         className="glass-card p-6 w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="font-display font-bold text-foreground text-lg mb-4">Send money</h3>
+        {/* This dialog sits on a fixed dark scrim (bg-black/60) regardless
+            of the page's light/dark theme, so its own text must stay a
+            fixed white/light color — theme-relative text-foreground goes
+            dark in light mode and becomes unreadable against this modal's
+            consistently dark blurred surface. */}
+        <h3 className="font-display font-bold text-white text-lg mb-4">Send money</h3>
         <form onSubmit={submit} className="space-y-4">
           <div>
-            <label className="block text-foreground/60 text-sm mb-1.5">Recipient email</label>
-            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required className="input-field" placeholder="someone@example.com" />
+            <label className="block text-white/70 text-sm mb-1.5">Recipient email</label>
+            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required className="input-field text-white placeholder:text-white/30" placeholder="someone@example.com" />
           </div>
           <div>
-            <label className="block text-foreground/60 text-sm mb-1.5">Amount ({activeWallet?.currency ?? 'USD'})</label>
-            <input value={amount} onChange={(e) => setAmount(e.target.value)} type="number" step="0.01" required className="input-field" placeholder="50.00" />
+            <label className="block text-white/70 text-sm mb-1.5">Amount ({activeWallet?.currency ?? 'USD'})</label>
+            <input value={amount} onChange={(e) => setAmount(e.target.value)} type="number" step="0.01" min="0.01" required className="input-field text-white placeholder:text-white/30" placeholder="50.00" />
           </div>
           <div className="flex gap-2">
             <button type="button" onClick={onClose} className="btn-ghost flex-1 py-3">Cancel</button>

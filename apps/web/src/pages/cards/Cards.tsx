@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { VirtualCard, VirtualCardSkeleton } from '../../components/cards/VirtualCard';
 import { api } from '../../lib/axios';
+import { useWalletStore } from '../../stores/walletStore';
 import { formatCurrency, formatDate, titleCase } from '@vpay/utils';
 import type { Card, CardTransaction } from '@vpay/types';
 import toast from 'react-hot-toast';
@@ -32,15 +33,19 @@ export default function Cards() {
     enabled: !!selectedCard,
   });
 
+  // This page's list uses React Query, but Dashboard's "active card" widget
+  // reads from walletStore (a separate, unsynced source) — refresh both on
+  // every mutation so freezing/terminating here doesn't leave Dashboard
+  // showing a card as still active.
   const freezeMutation = useMutation({
     mutationFn: (cardId: string) => api.post(`/api/cards/${cardId}/freeze`),
-    onSuccess: () => { toast.success('Card frozen'); queryClient.invalidateQueries({ queryKey: ['cards'] }); },
+    onSuccess: () => { toast.success('Card frozen'); queryClient.invalidateQueries({ queryKey: ['cards'] }); useWalletStore.getState().fetchCards(); },
     onError: () => toast.error('Failed to freeze card'),
   });
 
   const unfreezeMutation = useMutation({
     mutationFn: (cardId: string) => api.post(`/api/cards/${cardId}/unfreeze`),
-    onSuccess: () => { toast.success('Card unfrozen'); queryClient.invalidateQueries({ queryKey: ['cards'] }); },
+    onSuccess: () => { toast.success('Card unfrozen'); queryClient.invalidateQueries({ queryKey: ['cards'] }); useWalletStore.getState().fetchCards(); },
     onError: () => toast.error('Failed to unfreeze card'),
   });
 
@@ -50,6 +55,7 @@ export default function Cards() {
       toast.success('Card terminated');
       setSelectedCard(null);
       queryClient.invalidateQueries({ queryKey: ['cards'] });
+      useWalletStore.getState().fetchCards();
     },
     onError: () => toast.error('Failed to terminate card'),
   });

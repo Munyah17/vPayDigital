@@ -74291,7 +74291,7 @@ app.use("/api/vouchers", router3);
 app.use("/api/banking", router4);
 app.use("/api/beneficiaries", router5);
 app.get("/api/profile", authenticate, async (req, res) => {
-  const { data, error } = await supabaseAdmin.from("profiles").select("*, agent_profiles(*)").eq("id", req.user.id).single();
+  const { data, error } = await supabaseAdmin.from("profiles").select("*, agent_profiles!agent_profiles_user_id_fkey(*)").eq("id", req.user.id).single();
   if (error) {
     res.status(500).json({ success: false, error: error.message });
     return;

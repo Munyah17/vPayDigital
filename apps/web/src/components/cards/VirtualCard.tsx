@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, EyeOff, Wifi, Shield } from 'lucide-react';
-import { formatCurrency, maskCardNumber, formatCardExpiry } from '@vpay/utils';
+import { Eye, EyeOff, Wifi, Shield, Clock } from 'lucide-react';
+import { formatCurrency, maskCardNumber, formatCardExpiry, formatCardholderName } from '@vpay/utils';
 import { CARD_NETWORK_COLORS } from '@vpay/config';
 import { VLogoIcon } from '../ui/VLogoIcon';
 import type { Card } from '@vpay/types';
@@ -23,6 +23,24 @@ export function VirtualCard({ card, showSensitive = false, onToggleSensitive, si
     md: 'w-72 h-44',
     lg: 'w-96 h-56',
   };
+
+  // A "pending" card is a consumer's request awaiting agent approval — it
+  // has no real PAN/expiry/balance yet. Rendering it with the same face as
+  // an issued card (fake "MM/YY", masked zeros) reads as a broken real
+  // card instead of communicating "not issued yet".
+  if (card.status === 'pending') {
+    return (
+      <div className={`${sizeClasses[size]} ${className}`}>
+        <div className="relative w-full h-full rounded-2xl overflow-hidden border-2 border-dashed border-indigo-400/30 bg-indigo-500/5 flex flex-col items-center justify-center gap-2 px-5 text-center">
+          <Clock className="w-6 h-6 text-indigo-400/60" />
+          <p className="text-foreground/70 text-sm font-semibold">Awaiting approval</p>
+          <p className="text-foreground/40 text-xs">
+            {formatCurrency(card.initial_balance ?? 0, card.currency)} requested · {card.network?.toUpperCase()}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const fontSizes = {
     sm: { number: 'text-xs',  name: 'text-[10px]', balance: 'text-sm' },
@@ -115,7 +133,7 @@ export function VirtualCard({ card, showSensitive = false, onToggleSensitive, si
               {/* Row 4: Name + Expiry + Network */}
               <div className="flex items-end justify-between gap-2">
                 <p className={`text-white font-semibold uppercase tracking-wider flex-1 truncate ${fontSizes[size].name}`}>
-                  {card.cardholder_name}
+                  {formatCardholderName(card.cardholder_name)}
                 </p>
                 <p className={`text-white/80 font-medium tabular-nums flex-shrink-0 ${fontSizes[size].name}`}>
                   {formatCardExpiry(card.expiry_month, card.expiry_year)}

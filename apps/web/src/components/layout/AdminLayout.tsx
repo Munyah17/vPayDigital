@@ -150,8 +150,10 @@ function AdminSidebarPanel({ sidebarOpen, onToggle, isSuperAdmin, profile, onSig
       <nav className="flex-1 px-2 py-2 space-y-0.5 overflow-y-auto">
         {isSuperAdmin ? (
           <>
-            <NavSection label="Super Admin Operations" items={NAV_SUPER_ADMIN_OPERATIONS} sidebarOpen={sidebarOpen} activeColor="purple" />
-            {sidebarOpen && <div className="h-px bg-foreground/5 mx-1 my-1" />}
+            {/* Management & control comes first — VAS/operational actions
+                (issuing cards/vouchers, adjusting wallets) are tools used
+                occasionally, not the primary lens a founder/director runs
+                the platform through. */}
             <NavSection label="Platform" items={NAV_PLATFORM} sidebarOpen={sidebarOpen} />
             <NavSection label="People" items={NAV_PEOPLE} sidebarOpen={sidebarOpen} />
             <NavSection label="Products" items={NAV_PRODUCTS} sidebarOpen={sidebarOpen} />
@@ -159,6 +161,8 @@ function AdminSidebarPanel({ sidebarOpen, onToggle, isSuperAdmin, profile, onSig
             <NavSection label="Compliance" items={NAV_COMPLIANCE} sidebarOpen={sidebarOpen} />
             <NavSection label="Finance" items={NAV_FINANCE} sidebarOpen={sidebarOpen} />
             <NavSection label="System" items={NAV_SYSTEM} sidebarOpen={sidebarOpen} />
+            {sidebarOpen && <div className="h-px bg-foreground/5 mx-1 my-1" />}
+            <NavSection label="Super Admin Operations" items={NAV_SUPER_ADMIN_OPERATIONS} sidebarOpen={sidebarOpen} activeColor="purple" />
           </>
         ) : (
           <>

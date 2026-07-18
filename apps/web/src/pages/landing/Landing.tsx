@@ -1,5 +1,5 @@
-import { useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import {
   Zap, Shield, Globe, CreditCard, ArrowRight, CheckCircle,
@@ -221,6 +221,17 @@ export default function Landing() {
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 60]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+
+  // React Router doesn't auto-scroll to URL hash fragments on navigation
+  // the way a full page load does — clicking "How it works" / "For agents"
+  // in the nav landed on this page without ever scrolling to the section,
+  // which read as a dead "#" link.
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!hash) return;
+    const el = document.getElementById(hash.slice(1));
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [hash]);
 
   return (
     <div className="min-h-screen bg-background">

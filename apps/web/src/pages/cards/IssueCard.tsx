@@ -7,6 +7,7 @@ import { useMutation } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, CreditCard } from 'lucide-react';
 import { api } from '../../lib/axios';
 import { useAuthStore } from '../../stores/authStore';
+import { useWalletStore } from '../../stores/walletStore';
 import toast from 'react-hot-toast';
 
 const schema = z.object({
@@ -36,8 +37,13 @@ export default function IssueCard() {
 
   const issue = useMutation({
     mutationFn: (data: Form) => api.post('/api/cards', data),
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
       toast.success('Card issued!');
+      // The cards list (Dashboard's "active card" widget, the /cards page)
+      // reads from walletStore, which nothing here previously refreshed —
+      // a freshly issued card wouldn't appear until an unrelated full
+      // reload happened to refetch it.
+      await useWalletStore.getState().fetchCards();
       const card = (res.data as any)?.data;
       navigate(card?.id ? `/cards/${card.id}` : '/cards');
     },

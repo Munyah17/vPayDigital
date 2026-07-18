@@ -129,7 +129,11 @@ app.use('/api/beneficiaries', beneficiaryRouter);
 app.get('/api/profile', authenticate, async (req: AuthenticatedRequest, res) => {
   const { data, error } = await supabaseAdmin
     .from('profiles')
-    .select('*, agent_profiles(*)')
+    // agent_profiles has two FKs to profiles (user_id and approved_by) —
+    // PostgREST can't auto-pick one, so the embed must name the column
+    // explicitly or every call to this endpoint 500s with "more than one
+    // relationship was found".
+    .select('*, agent_profiles!agent_profiles_user_id_fkey(*)')
     .eq('id', req.user!.id)
     .single();
 

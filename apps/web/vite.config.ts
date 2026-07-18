@@ -26,13 +26,13 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\.vpay\.app\/.*/i,
-            handler: 'NetworkFirst',
-            options: { cacheName: 'api-cache', expiration: { maxEntries: 50, maxAgeSeconds: 300 } },
-          },
-        ],
+        // No runtime caching of API responses — this used to target the
+        // pre-rebrand api.vpay.app domain (a no-op today since it never
+        // matched v-pay-digital-api.vercel.app), but caching financial API
+        // responses at all is the wrong default for this app regardless of
+        // domain: a stale cached balance/transaction list is worse than a
+        // network error.
+        runtimeCaching: [],
       },
     }),
   ],

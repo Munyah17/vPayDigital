@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Snowflake, Sun, Trash2, ArrowLeft, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { api } from '../../lib/axios';
 import { VirtualCard, VirtualCardSkeleton } from '../../components/cards/VirtualCard';
+import { useWalletStore } from '../../stores/walletStore';
 import { formatCurrency, formatRelativeTime, titleCase } from '@vpay/utils';
 import type { Card, CardTransaction } from '@vpay/types';
 import toast from 'react-hot-toast';
@@ -32,17 +33,17 @@ export default function CardDetail() {
 
   const freeze = useMutation({
     mutationFn: () => api.post(`/api/cards/${id}/freeze`),
-    onSuccess: () => { toast.success('Card frozen'); qc.invalidateQueries({ queryKey: ['card', id] }); },
+    onSuccess: () => { toast.success('Card frozen'); qc.invalidateQueries({ queryKey: ['card', id] }); useWalletStore.getState().fetchCards(); },
     onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed'),
   });
   const unfreeze = useMutation({
     mutationFn: () => api.post(`/api/cards/${id}/unfreeze`),
-    onSuccess: () => { toast.success('Card unfrozen'); qc.invalidateQueries({ queryKey: ['card', id] }); },
+    onSuccess: () => { toast.success('Card unfrozen'); qc.invalidateQueries({ queryKey: ['card', id] }); useWalletStore.getState().fetchCards(); },
     onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed'),
   });
   const terminate = useMutation({
     mutationFn: () => api.post(`/api/cards/${id}/terminate`),
-    onSuccess: () => { toast.success('Card terminated'); navigate('/cards'); },
+    onSuccess: () => { toast.success('Card terminated'); useWalletStore.getState().fetchCards(); navigate('/cards'); },
     onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed'),
   });
 

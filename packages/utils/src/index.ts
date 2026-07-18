@@ -45,13 +45,19 @@ export function formatDate(date: string | Date, format: 'short' | 'long' | 'rela
 
   if (format === 'relative') return formatRelativeTime(d);
 
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+
   if (format === 'long') {
-    return d.toLocaleDateString('en-US', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-    });
+    const weekday = d.toLocaleDateString('en-GB', { weekday: 'long' });
+    const monthName = d.toLocaleDateString('en-GB', { month: 'long' });
+    return `${weekday}, ${day} ${monthName} ${year}`;
   }
 
-  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  // dd/mm/yyyy — platform-wide date convention, distinct from card expiry
+  // (MM/YY), which follows card-industry convention and is unaffected.
+  return `${day}/${month}/${year}`;
 }
 
 export function formatRelativeTime(date: Date): string {
@@ -70,7 +76,10 @@ export function formatRelativeTime(date: Date): string {
 }
 
 export function formatCardExpiry(month?: number, year?: number): string {
-  if (!month || !year) return 'MM/YY';
+  // "MM/YY" as a literal fallback reads as a real (broken) date on an
+  // unissued/pending card — an em dash makes it unambiguous that there's
+  // no expiry yet rather than looking like corrupted data.
+  if (!month || !year) return '––/––';
   return `${String(month).padStart(2, '0')}/${String(year).slice(-2)}`;
 }
 
@@ -79,6 +88,19 @@ export function formatCardExpiry(month?: number, year?: number): string {
 export function maskCardNumber(lastFour: string, network: string = 'visa'): string {
   const segments = network === 'amex' ? ['****', '******', lastFour.slice(0, 5)] : ['****', '****', '****', lastFour];
   return segments.join(' ');
+}
+
+/**
+ * Formats a full name as "F. Surname" for display on the card face —
+ * e.g. "Munyah Griezmann" -> "M. Griezmann". Falls back to the original
+ * string for single-word names (nothing to abbreviate).
+ */
+export function formatCardholderName(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length < 2) return fullName.toUpperCase();
+  const first = parts[0];
+  const surname = parts[parts.length - 1];
+  return `${first[0].toUpperCase()}. ${surname.toUpperCase()}`;
 }
 
 export function formatCardNumber(pan: string): string {
