@@ -17,7 +17,6 @@ import { voucherRouter } from './routes/vouchers.js';
 import { bankingRouter } from './routes/banking.js';
 import { beneficiaryRouter } from './routes/beneficiaries.js';
 import { vasRouter } from './routes/vas.js';
-import { handleFincraWebhook } from './webhooks/fincraWebhook.js';
 import { handleVitalPayWebhook } from './webhooks/vitalPayWebhook.js';
 import { authenticate, requireAdmin, requireAgent, requireSuperAdmin, AuthenticatedRequest } from './middleware/auth.js';
 import { supabaseAdmin } from './utils/supabase.js';
@@ -70,17 +69,6 @@ app.use('/api/auth', strictLimiter);
 app.use(compression());
 
 // ─── Webhooks — raw body BEFORE json parsing ──────────────────────────────────
-app.post(
-  '/webhooks/fincra',
-  express.raw({ type: 'application/json' }),
-  (req, _res, next) => {
-    (req as express.Request & { rawBody: string }).rawBody = req.body.toString();
-    req.body = JSON.parse(req.body.toString());
-    next();
-  },
-  handleFincraWebhook
-);
-
 app.post(
   '/webhooks/vitalpay',
   express.raw({ type: 'application/json' }),

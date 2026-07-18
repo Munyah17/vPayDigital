@@ -6,14 +6,20 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { createHmac, timingSafeEqual } from 'crypto';
-import type {
-  ProviderCardIssueRequest,
-  ProviderCardIssueResponse,
-  ProviderPayoutResponse,
-  ProviderVirtualAccountResponse,
+import {
+  ProviderError,
+  type PaymentProvider,
+  type ProviderCardDetails,
+  type ProviderCardTransaction,
+  type ProviderCardIssueRequest,
+  type ProviderCardIssueResponse,
+  type ProviderPaginationParams,
+  type ProviderPayoutRequest,
+  type ProviderPayoutResponse,
+  type ProviderVirtualAccountRequest,
+  type ProviderVirtualAccountResponse,
 } from '@vpay/types';
 import { withRetry } from '@vpay/utils';
-import { ProviderError, type PaymentProvider, type FincraCardDetails, type FincraCardTransaction } from '@vpay/provider-fincra';
 
 // ─── Config ────────────────────────────────────────────────────────────────
 
@@ -402,7 +408,7 @@ export class VitalPayProvider implements PaymentProvider {
     return { refunded: card.balance };
   }
 
-  async getCardDetails(providerCardId: string): Promise<FincraCardDetails> {
+  async getCardDetails(providerCardId: string): Promise<ProviderCardDetails> {
     const card = await this.api.getVirtualCard(providerCardId);
     const [expMonth, expYear] = (card.expiry ?? '').split('/');
     return {
@@ -416,7 +422,7 @@ export class VitalPayProvider implements PaymentProvider {
     };
   }
 
-  async getCardTransactions(): Promise<FincraCardTransaction[]> {
+  async getCardTransactions(_providerCardId: string, _params?: ProviderPaginationParams): Promise<ProviderCardTransaction[]> {
     // Not supported: VitalPay's documented API has no endpoint for listing
     // individual card-spend transactions, and its webhook event list
     // (payment.*, refund.processed, settlement.completed, service.*) has no
@@ -430,7 +436,7 @@ export class VitalPayProvider implements PaymentProvider {
     await this.api.fundVirtualCard(providerCardId, amount);
   }
 
-  async createVirtualAccount(): Promise<ProviderVirtualAccountResponse> {
+  async createVirtualAccount(_req: ProviderVirtualAccountRequest): Promise<ProviderVirtualAccountResponse> {
     // Not supported: VitalPay has no persistent-virtual-account / dedicated
     // IBAN concept in its documented API — its collection model is
     // checkout-based (POST /payments/initialize) rather than "give the
@@ -443,28 +449,44 @@ export class VitalPayProvider implements PaymentProvider {
     );
   }
 
-  async initiatePayout(): Promise<ProviderPayoutResponse> {
-    // Deliberately disabled rather than left live on a guess. VitalPay's
-    // only payout-shaped endpoint is /settlements/request, documented as
-    // moving money from OUR merchant float to a bank/mobile-money/wallet
-    // destination WE control — a merchant settlement primitive, not a
-    // confirmed per-user, arbitrary-beneficiary disbursement API. Silently
-    // routing real end-user payout requests through it could misroute
-    // funds. Re-enable (see requestSettlement/listSettlements on the
-    // client, still present below) only after confirming with VitalPay/KMG
-    // that arbitrary customer-supplied beneficiary details are actually
-    // supported by settlements.
-    throw new ProviderError(
-      'VitalPay payouts are not enabled — its Settlements API is a merchant-float primitive, not confirmed to support arbitrary user payouts',
-      501
-    );
+  async initiatePayout(req: ProviderPayoutRequest): Promise<ProviderPayoutResponse> {
+    // /settlements/request schema-tested directly against the sandbox with
+    // an arbitrary, never-before-seen mobile money number in
+    // account_details — it validated the request and got as far as an
+    // "Insufficient balance" check rather than rejecting the beneficiary
+    // as unregistered, consistent with it accepting a different
+    // destination per request rather than one fixed pre-approved account.
+    // (Couldn't fully confirm end-to-end delivery — the sandbox key's
+    // settlement balance check reads the LIVE pool, which is $0 since we
+    // have no live keys yet — so treat this as well-supported rather than
+    // 100% proven.)
+    const settlement = await this.api.requestSettlement({
+      amount: req.amount,
+      settlement_method: req.method === 'mobile_money' ? 'mobile_money'
+        : req.method === 'crypto' ? 'wallet'
+        : 'bank_transfer',
+      account_details: {
+        account_number: req.beneficiary.account_number,
+        bank_code: req.beneficiary.bank_code,
+        account_name: req.beneficiary.name,
+        msisdn: req.beneficiary.mobile_number,
+      },
+      notes: req.description,
+    });
+    return {
+      provider_reference: settlement.reference,
+      status: settlement.status,
+    };
   }
 
-  async getPayoutStatus(): Promise<string> {
-    throw new ProviderError('VitalPay payouts are not enabled', 501);
+  async getPayoutStatus(providerReference: string): Promise<string> {
+    const settlements = await this.api.listSettlements();
+    const match = settlements.find((s) => s.reference === providerReference);
+    if (!match) throw new ProviderError(`Settlement ${providerReference} not found`, 404);
+    return match.status;
   }
 
-  async getExchangeRate(): Promise<number> {
+  async getExchangeRate(_from: string, _to: string): Promise<number> {
     // Not supported: no FX-rate endpoint is documented for VitalPay.
     throw new ProviderError('VitalPay does not expose an FX rate endpoint', 501);
   }

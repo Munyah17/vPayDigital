@@ -501,6 +501,66 @@ export interface ProviderVirtualAccountResponse {
   currency: string;
 }
 
+export interface ProviderPaginationParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface ProviderCardDetails {
+  id: string;
+  maskedPan: string;
+  expiryMonth: number;
+  expiryYear: number;
+  currency: string;
+  status: string;
+  balance: number;
+}
+
+export interface ProviderCardTransaction {
+  id: string;
+  type: string;
+  amount: number;
+  currency: string;
+  description: string;
+  merchantName?: string;
+  merchantCountry?: string;
+  status: string;
+  createdAt: string;
+}
+
+// The provider abstraction every payment provider implementation (e.g.
+// @vpay/provider-vitalpay) conforms to, so apps/api's services can swap
+// providers via ACTIVE_PROVIDER without touching call sites.
+export interface PaymentProvider {
+  name: string;
+  issueCard(req: ProviderCardIssueRequest): Promise<ProviderCardIssueResponse>;
+  freezeCard(providerCardId: string): Promise<void>;
+  unfreezeCard(providerCardId: string): Promise<void>;
+  // Some providers report the remaining card balance on termination so it
+  // can be refunded to the wallet; providers that don't just resolve void,
+  // which callers must treat as "no refund information available."
+  terminateCard(providerCardId: string): Promise<{ refunded?: number } | void>;
+  getCardTransactions(providerCardId: string, params?: ProviderPaginationParams): Promise<ProviderCardTransaction[]>;
+  getCardDetails(providerCardId: string): Promise<ProviderCardDetails>;
+  fundCard(providerCardId: string, amount: number): Promise<void>;
+  createVirtualAccount(req: ProviderVirtualAccountRequest): Promise<ProviderVirtualAccountResponse>;
+  initiatePayout(req: ProviderPayoutRequest): Promise<ProviderPayoutResponse>;
+  getPayoutStatus(providerReference: string): Promise<string>;
+  getExchangeRate(from: string, to: string): Promise<number>;
+  verifyWebhookSignature(payload: string, signature: string): boolean;
+}
+
+export class ProviderError extends Error {
+  constructor(
+    message: string,
+    public readonly statusCode?: number,
+    public readonly code?: string
+  ) {
+    super(message);
+    this.name = 'ProviderError';
+  }
+}
+
 // ─── Webhook Types ────────────────────────────────────────────────────────────
 
 export interface WebhookEvent {

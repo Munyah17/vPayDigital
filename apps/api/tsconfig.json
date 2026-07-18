@@ -24,8 +24,7 @@
     "paths": {
       "@vpay/types": ["packages/types/src/index.ts"],
       "@vpay/utils": ["packages/utils/src/index.ts"],
-      "@vpay/config": ["packages/config/src/index.ts"],
-      "@vpay/provider-fincra": ["packages/provider-fincra/src/index.ts"]
+      "@vpay/config": ["packages/config/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts"],

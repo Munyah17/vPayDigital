@@ -185,7 +185,7 @@ router.post('/:id/virtual-account', authenticate, async (req: AuthenticatedReque
   await supabaseAdmin.from('virtual_accounts').upsert({
     user_id: req.user!.id,
     wallet_id: wallet.id,
-    provider: 'fincra',
+    provider: provider.name,
     provider_account_id: vaResult.provider_account_id,
     account_number: vaResult.account_number,
     bank_name: vaResult.bank_name,

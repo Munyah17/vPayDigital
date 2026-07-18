@@ -24,7 +24,6 @@
       "@vpay/config": ["packages/config/src/index.ts"],
       "@vpay/auth": ["packages/auth/src/index.ts"],
       "@vpay/fintech-core": ["packages/fintech-core/src/index.ts"],
-      "@vpay/provider-fincra": ["packages/provider-fincra/src/index.ts"],
       "@vpay/ui": ["packages/ui/src/index.ts"]
     }
   }

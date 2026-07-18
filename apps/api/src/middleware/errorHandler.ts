@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
-import { ProviderError } from '@vpay/provider-fincra';
+import { ProviderError } from '@vpay/types';
 import { logger } from '../utils/logger.js';
 
 export function errorHandler(

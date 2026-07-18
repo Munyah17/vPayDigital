@@ -30,17 +30,12 @@ export const env = {
   JWT_EXPIRY: optional('JWT_EXPIRY', '15m'),
   JWT_REFRESH_EXPIRY: optional('JWT_REFRESH_EXPIRY', '7d'),
 
-  FINCRA_API_KEY: required('FINCRA_API_KEY'),
-  FINCRA_SECRET_KEY: required('FINCRA_SECRET_KEY'),
-  FINCRA_BASE_URL: optional('FINCRA_BASE_URL', 'https://api.fincra.com'),
-  FINCRA_WEBHOOK_SECRET: required('FINCRA_WEBHOOK_SECRET'),
-  FINCRA_BUSINESS_ID: required('FINCRA_BUSINESS_ID'),
-
-  VITALPAY_SECRET_KEY: optional('VITALPAY_SECRET_KEY', ''),
+  // VitalPay (Tayari / KMG VitalLinks) is the only payment provider —
+  // Fincra was removed entirely (never had real credentials).
+  VITALPAY_SECRET_KEY: required('VITALPAY_SECRET_KEY'),
   VITALPAY_BASE_URL: optional('VITALPAY_BASE_URL', 'https://kmgvitallinks.co.uk/api/v1'),
   VITALPAY_WEBHOOK_SECRET: optional('VITALPAY_WEBHOOK_SECRET', ''),
 
-  ACTIVE_PROVIDER: optional('ACTIVE_PROVIDER', 'fincra'),
   PROVIDER_TIMEOUT_MS: optional('PROVIDER_TIMEOUT_MS', '30000'),
 
   WEB_APP_URL: optional('WEB_APP_URL', 'http://localhost:5173'),
