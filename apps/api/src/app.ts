@@ -40,8 +40,23 @@ app.use(helmet({
 }));
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
+// Fixed production/staging domains come from CORS_ORIGINS. On top of that,
+// allow any *.vercel.app / *.netlify.app preview URL — this app gets
+// deployed ad hoc to fresh Vercel/Netlify projects during testing, and
+// auth is Bearer-token-based (not cookies), so accepting these preview
+// origins doesn't expose a CSRF/cookie risk the way it would for a
+// cookie-authenticated app.
+const fixedOrigins = new Set(env.CORS_ORIGINS.split(','));
+const previewOriginPattern = /^https:\/\/[a-z0-9-]+\.(vercel\.app|netlify\.app)$/;
+
 app.use(cors({
-  origin: env.CORS_ORIGINS.split(','),
+  origin: (origin, callback) => {
+    if (!origin || fixedOrigins.has(origin) || previewOriginPattern.test(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],

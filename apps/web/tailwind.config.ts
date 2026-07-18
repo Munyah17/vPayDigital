@@ -2,7 +2,12 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   darkMode: ['class'],
-  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  // Includes packages/config because CARD_NETWORK_COLORS defines Tailwind
+  // arbitrary-value gradient classes (e.g. "from-[#6d28d9]") as strings that
+  // are only assembled at runtime — Tailwind's JIT scanner needs to see the
+  // literal class text somewhere in a scanned file or it silently generates
+  // no CSS for them (was rendering cards with no gradient at all).
+  content: ['./index.html', './src/**/*.{ts,tsx}', '../../packages/config/src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       fontFamily: {

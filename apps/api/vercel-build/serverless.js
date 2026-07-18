@@ -74124,8 +74124,16 @@ app.use(helmet({
   },
   hsts: { maxAge: 31536e3, includeSubDomains: true, preload: true }
 }));
+var fixedOrigins = new Set(env.CORS_ORIGINS.split(","));
+var previewOriginPattern = /^https:\/\/[a-z0-9-]+\.(vercel\.app|netlify\.app)$/;
 app.use((0, import_cors.default)({
-  origin: env.CORS_ORIGINS.split(","),
+  origin: (origin2, callback) => {
+    if (!origin2 || fixedOrigins.has(origin2) || previewOriginPattern.test(origin2)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error(`CORS: origin ${origin2} not allowed`));
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
