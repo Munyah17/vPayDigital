@@ -19,6 +19,20 @@ const DEFAULT_FEATURES = {
 
 const DEFAULT_MAINTENANCE = { enabled: false, message: '' };
 
+const DEFAULT_FEES = {
+  ...FEE_CONFIG,
+  voucherIssuancePercent: 0.015,
+};
+
+const FEE_FIELDS: Array<{ key: keyof typeof DEFAULT_FEES; label: string; isPercent: boolean; hint: string }> = [
+  { key: 'cardIssuanceFlat', label: 'Card issuance — flat fee', isPercent: false, hint: 'Currently unused by card issuance (cards are funded at face value with no markup)' },
+  { key: 'cardIssuancePercent', label: 'Card issuance — percent fee', isPercent: true, hint: 'Currently unused by card issuance' },
+  { key: 'payoutFlat', label: 'Payout — flat fee', isPercent: false, hint: 'Added to every non-internal payout' },
+  { key: 'payoutPercent', label: 'Payout — percent fee', isPercent: true, hint: 'Added to every non-internal payout' },
+  { key: 'voucherIssuancePercent', label: 'Voucher issuance — percent fee', isPercent: true, hint: 'Charged to agents issuing vouchers (admins issue fee-free from the platform pool)' },
+  { key: 'fxSpread', label: 'FX spread', isPercent: true, hint: 'Not yet wired into any live currency conversion' },
+];
+
 export default function Settings() {
   const qc = useQueryClient();
 
@@ -32,6 +46,7 @@ export default function Settings() {
 
   const features = (configMap['feature_flags'] as typeof DEFAULT_FEATURES) ?? DEFAULT_FEATURES;
   const maintenance = (configMap['maintenance'] as typeof DEFAULT_MAINTENANCE) ?? DEFAULT_MAINTENANCE;
+  const fees = { ...DEFAULT_FEES, ...(configMap['fee_config'] as Partial<typeof DEFAULT_FEES> ?? {}) };
 
   const saveMutation = useMutation({
     mutationFn: ({ key, value }: { key: string; value: unknown }) =>
@@ -45,9 +60,11 @@ export default function Settings() {
 
   const [localFeatures, setLocalFeatures] = useState<typeof DEFAULT_FEATURES | null>(null);
   const [localMaintenance, setLocalMaintenance] = useState<typeof DEFAULT_MAINTENANCE | null>(null);
+  const [localFees, setLocalFees] = useState<typeof DEFAULT_FEES | null>(null);
 
   const activeFeatures = localFeatures ?? features;
   const activeMaintenance = localMaintenance ?? maintenance;
+  const activeFees = localFees ?? fees;
 
   const toggleFeature = (key: keyof typeof DEFAULT_FEATURES) => {
     setLocalFeatures(f => ({ ...(f ?? features), [key]: !(f ?? features)[key] }));
@@ -55,6 +72,7 @@ export default function Settings() {
 
   const saveFeatures = () => saveMutation.mutate({ key: 'feature_flags', value: activeFeatures });
   const saveMaintenance = () => saveMutation.mutate({ key: 'maintenance', value: activeMaintenance });
+  const saveFees = () => saveMutation.mutate({ key: 'fee_config', value: activeFees });
 
   if (isLoading) {
     return (
@@ -116,13 +134,36 @@ export default function Settings() {
         <SaveButton onClick={saveFeatures} loading={saveMutation.isPending} />
       </Section>
 
-      {/* Fee configuration (read-only, from config package) */}
-      <Section title="Fee Configuration" description="Configured in @vpay/config — edit config package to change">
-        <div className="space-y-2 text-sm">
-          <ConfigRow label="Card issuance flat fee" value={`$${FEE_CONFIG.cardIssuanceFlat} + ${FEE_CONFIG.cardIssuancePercent * 100}%`} />
-          <ConfigRow label="Payout fee" value={`$${FEE_CONFIG.payoutFlat} + ${FEE_CONFIG.payoutPercent * 100}%`} />
-          <ConfigRow label="FX spread" value={`${FEE_CONFIG.fxSpread * 100}%`} />
+      {/* Fee configuration — editable, backed by system_config.fee_config.
+          Falls back to @vpay/config defaults until first saved here. */}
+      <Section title="Fee Configuration" description="Tune platform markup — takes effect on the next transaction, no deploy needed">
+        <div className="space-y-3">
+          {FEE_FIELDS.map(field => (
+            <div key={field.key} className="flex items-center justify-between gap-4 py-1">
+              <div className="min-w-0">
+                <p className="text-foreground text-sm">{field.label}</p>
+                <p className="text-foreground/30 text-xs mt-0.5">{field.hint}</p>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {!field.isPercent && <span className="text-foreground/40 text-sm">$</span>}
+                <input
+                  type="number"
+                  step={field.isPercent ? '0.001' : '0.01'}
+                  min="0"
+                  value={field.isPercent ? +(activeFees[field.key] * 100).toFixed(3) : activeFees[field.key]}
+                  onChange={e => {
+                    const raw = parseFloat(e.target.value);
+                    const value = isNaN(raw) ? 0 : (field.isPercent ? raw / 100 : raw);
+                    setLocalFees(f => ({ ...(f ?? fees), [field.key]: value }));
+                  }}
+                  className="w-24 bg-foreground/5 border border-foreground/10 rounded-lg px-2 py-1.5 text-foreground text-sm text-right outline-none focus:border-indigo-500/50"
+                />
+                {field.isPercent && <span className="text-foreground/40 text-sm">%</span>}
+              </div>
+            </div>
+          ))}
         </div>
+        <SaveButton onClick={saveFees} loading={saveMutation.isPending} />
       </Section>
 
       {/* Currencies */}
@@ -162,15 +203,6 @@ function Section({ title, description, children }: { title: string; description?
         {description && <p className="text-foreground/30 text-xs mt-0.5">{description}</p>}
       </div>
       <div className="space-y-3">{children}</div>
-    </div>
-  );
-}
-
-function ConfigRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between items-center py-1.5 border-b border-foreground/[0.04] last:border-0">
-      <span className="text-foreground/50">{label}</span>
-      <span className="text-foreground font-mono text-sm">{value}</span>
     </div>
   );
 }

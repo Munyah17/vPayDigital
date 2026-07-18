@@ -5,7 +5,7 @@
 import { supabaseAdmin } from '../utils/supabase.js';
 import { provider } from '../utils/provider.js';
 import { logger } from '../utils/logger.js';
-import { FEE_CONFIG } from '@vpay/config';
+import { getFeeConfig } from '../utils/feeConfig.js';
 import type {
   PayoutRequest,
   PayoutMethod,
@@ -32,7 +32,7 @@ export interface InitiatePayoutParams {
 export class PayoutService {
   async initiatePayout(params: InitiatePayoutParams): Promise<PayoutRequest> {
     // 1. Compute fees
-    const fee = this.calculateFee(params.amount, params.method);
+    const fee = await this.calculateFee(params.amount, params.method);
     const totalDebit = params.amount + fee;
 
     // 2. Get wallet
@@ -163,9 +163,10 @@ export class PayoutService {
     return data as PayoutRequest;
   }
 
-  private calculateFee(amount: number, method: PayoutMethod): number {
+  private async calculateFee(amount: number, method: PayoutMethod): Promise<number> {
     if (method === 'internal') return 0;
-    return FEE_CONFIG.payoutFlat + amount * FEE_CONFIG.payoutPercent;
+    const fees = await getFeeConfig();
+    return fees.payoutFlat + amount * fees.payoutPercent;
   }
 }
 

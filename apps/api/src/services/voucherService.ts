@@ -5,6 +5,7 @@
 import { supabaseAdmin } from '../utils/supabase.js';
 import { cardService } from './cardService.js';
 import { vitalPay } from '../utils/vitalpay.js';
+import { getFeeConfig } from '../utils/feeConfig.js';
 import { logger } from '../utils/logger.js';
 import type { Voucher, VoucherType, GiftCardBrand, WalletCurrency, CardNetwork } from '@vpay/types';
 
@@ -41,7 +42,8 @@ export class VoucherService {
     const isAdmin = ['super_admin', 'staff'].includes(params.issuer_role ?? '');
 
     // Calculate cost with fee
-    const fee = isAdmin ? 0 : params.amount * 0.015; // Admins issue from platform pool — no fee deducted
+    const fees = await getFeeConfig();
+    const fee = isAdmin ? 0 : params.amount * fees.voucherIssuancePercent; // Admins issue from platform pool — no fee deducted
     const totalCost = params.amount + fee;
 
     let walletId: string | null = null;

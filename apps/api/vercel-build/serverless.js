@@ -64576,14 +64576,14 @@ var init_dist4 = __esm({
         this.storageUrl = new URL("storage/v1", baseUrl);
         this.functionsUrl = new URL("functions/v1", baseUrl);
         const defaultStorageKey = `sb-${baseUrl.hostname.split(".")[0]}-auth-token`;
-        const DEFAULTS = {
+        const DEFAULTS2 = {
           db: DEFAULT_DB_OPTIONS,
           realtime: DEFAULT_REALTIME_OPTIONS,
           auth: _objectSpread23(_objectSpread23({}, DEFAULT_AUTH_OPTIONS), {}, { storageKey: defaultStorageKey }),
           global: DEFAULT_GLOBAL_OPTIONS,
           tracePropagation: DEFAULT_TRACE_PROPAGATION_OPTIONS
         };
-        const settings = applySettingDefaults(options !== null && options !== void 0 ? options : {}, DEFAULTS);
+        const settings = applySettingDefaults(options !== null && options !== void 0 ? options : {}, DEFAULTS2);
         this.settings = settings;
         this.storageKey = (_settings$auth$storag = settings.auth.storageKey) !== null && _settings$auth$storag !== void 0 ? _settings$auth$storag : "";
         this.headers = (_settings$global$head = settings.global.headers) !== null && _settings$global$head !== void 0 ? _settings$global$head : {};
@@ -72333,6 +72333,9 @@ init_supabase();
 init_provider();
 init_logger();
 
+// src/utils/feeConfig.ts
+init_supabase();
+
 // ../../packages/config/src/index.ts
 var FEE_CONFIG = {
   cardIssuanceFlat: 0.5,
@@ -72342,10 +72345,21 @@ var FEE_CONFIG = {
   payoutPercent: 0.01
 };
 
+// src/utils/feeConfig.ts
+var DEFAULTS = {
+  ...FEE_CONFIG,
+  voucherIssuancePercent: 0.015
+};
+async function getFeeConfig() {
+  const { data } = await supabaseAdmin.from("system_config").select("value").eq("key", "fee_config").maybeSingle();
+  if (!data?.value || typeof data.value !== "object") return DEFAULTS;
+  return { ...DEFAULTS, ...data.value };
+}
+
 // src/services/payoutService.ts
 var PayoutService = class {
   async initiatePayout(params) {
-    const fee = this.calculateFee(params.amount, params.method);
+    const fee = await this.calculateFee(params.amount, params.method);
     const totalDebit = params.amount + fee;
     const { data: wallet, error: walletErr } = await supabaseAdmin.from("wallets").select("id, balance, status").eq("user_id", params.user_id).eq("currency", params.currency).eq("wallet_type", "consumer").single();
     if (walletErr || !wallet) throw new Error("Wallet not found");
@@ -72431,9 +72445,10 @@ var PayoutService = class {
     if (error || !data) throw new Error("Payout not found");
     return data;
   }
-  calculateFee(amount, method) {
+  async calculateFee(amount, method) {
     if (method === "internal") return 0;
-    return FEE_CONFIG.payoutFlat + amount * FEE_CONFIG.payoutPercent;
+    const fees = await getFeeConfig();
+    return fees.payoutFlat + amount * fees.payoutPercent;
   }
 };
 var payoutService = new PayoutService();
@@ -72666,7 +72681,8 @@ var BRAND_SEARCH_TERMS = {
 var VoucherService = class {
   async issueVoucher(params) {
     const isAdmin = ["super_admin", "staff"].includes(params.issuer_role ?? "");
-    const fee = isAdmin ? 0 : params.amount * 0.015;
+    const fees = await getFeeConfig();
+    const fee = isAdmin ? 0 : params.amount * fees.voucherIssuancePercent;
     const totalCost = params.amount + fee;
     let walletId = null;
     if (!isAdmin) {
