@@ -59,6 +59,49 @@ router.post('/electricity/purchase', authenticate, async (req: AuthenticatedRequ
   }
 });
 
+const payBillSchema = z.object({
+  biller_code: z.string().min(1),
+  account_number: z.string().min(1).max(40),
+  amount: z.number().min(1),
+  currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR']),
+  country: z.string().length(2).optional(),
+});
+
+// GET /api/vas/bills/billers — DStv, ZOL, TelOne, municipal, etc.
+router.get('/bills/billers', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  const country = (req.query.country as string | undefined) ?? 'ZW';
+  const { billers } = await vitalPay.getBillers({ country });
+  res.json({ success: true, data: billers });
+});
+
+// GET /api/vas/bills/validate — pre-checkout account confirmation. Returns
+// the registered account holder's name when the biller exposes it, so the
+// user can confirm they're paying the right account before money moves.
+router.get('/bills/validate', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  const { biller_code, account_number, country = 'ZW' } = req.query as Record<string, string>;
+  if (!biller_code || !account_number) {
+    res.status(400).json({ success: false, error: 'biller_code and account_number are required' });
+    return;
+  }
+  const result = await vitalPay.validateBillAccount({ biller_code, country, account_number });
+  res.json({ success: true, data: result });
+});
+
+// POST /api/vas/bills/pay
+router.post('/bills/pay', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  const body = payBillSchema.parse(req.body);
+  try {
+    const order = await vasService.payBill({ user_id: req.user!.id, ...body });
+    res.status(201).json({ success: true, data: order });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Bill payment failed';
+    const status = message.includes('Insufficient balance') ? 402
+      : message.includes('wallet') ? 404
+      : 502;
+    res.status(status).json({ success: false, error: message });
+  }
+});
+
 // GET /api/vas/orders — history across airtime/data/electricity
 router.get('/orders', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   const { service_type, page = '1', limit = '20' } = req.query as Record<string, string>;

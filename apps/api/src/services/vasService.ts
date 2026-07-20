@@ -172,4 +172,62 @@ export const vasService = {
       throw err;
     }
   },
+
+  async payBill(params: { user_id: string; biller_code: string; account_number: string; amount: number; currency: WalletCurrency; country?: string }) {
+    const reference = `BILL-${Date.now().toString(36).toUpperCase()}`;
+    const country = params.country ?? 'ZW';
+
+    const walletId = await debitWallet(
+      params.user_id, params.currency, params.amount,
+      `Bill payment: ${params.biller_code} ${params.account_number}`,
+      { service: 'bill', biller_code: params.biller_code, account_number: params.account_number }
+    );
+
+    const { data: order, error: insertErr } = await supabaseAdmin
+      .from('vas_orders')
+      .insert({
+        user_id: params.user_id,
+        wallet_id: walletId,
+        service_type: 'bill',
+        amount: params.amount,
+        currency: params.currency,
+        biller_code: params.biller_code,
+        account_number: params.account_number,
+        reference,
+        status: 'processing',
+      })
+      .select()
+      .single();
+    if (insertErr || !order) throw new Error(`Failed to record order: ${insertErr?.message}`);
+
+    try {
+      const result = await vitalPay.payBill({
+        biller_code: params.biller_code,
+        country,
+        account_number: params.account_number,
+        amount: params.amount,
+        currency: params.currency,
+        reference,
+      });
+
+      await supabaseAdmin
+        .from('vas_orders')
+        .update({
+          status: result.status === 'completed' ? 'completed' : 'processing',
+          provider_reference: result.reference,
+          provider_payload: result,
+        })
+        .eq('id', order.id);
+
+      return { ...order, status: result.status, provider_payload: result };
+    } catch (err) {
+      logger.error({ err, order_id: order.id }, 'Bill payment failed — refunding wallet');
+      await supabaseAdmin.from('vas_orders').update({
+        status: 'failed',
+        failure_reason: err instanceof Error ? err.message : String(err),
+      }).eq('id', order.id);
+      await refundWallet(walletId, params.amount, `Bill payment failed refund: ${params.biller_code} ${params.account_number}`, { order_id: order.id });
+      throw err;
+    }
+  },
 };

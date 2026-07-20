@@ -172,7 +172,25 @@ async function processVitalPayEvent(event: string, data: Record<string, unknown>
     }
 
     case 'settlement.completed': {
-      logger.info({ reference: data.reference }, 'VitalPay settlement completed');
+      // Settlement approval is manual on VitalPay's side (their team
+      // approves in their dashboard and routes the funds) — this webhook is
+      // the only signal we get that a payout actually went through, so it
+      // must close out the payout_requests row, not just log.
+      const settlementRef = data.reference as string;
+      const { data: payout } = await supabaseAdmin
+        .from('payout_requests')
+        .select('id, status')
+        .eq('provider_reference', settlementRef)
+        .single();
+      if (payout && payout.status !== 'completed') {
+        await supabaseAdmin
+          .from('payout_requests')
+          .update({ status: 'completed', provider_status: 'completed', processed_at: new Date().toISOString(), metadata: { settlement_webhook: data } })
+          .eq('id', payout.id);
+        logger.info({ payout_id: payout.id, reference: settlementRef }, 'Payout marked completed via settlement webhook');
+      } else if (!payout) {
+        logger.info({ reference: settlementRef }, 'VitalPay settlement completed (no matching payout request — likely a merchant float settlement)');
+      }
       break;
     }
 

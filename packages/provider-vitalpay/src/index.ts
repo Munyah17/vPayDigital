@@ -84,6 +84,16 @@ export interface VitalPayElectricityOrder {
   token?: string; token_pieces?: string[]; units?: number; unit?: string;
 }
 
+export interface VitalPayBiller {
+  id: string; name: string; type: string; currencies: string[]; variable_amount: boolean;
+}
+
+export interface VitalPayBillOrder {
+  reference: string; service: string; biller: string; account_number: string;
+  amount: number; currency: string; status: string; token: string | null;
+  message?: string; created_at?: string;
+}
+
 export interface VitalPayAirtimeOperator {
   operator_id: string; name: string; country_iso: string; currency: string;
   min_amount: number; max_amount: number;
@@ -232,6 +242,25 @@ export class VitalPayClient {
 
   getAirtimeHistory(params?: { type?: string; status?: string; from?: string; to?: string; per_page?: number }) {
     return this.req<{ items: VitalPayAirtimeOrder[]; meta: unknown }>('GET', '/airtime/history', undefined, params);
+  }
+
+  // ── Bill payments (DStv, ZOL, TelOne, municipal) ──
+  // Endpoint shapes verified by direct sandbox testing 2026-07-20:
+  // /bills/billers returns { country, billers[] }; /bills/validate is a GET
+  // taking biller_code+country+account_number and returns { valid,
+  // account_name } (account_name null in sandbox — expected to carry the
+  // registered account holder in live mode); /bills/pay wants biller_code +
+  // country (NOT biller_id) and resolves synchronously in sandbox.
+  getBillers(params?: { country?: string }) {
+    return this.req<{ country: string; billers: VitalPayBiller[] }>('GET', '/bills/billers', undefined, params);
+  }
+
+  validateBillAccount(params: { biller_code: string; country: string; account_number: string }) {
+    return this.req<{ biller_code: string; account_number: string; valid: boolean; account_name: string | null }>('GET', '/bills/validate', undefined, params);
+  }
+
+  payBill(body: { biller_code: string; country: string; account_number: string; amount: number; currency: string; reference: string }) {
+    return this.req<VitalPayBillOrder>('POST', '/bills/pay', body);
   }
 
   // ── Payments (customer collections — this is what end-user wallet

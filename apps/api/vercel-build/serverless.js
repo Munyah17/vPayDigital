@@ -64705,6 +64705,22 @@ var init_src3 = __esm({
       getAirtimeHistory(params) {
         return this.req("GET", "/airtime/history", void 0, params);
       }
+      // ── Bill payments (DStv, ZOL, TelOne, municipal) ──
+      // Endpoint shapes verified by direct sandbox testing 2026-07-20:
+      // /bills/billers returns { country, billers[] }; /bills/validate is a GET
+      // taking biller_code+country+account_number and returns { valid,
+      // account_name } (account_name null in sandbox — expected to carry the
+      // registered account holder in live mode); /bills/pay wants biller_code +
+      // country (NOT biller_id) and resolves synchronously in sandbox.
+      getBillers(params) {
+        return this.req("GET", "/bills/billers", void 0, params);
+      }
+      validateBillAccount(params) {
+        return this.req("GET", "/bills/validate", void 0, params);
+      }
+      payBill(body) {
+        return this.req("POST", "/bills/pay", body);
+      }
       // ── Payments (customer collections — this is what end-user wallet
       // top-up and any other "charge the customer" flow should use) ──
       initializePayment(body) {
@@ -74004,6 +74020,53 @@ var vasService = {
       await refundWallet(walletId, params.amount, `Electricity purchase failed refund: ${params.meter_number}`, { order_id: order.id });
       throw err;
     }
+  },
+  async payBill(params) {
+    const reference = `BILL-${Date.now().toString(36).toUpperCase()}`;
+    const country = params.country ?? "ZW";
+    const walletId = await debitWallet(
+      params.user_id,
+      params.currency,
+      params.amount,
+      `Bill payment: ${params.biller_code} ${params.account_number}`,
+      { service: "bill", biller_code: params.biller_code, account_number: params.account_number }
+    );
+    const { data: order, error: insertErr } = await supabaseAdmin.from("vas_orders").insert({
+      user_id: params.user_id,
+      wallet_id: walletId,
+      service_type: "bill",
+      amount: params.amount,
+      currency: params.currency,
+      biller_code: params.biller_code,
+      account_number: params.account_number,
+      reference,
+      status: "processing"
+    }).select().single();
+    if (insertErr || !order) throw new Error(`Failed to record order: ${insertErr?.message}`);
+    try {
+      const result = await vitalPay.payBill({
+        biller_code: params.biller_code,
+        country,
+        account_number: params.account_number,
+        amount: params.amount,
+        currency: params.currency,
+        reference
+      });
+      await supabaseAdmin.from("vas_orders").update({
+        status: result.status === "completed" ? "completed" : "processing",
+        provider_reference: result.reference,
+        provider_payload: result
+      }).eq("id", order.id);
+      return { ...order, status: result.status, provider_payload: result };
+    } catch (err) {
+      logger.error({ err, order_id: order.id }, "Bill payment failed \u2014 refunding wallet");
+      await supabaseAdmin.from("vas_orders").update({
+        status: "failed",
+        failure_reason: err instanceof Error ? err.message : String(err)
+      }).eq("id", order.id);
+      await refundWallet(walletId, params.amount, `Bill payment failed refund: ${params.biller_code} ${params.account_number}`, { order_id: order.id });
+      throw err;
+    }
   }
 };
 
@@ -74045,6 +74108,38 @@ router6.post("/electricity/purchase", authenticate, async (req, res) => {
     res.status(201).json({ success: true, data: order });
   } catch (err) {
     const message2 = err instanceof Error ? err.message : "Electricity purchase failed";
+    const status = message2.includes("Insufficient balance") ? 402 : message2.includes("wallet") ? 404 : 502;
+    res.status(status).json({ success: false, error: message2 });
+  }
+});
+var payBillSchema = external_exports.object({
+  biller_code: external_exports.string().min(1),
+  account_number: external_exports.string().min(1).max(40),
+  amount: external_exports.number().min(1),
+  currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]),
+  country: external_exports.string().length(2).optional()
+});
+router6.get("/bills/billers", authenticate, async (req, res) => {
+  const country = req.query.country ?? "ZW";
+  const { billers } = await vitalPay.getBillers({ country });
+  res.json({ success: true, data: billers });
+});
+router6.get("/bills/validate", authenticate, async (req, res) => {
+  const { biller_code, account_number, country = "ZW" } = req.query;
+  if (!biller_code || !account_number) {
+    res.status(400).json({ success: false, error: "biller_code and account_number are required" });
+    return;
+  }
+  const result = await vitalPay.validateBillAccount({ biller_code, country, account_number });
+  res.json({ success: true, data: result });
+});
+router6.post("/bills/pay", authenticate, async (req, res) => {
+  const body = payBillSchema.parse(req.body);
+  try {
+    const order = await vasService.payBill({ user_id: req.user.id, ...body });
+    res.status(201).json({ success: true, data: order });
+  } catch (err) {
+    const message2 = err instanceof Error ? err.message : "Bill payment failed";
     const status = message2.includes("Insufficient balance") ? 402 : message2.includes("wallet") ? 404 : 502;
     res.status(status).json({ success: false, error: message2 });
   }
@@ -74172,7 +74267,14 @@ async function processVitalPayEvent(event, data) {
       break;
     }
     case "settlement.completed": {
-      logger.info({ reference: data.reference }, "VitalPay settlement completed");
+      const settlementRef = data.reference;
+      const { data: payout } = await supabaseAdmin.from("payout_requests").select("id, status").eq("provider_reference", settlementRef).single();
+      if (payout && payout.status !== "completed") {
+        await supabaseAdmin.from("payout_requests").update({ status: "completed", provider_status: "completed", processed_at: (/* @__PURE__ */ new Date()).toISOString(), metadata: { settlement_webhook: data } }).eq("id", payout.id);
+        logger.info({ payout_id: payout.id, reference: settlementRef }, "Payout marked completed via settlement webhook");
+      } else if (!payout) {
+        logger.info({ reference: settlementRef }, "VitalPay settlement completed (no matching payout request \u2014 likely a merchant float settlement)");
+      }
       break;
     }
     default:
