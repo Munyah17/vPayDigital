@@ -21,7 +21,7 @@ export default function RedeemVoucher() {
       if (result?.card?.id) navigate(`/cards/${result.card.id}`);
       else navigate('/wallet');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Redeem failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Redeem failed'),
   });
 
   return (

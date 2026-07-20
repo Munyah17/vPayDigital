@@ -20,6 +20,15 @@ const NAV_SUPER_ADMIN_OPERATIONS = [
   { label: 'Wallet Adjust',    icon: Wallet,     to: '/admin/ops/wallets' },
 ];
 
+// "Business first" — the sidebar leads with running the platform; personal
+// use of the product lives in this one small section at the very bottom.
+// These open the consumer app in a new tab (it runs its own auth session).
+const NAV_CLIENT_ACCESS = [
+  { label: 'My Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+  { label: 'My Wallet',    icon: Wallet,          href: '/wallet' },
+  { label: 'My Cards',     icon: CreditCard,      href: '/cards' },
+];
+
 const NAV_PLATFORM = [
   { label: 'Dashboard',        icon: LayoutDashboard, to: '/admin/dashboard' },
   { label: 'All Transactions', icon: ArrowLeftRight,  to: '/admin/transactions' },
@@ -150,10 +159,9 @@ function AdminSidebarPanel({ sidebarOpen, onToggle, isSuperAdmin, profile, onSig
       <nav className="flex-1 px-2 py-2 space-y-0.5 overflow-y-auto">
         {isSuperAdmin ? (
           <>
-            {/* Management & control comes first — VAS/operational actions
-                (issuing cards/vouchers, adjusting wallets) are tools used
-                occasionally, not the primary lens a founder/director runs
-                the platform through. */}
+            {/* Business first: run-the-platform sections lead, manual
+                operations/overrides follow, and personal product use sits
+                in the small Client Access section at the very bottom. */}
             <NavSection label="Platform" items={NAV_PLATFORM} sidebarOpen={sidebarOpen} />
             <NavSection label="People" items={NAV_PEOPLE} sidebarOpen={sidebarOpen} />
             <NavSection label="Products" items={NAV_PRODUCTS} sidebarOpen={sidebarOpen} />
@@ -162,7 +170,19 @@ function AdminSidebarPanel({ sidebarOpen, onToggle, isSuperAdmin, profile, onSig
             <NavSection label="Finance" items={NAV_FINANCE} sidebarOpen={sidebarOpen} />
             <NavSection label="System" items={NAV_SYSTEM} sidebarOpen={sidebarOpen} />
             {sidebarOpen && <div className="h-px bg-foreground/5 mx-1 my-1" />}
-            <NavSection label="Super Admin Operations" items={NAV_SUPER_ADMIN_OPERATIONS} sidebarOpen={sidebarOpen} activeColor="purple" />
+            <NavSection label="Manual Operations" items={NAV_SUPER_ADMIN_OPERATIONS} sidebarOpen={sidebarOpen} activeColor="purple" />
+            {sidebarOpen && <div className="h-px bg-foreground/5 mx-1 my-1" />}
+            {sidebarOpen && (
+              <p className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-widest text-foreground/20 font-medium">Client Access</p>
+            )}
+            {NAV_CLIENT_ACCESS.map(item => (
+              <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-foreground/30 hover:text-foreground/60 hover:bg-foreground/5">
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                {sidebarOpen && <span className="truncate flex-1">{item.label}</span>}
+                {sidebarOpen && <ExternalLink className="w-3 h-3 text-foreground/15 flex-shrink-0" />}
+              </a>
+            ))}
           </>
         ) : (
           <>
@@ -170,16 +190,16 @@ function AdminSidebarPanel({ sidebarOpen, onToggle, isSuperAdmin, profile, onSig
             <NavSection label="Compliance" items={NAV_STAFF_COMPLIANCE} sidebarOpen={sidebarOpen} />
             <NavSection label="Products" items={NAV_STAFF_PRODUCTS} sidebarOpen={sidebarOpen} />
             <NavSection label="Banking" items={NAV_BANKING} sidebarOpen={sidebarOpen} />
-          </>
-        )}
 
-        {/* Back to consumer app */}
-        {sidebarOpen && (
-          <a href="/" target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-foreground/20 hover:text-foreground/50 hover:bg-foreground/5 mt-2">
-            <ExternalLink className="w-4 h-4 flex-shrink-0" />
-            <span className="truncate">Consumer App</span>
-          </a>
+            {/* Back to consumer app */}
+            {sidebarOpen && (
+              <a href="/" target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-foreground/20 hover:text-foreground/50 hover:bg-foreground/5 mt-2">
+                <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">Consumer App</span>
+              </a>
+            )}
+          </>
         )}
       </nav>
 

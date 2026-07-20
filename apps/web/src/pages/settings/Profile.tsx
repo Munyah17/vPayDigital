@@ -37,7 +37,7 @@ export default function Profile() {
   const update = useMutation({
     mutationFn: (data: ProfileForm) => api.patch('/api/profile', data),
     onSuccess: () => { toast.success('Profile updated'); refreshProfile(); },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Update failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Update failed'),
   });
 
   if (!profile) return null;

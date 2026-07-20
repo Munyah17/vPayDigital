@@ -27,7 +27,7 @@ export type CardCurrency = 'USD' | 'EUR' | 'GBP' | 'ZAR';
 export type VoucherType = 'virtual_card' | 'gift_card' | 'streaming' | 'gaming' | 'ecommerce' | 'subscription' | 'utility' | 'travel' | 'general';
 export type VoucherStatus = 'active' | 'redeemed' | 'expired' | 'cancelled' | 'refunded';
 export type GiftCardBrand =
-  | 'netflix' | 'amazon' | 'ebay' | 'spotify' | 'apple' | 'google_play'
+  | 'netflix' | 'amazon' | 'ebay' | 'spotify' | 'apple' | 'apple_music' | 'google_play'
   | 'steam' | 'playstation' | 'xbox' | 'binance' | 'airbnb' | 'uber'
   | 'skrill' | 'paypal' | 'disney_plus' | 'hulu' | 'youtube' | 'microsoft'
   | 'visa_gift' | 'mastercard_gift' | 'other';

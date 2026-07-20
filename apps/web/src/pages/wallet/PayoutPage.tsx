@@ -138,7 +138,7 @@ export default function PayoutPage() {
       toast.success('Payout initiated! Processing within the quoted timeframe.');
       navigate('/wallet');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Payout failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Payout failed'),
   });
 
   const isFormValid = method?.fields.filter(f => f.required).every(f => fields[f.id]?.trim());

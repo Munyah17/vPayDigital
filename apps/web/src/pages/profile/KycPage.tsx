@@ -72,7 +72,7 @@ export default function KycPage() {
       setSelectedType(null);
       setForm({ front_url: '', back_url: '', selfie_url: '', document_number: '', country_of_issue: '', expiry_date: '' });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Submission failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Submission failed'),
   });
 
   const docs: KycDoc[] = (data as any)?.data?.data ?? [];

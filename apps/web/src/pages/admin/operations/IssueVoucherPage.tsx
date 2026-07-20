@@ -14,7 +14,7 @@ const TYPES = [
   { value: 'general',       label: 'General' },
 ];
 
-const BRANDS = ['netflix', 'amazon', 'spotify', 'apple', 'google_play', 'steam',
+const BRANDS = ['netflix', 'amazon', 'spotify', 'apple', 'apple_music', 'google_play', 'steam',
   'playstation', 'xbox', 'binance', 'airbnb', 'uber', 'ebay', 'disney_plus', 'youtube'];
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'ZAR'];
@@ -49,7 +49,7 @@ export default function IssueVoucherPage() {
       setIssued(prev => [...list, ...prev]);
       toast.success(`${list.length} voucher${list.length > 1 ? 's' : ''} issued`);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed to issue voucher'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Failed to issue voucher'),
   });
 
   const copyCode = (code: string) => {

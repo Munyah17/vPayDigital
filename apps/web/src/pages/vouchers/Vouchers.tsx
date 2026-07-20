@@ -55,7 +55,8 @@ export default function Vouchers() {
       queryClient.invalidateQueries({ queryKey: ['wallets'] });
     },
     onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Failed to redeem voucher';
+      const data = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
+      const msg = data?.message ?? data?.error ?? 'Failed to redeem voucher';
       setRedeemResult({ success: false, message: msg });
       toast.error(msg);
     },

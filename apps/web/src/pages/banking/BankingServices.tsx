@@ -89,7 +89,7 @@ function AccountsTab() {
       toast.success('IBAN account requested');
       queryClient.invalidateQueries({ queryKey: ['banking-accounts'] });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Could not request IBAN account'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Could not request IBAN account'),
   });
 
   const createLocalMutation = useMutation({
@@ -103,7 +103,7 @@ function AccountsTab() {
       toast.success('Receiving account created');
       queryClient.invalidateQueries({ queryKey: ['banking-accounts'] });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Could not create receiving account'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Could not create receiving account'),
   });
 
   if (isLoading) {
@@ -373,7 +373,7 @@ function AddBeneficiaryDialog({ onClose }: { onClose: () => void }) {
       queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
       onClose();
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed to save beneficiary'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Failed to save beneficiary'),
   });
 
   return (

@@ -3,8 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import {
   Zap, Shield, Globe, CreditCard, ArrowRight, CheckCircle,
-  Wallet, BarChart3, Users, Star, ChevronRight,
-  Building2, TrendingUp, XCircle, AlertCircle,
+  Wallet, Star, TrendingUp, XCircle, AlertCircle,
   Gift, Fingerprint, Ticket,
 } from 'lucide-react';
 import { LandingNav } from '../../components/landing/LandingNav';
@@ -475,73 +474,11 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* -- Agent section --------------------------------------------------- */}
-      <section id="for-agents" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 bg-foreground/[0.01] border-y border-foreground/[0.05]">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-          <motion.div {...fadeUp()}>
-            <p className="text-purple-400 font-semibold text-xs uppercase tracking-widest mb-3">For agents &amp; distributors</p>
-            <h2 className="font-display font-bold text-foreground leading-tight mb-4 text-2xl sm:text-[1.875rem] lg:text-[2.25rem]">
-              Build a card issuance business on ePay Smart
-            </h2>
-            <p className="text-foreground/45 text-sm sm:text-[0.9375rem] leading-relaxed mb-6">
-              Become an ePay Smart agent. Issue virtual cards to your customers, sell redemption vouchers,
-              and earn commissions on every transaction. Your own card programme, powered by our infrastructure.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-7">
-              {[
-                { icon: CreditCard, title: 'Bulk card issuance', desc: 'Issue cards to hundreds of customers at once.' },
-                { icon: BarChart3, title: 'Auth analytics', desc: 'Real-time approval rates, declines, and volume.' },
-                { icon: Gift, title: 'Voucher distribution', desc: 'Sell redemption vouchers and earn on each load.' },
-                { icon: Users, title: 'Customer portfolio', desc: 'Manage your full cardholder base in one place.' },
-              ].map((item, i) => (
-                <motion.div key={item.title} {...stagger(i)} className="glass-card p-4 flex items-start gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-purple-500/15 flex items-center justify-center text-purple-400 flex-shrink-0">
-                    <item.icon className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <p className="text-foreground font-semibold text-xs mb-0.5">{item.title}</p>
-                    <p className="text-foreground/40 text-[11px] leading-relaxed">{item.desc}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-            <Link to="/auth/register" className="btn-ghost inline-flex items-center gap-2 px-6 py-3 text-sm">
-              <Building2 className="w-3.5 h-3.5" />
-              Apply as an agent
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-          </motion.div>
-
-          <motion.div {...fadeUp(0.1)} className="space-y-3">
-            {[
-              { label: 'Total commissions earned', value: '$3,240', delta: '+12% this month', color: 'text-emerald-400' },
-              { label: 'Cards issued', value: '847', delta: '+28 this week', color: 'text-indigo-400' },
-              { label: 'Auth success rate', value: '98.7%', delta: 'Above network avg', color: 'text-purple-400' },
-              { label: 'Vouchers redeemed', value: '1,204', delta: 'This month', color: 'text-amber-400' },
-            ].map((m, i) => (
-              <motion.div key={m.label}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.09, duration: 0.45 }}
-                className="glass-card p-4 sm:p-5 flex items-center justify-between cursor-default"
-              >
-                <div>
-                  <p className="text-foreground/40 text-[11px] mb-0.5">{m.label}</p>
-                  <p className="font-display font-bold text-foreground text-xl sm:text-2xl tabular-nums">{m.value}</p>
-                </div>
-                <div className="text-right">
-                  <p className={`text-xs font-medium ${m.color}`}>{m.delta}</p>
-                  <ChevronRight className="w-3.5 h-3.5 text-foreground/20 ml-auto mt-1" />
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
       {/* -- Voucher partner banner ------------------------------------------ */}
-      <section className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10">
+      {/* Carries the #for-agents anchor: agents sell vouchers for cash and
+          local rails — the old "build a card issuance business" pitch was
+          removed because we don't offer that programme. */}
+      <section id="for-agents" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10">
         <div className="max-w-7xl mx-auto">
           <motion.div
             {...fadeUp()}

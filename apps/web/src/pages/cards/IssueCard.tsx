@@ -24,7 +24,7 @@ export default function IssueCard() {
   const { profile } = useAuthStore();
   const isConsumer = profile?.role === 'consumer';
 
-  const { register, handleSubmit, formState: { errors } } = useForm<Form>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<Form>({
     resolver: zodResolver(schema),
     defaultValues: {
       cardholder_name: profile?.full_name ?? '',
@@ -34,6 +34,8 @@ export default function IssueCard() {
       amount: 25,
     },
   });
+
+  const network = watch('network');
 
   const issue = useMutation({
     mutationFn: (data: Form) => api.post('/api/cards', data),
@@ -47,7 +49,7 @@ export default function IssueCard() {
       const card = (res.data as any)?.data;
       navigate(card?.id ? `/cards/${card.id}` : '/cards');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed to issue card'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Failed to issue card'),
   });
 
   // Redirecting during render (rather than in an effect) is a React
@@ -93,8 +95,10 @@ export default function IssueCard() {
             </div>
             <div>
               <label className="block text-foreground/60 text-sm mb-1.5">Currency</label>
+              {/* VitalPay's live card catalogue only has USD programmes —
+                  offering EUR/GBP/ZAR here just produces provider errors. */}
               <select {...register('currency')} className="input-field">
-                {['USD', 'EUR', 'GBP', 'ZAR'].map((c) => <option key={c} value={c}>{c}</option>)}
+                <option value="USD">USD</option>
               </select>
             </div>
           </div>
@@ -108,7 +112,10 @@ export default function IssueCard() {
             </select>
           </div>
           <div>
-            <label className="block text-foreground/60 text-sm mb-1.5">Initial load amount</label>
+            <label className="block text-foreground/60 text-sm mb-1.5">
+              Initial load amount
+              <span className="text-foreground/30"> · {network === 'visa' ? 'Visa: $100 – $499' : 'Mastercard: $5 – $9,000'}</span>
+            </label>
             <input {...register('amount')} type="number" step="0.01" className="input-field" />
             {errors.amount && <p className="text-red-400 text-xs mt-1">{errors.amount.message}</p>}
           </div>

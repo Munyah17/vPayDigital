@@ -150,7 +150,7 @@ function AdjustDialog({ wallet, onClose, onSuccess }: { wallet: Wallet; onClose:
       toast.success(`${direction === 'credit' ? 'Credited' : 'Debited'} ${formatCurrency(amt, wallet.currency)}`);
       onSuccess();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error ?? 'Adjustment failed');
+      toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Adjustment failed');
     } finally {
       setLoading(false);
     }

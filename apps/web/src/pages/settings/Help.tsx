@@ -57,7 +57,7 @@ export default function Help() {
       setShowForm(false);
       setForm({ subject: '', description: '', category: 'general_inquiry', priority: 'normal' });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed to submit ticket'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Failed to submit ticket'),
   });
 
   const tickets: Ticket[] = (data as any)?.data?.data ?? [];

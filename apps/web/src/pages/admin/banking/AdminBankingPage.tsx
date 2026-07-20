@@ -90,7 +90,7 @@ function IbanRequestsTable() {
       setSelected(null);
       setForm({ iban: '', bic: '', bank_name: '', rejection_reason: '' });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Update failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Update failed'),
   });
 
   const requests: IbanRequest[] = data?.data?.data ?? [];

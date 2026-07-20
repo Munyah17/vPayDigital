@@ -331,25 +331,46 @@ export class VitalPayProvider implements PaymentProvider {
     this.webhookSecret = config.webhookSecret ?? '';
   }
 
-  private async programmeForCurrency(currency: string): Promise<VitalPayCardProgramme> {
+  // Picking the first currency match and ignoring amount/brand used to send
+  // real requests to the wrong programme — e.g. a $150 request matched the
+  // $5-$99 Mastercard tier and VitalPay 422'd with an amount-range error, or
+  // a Visa request silently issued a Mastercard because Mastercard sorted
+  // first. Matches on currency + brand + the requested amount actually
+  // falling inside [min_load, max_balance].
+  private async programmeForRequest(currency: string, network: string, amount: number): Promise<VitalPayCardProgramme> {
     if (!this.programmeCache) {
       const { programmes } = await this.api.getCardCatalogue();
       this.programmeCache = programmes;
     }
-    const programme = this.programmeCache.find(
+    const sameCurrency = this.programmeCache.filter(
       (p) => p.currency.toUpperCase() === currency.toUpperCase() && p.available
     );
-    if (!programme) {
+    if (sameCurrency.length === 0) {
       throw new ProviderError(
-        `VitalPay has no available card programme for ${currency} (it currently issues GBP Visa and USD Mastercard cards only)`,
+        `VitalPay has no available card programme for ${currency} (it currently only issues USD cards)`,
         422
       );
     }
-    return programme;
+    const sameBrand = sameCurrency.filter((p) => p.brand.toUpperCase() === network.toUpperCase());
+    const candidates = sameBrand.length > 0 ? sameBrand : sameCurrency;
+    const inRange = candidates.find((p) => amount >= p.min_load && amount <= p.max_balance);
+    if (inRange) return inRange;
+    if (sameBrand.length === 0) {
+      const available = [...new Set(sameCurrency.map((p) => p.brand))].join(', ');
+      throw new ProviderError(
+        `VitalPay has no ${network} card programme for ${currency} (available: ${available})`,
+        422
+      );
+    }
+    const ranges = candidates.map((p) => `${p.min_load}-${p.max_balance}`).join(', ');
+    throw new ProviderError(
+      `${amount} ${currency} is outside every available ${network} card programme's range (${ranges})`,
+      422
+    );
   }
 
   async issueCard(req: ProviderCardIssueRequest): Promise<ProviderCardIssueResponse> {
-    const programme = await this.programmeForCurrency(req.currency);
+    const programme = await this.programmeForRequest(req.currency, req.network, req.amount);
     const card = await this.api.issueVirtualCard({
       programme_id: programme.id,
       label: req.cardholder_name.slice(0, 64),

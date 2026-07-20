@@ -39,7 +39,7 @@ export default function RequestCard() {
       toast.success('Card request submitted! An agent will process it shortly.');
       navigate('/cards');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Request failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Request failed'),
   });
 
   return (

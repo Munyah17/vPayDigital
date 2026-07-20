@@ -6,7 +6,7 @@ import { api } from '../../lib/axios';
 import { titleCase, formatCurrency } from '@vpay/utils';
 import toast from 'react-hot-toast';
 
-const BRANDS = ['netflix', 'amazon', 'spotify', 'apple', 'google_play', 'steam', 'playstation', 'xbox', 'binance', 'airbnb', 'uber', 'ebay'];
+const BRANDS = ['netflix', 'amazon', 'spotify', 'apple', 'apple_music', 'google_play', 'steam', 'playstation', 'xbox', 'binance', 'airbnb', 'uber', 'ebay'];
 
 export default function Issue() {
   const [form, setForm] = useState({
@@ -22,7 +22,7 @@ export default function Issue() {
       setIssued(Array.isArray(data) ? data : [data]);
       toast.success(`${form.quantity} voucher(s) issued`);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Failed'),
   });
 
   return (

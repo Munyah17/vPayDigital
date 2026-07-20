@@ -28,14 +28,14 @@ export default function UsersPage() {
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       api.patch(`/api/admin/users/${id}/status`, { status }),
     onSuccess: () => { toast.success('Status updated'); qc.invalidateQueries({ queryKey: ['admin-users'] }); },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Failed'),
   });
 
   const roleMutation = useMutation({
     mutationFn: ({ id, role }: { id: string; role: string }) =>
       api.patch(`/api/admin/users/${id}/role`, { role }),
     onSuccess: () => { toast.success('Role updated'); qc.invalidateQueries({ queryKey: ['admin-users'] }); setActionMenu(null); },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Failed'),
   });
 
   const users: Profile[] = data?.data?.data ?? [];
@@ -202,7 +202,7 @@ function PasswordResetDialog({ user, onClose }: { user: Profile; onClose: () => 
       toast.success(`Password reset for ${user.full_name}`);
       onClose();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error ?? 'Reset failed');
+      toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Reset failed');
     } finally {
       setLoading(false);
     }

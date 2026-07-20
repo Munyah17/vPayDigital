@@ -82,15 +82,6 @@ const MILESTONES = [
   },
 ];
 
-const TEAM = [
-  { name: 'Takudzwa Moyo', role: 'CEO & Co-founder', avatar: 'T', color: 'bg-violet-600', detail: 'Former VP Engineering at a Johannesburg payments startup. MSc Computer Science, University of Cape Town.' },
-  { name: 'Amara Osei', role: 'CTO & Co-founder', avatar: 'A', color: 'bg-purple-600', detail: 'Led infrastructure at a Lagos-based e-commerce unicorn. 12 years building distributed financial systems.' },
-  { name: 'Sade Adeyemi', role: 'Chief Product Officer', avatar: 'S', color: 'bg-emerald-600', detail: 'Previously Product Director at a Nairobi mobile money platform. Passionate about fintech UX for emerging markets.' },
-  { name: 'Priya Nair', role: 'Chief Risk Officer', avatar: 'P', color: 'bg-rose-600', detail: 'Former Head of Compliance at a UK challenger bank. Expert in AML, KYC, and cross-border regulatory frameworks.' },
-  { name: 'David Mwangi', role: 'VP of Growth', avatar: 'D', color: 'bg-amber-600', detail: 'Built and scaled agent networks across East Africa. Grew three fintech products from zero to $100M ARR.' },
-  { name: 'Yuki Tanaka', role: 'Head of Security', avatar: 'Y', color: 'bg-cyan-600', detail: 'Former security researcher at a major global bank. Specialises in payment system threat modelling and fraud prevention.' },
-];
-
 const STATS = [
   { icon: Users, value: '2M+', label: 'Active users', color: 'text-violet-400', bg: 'bg-violet-500/10' },
   { icon: TrendingUp, value: '$4B+', label: 'Volume processed', color: 'text-purple-400', bg: 'bg-purple-500/10' },
@@ -250,40 +241,6 @@ export default function About() {
         </div>
       </section>
 
-      {/* ── Team ─────────────────────────────────────────────────────────────── */}
-      <section className="py-28 px-6 lg:px-12 bg-foreground/[0.01] border-y border-foreground/[0.05]">
-        <div className="max-w-6xl mx-auto">
-          <motion.div {...fadeUp()} className="text-center mb-16">
-            <p className="text-emerald-400 font-semibold text-sm uppercase tracking-widest mb-3">The people</p>
-            <h2 className="font-display font-bold text-4xl lg:text-5xl text-foreground mb-4">Meet the team</h2>
-            <p className="text-foreground/40 text-lg max-w-xl mx-auto">
-              Builders, operators, and thinkers united by one mission: financial access for everyone.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {TEAM.map((member, i) => (
-              <motion.div
-                key={member.name}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.07, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                whileHover={{ y: -6 }}
-                className="glass-card p-6 cursor-default"
-              >
-                <div className={`w-14 h-14 rounded-2xl ${member.color} flex items-center justify-center text-foreground font-bold text-xl mb-4`}>
-                  {member.avatar}
-                </div>
-                <p className="text-foreground font-display font-semibold text-lg">{member.name}</p>
-                <p className="text-violet-400 text-sm font-medium mb-3">{member.role}</p>
-                <p className="text-foreground/40 text-xs leading-relaxed">{member.detail}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── Join us CTA ──────────────────────────────────────────────────────── */}
       <section className="py-28 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto">
@@ -294,7 +251,7 @@ export default function About() {
                 Join us on the mission
               </h2>
               <p className="text-foreground/45 text-xl leading-relaxed mb-10 max-w-2xl mx-auto">
-                Whether you're signing up as a user, becoming an agent, or joining our team —
+                Whether you're signing up as a user or becoming an agent —
                 there's a place for you in the ePay Smart story.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">

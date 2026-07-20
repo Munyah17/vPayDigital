@@ -59,7 +59,7 @@ export default function IssueCardPage() {
       setLastCard(card);
       toast.success(`${form.network.toUpperCase()} card issued to ${selectedUser!.full_name}`);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Card issuance failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Card issuance failed'),
   });
 
   return (

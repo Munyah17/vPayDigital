@@ -34,17 +34,17 @@ export default function CardDetail() {
   const freeze = useMutation({
     mutationFn: () => api.post(`/api/cards/${id}/freeze`),
     onSuccess: () => { toast.success('Card frozen'); qc.invalidateQueries({ queryKey: ['card', id] }); useWalletStore.getState().fetchCards(); },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Failed'),
   });
   const unfreeze = useMutation({
     mutationFn: () => api.post(`/api/cards/${id}/unfreeze`),
     onSuccess: () => { toast.success('Card unfrozen'); qc.invalidateQueries({ queryKey: ['card', id] }); useWalletStore.getState().fetchCards(); },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Failed'),
   });
   const terminate = useMutation({
     mutationFn: () => api.post(`/api/cards/${id}/terminate`),
     onSuccess: () => { toast.success('Card terminated'); useWalletStore.getState().fetchCards(); navigate('/cards'); },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Failed'),
   });
 
   return (

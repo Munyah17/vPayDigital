@@ -13,6 +13,7 @@ import type { Voucher, VoucherType, GiftCardBrand, WalletCurrency, CardNetwork }
 // map the ones that differ; anything else is searched for by its own name.
 const BRAND_SEARCH_TERMS: Partial<Record<GiftCardBrand, string>> = {
   google_play: 'Google Play',
+  apple_music: 'Apple Music',
   playstation: 'PlayStation',
   disney_plus: 'Disney',
   visa_gift: 'Visa',
@@ -90,13 +91,16 @@ export class VoucherService {
     }
 
     // Create voucher record
+    // gift_card_brand is a Postgres enum column — it only accepts NULL or a
+    // real brand value, never '' (the frontend always includes the field in
+    // its form state, sending '' for every non-gift-card voucher type).
     const { data: voucher, error } = await supabaseAdmin
       .from('vouchers')
       .insert({
         code,
         issuer_id: params.issuer_id,
         type: params.type,
-        gift_card_brand: params.gift_card_brand,
+        gift_card_brand: params.gift_card_brand || null,
         amount: params.amount,
         currency: params.currency,
         status: 'active',
@@ -109,7 +113,7 @@ export class VoucherService {
       .select()
       .single();
 
-    if (error || !voucher) throw new Error('Failed to create voucher');
+    if (error || !voucher) throw new Error(`Failed to create voucher${error ? `: ${error.message}` : ''}`);
 
     // Record commission for agent
     const { data: agentProfile } = await supabaseAdmin

@@ -49,7 +49,7 @@ export default function Wallet() {
       toast.error(
         isNetworkError
           ? 'Cannot reach server. Check that the API is running and VITE_API_URL is set correctly.'
-          : (e?.response?.data?.error ?? 'Could not assign virtual account')
+          : (e?.response?.data?.message ?? e?.response?.data?.error ?? 'Could not assign virtual account')
       );
     } finally {
       setTopUpLoading(false);
@@ -204,7 +204,7 @@ function SendDialog({ onClose, onSuccess }: { onClose: () => void; onSuccess: ()
       toast.error(
         isNetworkError
           ? 'Cannot reach server. Check API connection.'
-          : (e?.response?.data?.error ?? 'Transfer failed')
+          : (e?.response?.data?.message ?? e?.response?.data?.error ?? 'Transfer failed')
       );
     } finally {
       setLoading(false);

@@ -14,6 +14,17 @@ interface AirtimeOperator {
   min_amount: number; max_amount: number; supported_types: string[];
 }
 
+// Zimbabwe operators lead the list in this business-preferred order; every
+// other country follows in the provider's own order. Matching is by name
+// keyword because VitalPay's operator ids aren't guaranteed stable.
+const ZW_OPERATOR_ORDER = ['econet', 'netone', 'zol', 'liquid', 'telone', 'africom', 'powertel', 'telecel'];
+
+function operatorSortRank(op: AirtimeOperator): number {
+  if (op.country_iso !== 'ZW') return ZW_OPERATOR_ORDER.length + 1;
+  const idx = ZW_OPERATOR_ORDER.findIndex(k => op.name.toLowerCase().includes(k) || op.operator_id.toLowerCase().includes(k));
+  return idx === -1 ? ZW_OPERATOR_ORDER.length : idx;
+}
+
 export default function Bills() {
   const [tab, setTab] = useState<Tab>('airtime');
 
@@ -66,7 +77,7 @@ function AirtimeForm() {
     queryKey: ['airtime-operators'],
     queryFn: () => api.get<{ success: boolean; data: AirtimeOperator[] }>('/api/vas/airtime/operators'),
   });
-  const operators = operatorsData?.data?.data ?? [];
+  const operators = [...(operatorsData?.data?.data ?? [])].sort((a, b) => operatorSortRank(a) - operatorSortRank(b));
   const selectedOperator = operators.find(o => o.operator_id === operatorId);
 
   const purchase = useMutation({
@@ -82,7 +93,7 @@ function AirtimeForm() {
       setResult((res.data as any)?.data);
       useWalletStore.getState().fetchWallets();
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Purchase failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Purchase failed'),
   });
 
   const submit = (e: React.FormEvent) => {
@@ -161,7 +172,7 @@ function ElectricityForm() {
       setResult((res.data as any)?.data);
       useWalletStore.getState().fetchWallets();
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Purchase failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Purchase failed'),
   });
 
   const submit = (e: React.FormEvent) => {

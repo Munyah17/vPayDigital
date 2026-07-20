@@ -23,7 +23,7 @@ export default function StaffPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/api/admin/staff/${id}`),
     onSuccess: () => { toast.success('Staff member removed'); qc.invalidateQueries({ queryKey: ['admin-staff'] }); },
-    onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed to remove'),
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Failed to remove'),
   });
 
   const staff: StaffMember[] = data?.data?.data ?? [];
@@ -125,7 +125,7 @@ function CreateStaffDialog({ onClose, onSuccess }: { onClose: () => void; onSucc
       toast.success(`Staff member ${form.full_name} created`);
       onSuccess();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error ?? 'Failed to create staff');
+      toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Failed to create staff');
     } finally {
       setLoading(false);
     }
