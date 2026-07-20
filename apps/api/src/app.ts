@@ -46,7 +46,15 @@ app.use(helmet({
 // auth is Bearer-token-based (not cookies), so accepting these preview
 // origins doesn't expose a CSRF/cookie risk the way it would for a
 // cookie-authenticated app.
-const fixedOrigins = new Set(env.CORS_ORIGINS.split(','));
+const fixedOrigins = new Set([
+  ...env.CORS_ORIGINS.split(','),
+  // Capacitor native app shells — pinned in capacitor.config.ts
+  // (androidScheme: 'https' -> https://localhost, iosScheme: 'capacitor'
+  // -> capacitor://localhost). No credentials/cookies are involved
+  // (Bearer-token auth), so a fixed local-scheme origin is safe to allow.
+  'https://localhost',
+  'capacitor://localhost',
+]);
 const previewOriginPattern = /^https:\/\/[a-z0-9-]+\.(vercel\.app|netlify\.app)$/;
 
 app.use(cors({

@@ -74310,7 +74310,15 @@ app.use(helmet({
   },
   hsts: { maxAge: 31536e3, includeSubDomains: true, preload: true }
 }));
-var fixedOrigins = new Set(env.CORS_ORIGINS.split(","));
+var fixedOrigins = /* @__PURE__ */ new Set([
+  ...env.CORS_ORIGINS.split(","),
+  // Capacitor native app shells — pinned in capacitor.config.ts
+  // (androidScheme: 'https' -> https://localhost, iosScheme: 'capacitor'
+  // -> capacitor://localhost). No credentials/cookies are involved
+  // (Bearer-token auth), so a fixed local-scheme origin is safe to allow.
+  "https://localhost",
+  "capacitor://localhost"
+]);
 var previewOriginPattern = /^https:\/\/[a-z0-9-]+\.(vercel\.app|netlify\.app)$/;
 app.use((0, import_cors.default)({
   origin: (origin2, callback) => {
