@@ -26,9 +26,9 @@ var __export = (target, all3) => {
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    for (let key2 of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key2) && key2 !== except)
+        __defProp(to, key2, { get: () => from[key2], enumerable: !(desc = __getOwnPropDesc(from, key2)) || desc.enumerable });
   }
   return to;
 };
@@ -84,7 +84,7 @@ var require_path_to_regexp = __commonJS({
       }
       path2 = path2.replace(
         /\\.|(\/)?(\.)?:(\w+)(\(.*?\))?(\*)?(\?)?|[.*]|\/\(/g,
-        function(match, slash, format, key, capture, star, optional2, offset) {
+        function(match, slash, format, key2, capture, star, optional2, offset) {
           if (match[0] === "\\") {
             backtrack += match;
             pos += 2;
@@ -119,7 +119,7 @@ var require_path_to_regexp = __commonJS({
             return m2 === "*" ? "(.*)" : m2;
           }) : backtrack ? "((?:(?!/|" + backtrack + ").)+?)" : "([^/" + format + "]+?)";
           keys.push({
-            name: key,
+            name: key2,
             optional: !!optional2,
             offset: offset + extraOffset
           });
@@ -458,13 +458,13 @@ var require_node = __commonJS({
     exports2.load = load;
     exports2.useColors = useColors;
     exports2.colors = [6, 2, 3, 4, 5, 1];
-    exports2.inspectOpts = Object.keys(process.env).filter(function(key) {
-      return /^debug_/i.test(key);
-    }).reduce(function(obj, key) {
-      var prop = key.substring(6).toLowerCase().replace(/_([a-z])/g, function(_, k) {
+    exports2.inspectOpts = Object.keys(process.env).filter(function(key2) {
+      return /^debug_/i.test(key2);
+    }).reduce(function(obj, key2) {
+      var prop = key2.substring(6).toLowerCase().replace(/_([a-z])/g, function(_, k) {
         return k.toUpperCase();
       });
-      var val = process.env[key];
+      var val = process.env[key2];
       if (/^(yes|on|true|enabled)$/i.test(val)) val = true;
       else if (/^(no|off|false|disabled)$/i.test(val)) val = false;
       else if (val === "null") val = null;
@@ -645,8 +645,8 @@ var require_layer = __commonJS({
       var keys = this.keys;
       var params = this.params;
       for (var i = 1; i < match2.length; i++) {
-        var key = keys[i - 1];
-        var prop = key.name;
+        var key2 = keys[i - 1];
+        var prop = key2.name;
         var val = decode_param(match2[i]);
         if (val !== void 0 || !hasOwnProperty2.call(params, prop)) {
           params[prop] = val;
@@ -868,8 +868,8 @@ var require_utils_merge = __commonJS({
   "../../node_modules/utils-merge/index.js"(exports2, module2) {
     exports2 = module2.exports = function(a, b) {
       if (a && b) {
-        for (var key in b) {
-          a[key] = b[key];
+        for (var key2 in b) {
+          a[key2] = b[key2];
         }
       }
       return a;
@@ -998,11 +998,11 @@ var require_depd = __commonJS({
           break;
         }
       }
-      var key = caller ? depSite.join(":") + "__" + caller.join(":") : void 0;
-      if (key !== void 0 && key in this._warned) {
+      var key2 = caller ? depSite.join(":") + "__" + caller.join(":") : void 0;
+      if (key2 !== void 0 && key2 in this._warned) {
         return;
       }
-      this._warned[key] = true;
+      this._warned[key2] = true;
       var msg = message2;
       if (!msg) {
         msg = callSite === depSite || !callSite.name ? defaultMessage(depSite) : defaultMessage(callSite);
@@ -1473,7 +1473,7 @@ var require_router = __commonJS({
       var i = 0;
       var name;
       var paramIndex = 0;
-      var key;
+      var key2;
       var paramVal;
       var paramCallbacks;
       var paramCalled;
@@ -1485,8 +1485,8 @@ var require_router = __commonJS({
           return done();
         }
         paramIndex = 0;
-        key = keys[i++];
-        name = key.name;
+        key2 = keys[i++];
+        name = key2.name;
         paramVal = req.params[name];
         paramCallbacks = params[name];
         paramCalled = called[name];
@@ -1506,7 +1506,7 @@ var require_router = __commonJS({
       }
       function paramCallback(err) {
         var fn = paramCallbacks[paramIndex++];
-        paramCalled.value = req.params[key.name];
+        paramCalled.value = req.params[key2.name];
         if (err) {
           paramCalled.error = err;
           param(err);
@@ -1514,7 +1514,7 @@ var require_router = __commonJS({
         }
         if (!fn) return param();
         try {
-          fn(req, res, paramCallback, paramVal, key.name);
+          fn(req, res, paramCallback, paramVal, key2.name);
         } catch (e) {
           paramCallback(e);
         }
@@ -1809,7 +1809,7 @@ var require_content_type = __commonJS({
       }
       var obj = new ContentType(type.toLowerCase());
       if (index !== -1) {
-        var key;
+        var key2;
         var match;
         var value;
         PARAM_REGEXP.lastIndex = index;
@@ -1818,7 +1818,7 @@ var require_content_type = __commonJS({
             throw new TypeError("invalid parameter format");
           }
           index += match[0].length;
-          key = match[1].toLowerCase();
+          key2 = match[1].toLowerCase();
           value = match[2];
           if (value.charCodeAt(0) === 34) {
             value = value.slice(1, -1);
@@ -1826,7 +1826,7 @@ var require_content_type = __commonJS({
               value = value.replace(QESC_REGEXP, "$1");
             }
           }
-          obj.parameters[key] = value;
+          obj.parameters[key2] = value;
         }
         if (index !== header.length) {
           throw new TypeError("invalid parameter format");
@@ -2116,9 +2116,9 @@ var require_http_errors = __commonJS({
         err.expose = status < 500;
         err.status = err.statusCode = status;
       }
-      for (var key in props) {
-        if (key !== "status" && key !== "statusCode") {
-          err[key] = props[key];
+      for (var key2 in props) {
+        if (key2 !== "status" && key2 !== "statusCode") {
+          err[key2] = props[key2];
         }
       }
       return err;
@@ -2534,13 +2534,13 @@ var require_node2 = __commonJS({
     exports2.load = load;
     exports2.useColors = useColors;
     exports2.colors = [6, 2, 3, 4, 5, 1];
-    exports2.inspectOpts = Object.keys(process.env).filter(function(key) {
-      return /^debug_/i.test(key);
-    }).reduce(function(obj, key) {
-      var prop = key.substring(6).toLowerCase().replace(/_([a-z])/g, function(_, k) {
+    exports2.inspectOpts = Object.keys(process.env).filter(function(key2) {
+      return /^debug_/i.test(key2);
+    }).reduce(function(obj, key2) {
+      var prop = key2.substring(6).toLowerCase().replace(/_([a-z])/g, function(_, k) {
         return k.toUpperCase();
       });
-      var val = process.env[key];
+      var val = process.env[key2];
       if (/^(yes|on|true|enabled)$/i.test(val)) val = true;
       else if (/^(no|off|false|disabled)$/i.test(val)) val = false;
       else if (val === "null") val = null;
@@ -2746,17 +2746,17 @@ var require_safer = __commonJS({
     var buffer = require("buffer");
     var Buffer4 = buffer.Buffer;
     var safer = {};
-    var key;
-    for (key in buffer) {
-      if (!buffer.hasOwnProperty(key)) continue;
-      if (key === "SlowBuffer" || key === "Buffer") continue;
-      safer[key] = buffer[key];
+    var key2;
+    for (key2 in buffer) {
+      if (!buffer.hasOwnProperty(key2)) continue;
+      if (key2 === "SlowBuffer" || key2 === "Buffer") continue;
+      safer[key2] = buffer[key2];
     }
     var Safer = safer.Buffer = {};
-    for (key in Buffer4) {
-      if (!Buffer4.hasOwnProperty(key)) continue;
-      if (key === "allocUnsafe" || key === "allocUnsafeSlow") continue;
-      Safer[key] = Buffer4[key];
+    for (key2 in Buffer4) {
+      if (!Buffer4.hasOwnProperty(key2)) continue;
+      if (key2 === "allocUnsafe" || key2 === "allocUnsafeSlow") continue;
+      Safer[key2] = Buffer4[key2];
     }
     safer.Buffer.prototype = Buffer4.prototype;
     if (!Safer.from || Safer.from === Uint8Array.from) {
@@ -6120,8 +6120,8 @@ var require_lib = __commonJS({
             enc = codecDef;
             break;
           case "object":
-            for (var key in codecDef)
-              codecOptions[key] = codecDef[key];
+            for (var key2 in codecDef)
+              codecOptions[key2] = codecDef[key2];
             if (!codecOptions.encodingName)
               codecOptions.encodingName = enc;
             enc = codecDef.type;
@@ -6740,7 +6740,7 @@ var require_media_typer = __commonJS({
       }
       var index = string.indexOf(";");
       var type = index !== -1 ? string.substr(0, index) : string;
-      var key;
+      var key2;
       var match;
       var obj = splitType(type);
       var params = {};
@@ -6751,12 +6751,12 @@ var require_media_typer = __commonJS({
           throw new TypeError("invalid parameter format");
         }
         index += match[0].length;
-        key = match[1].toLowerCase();
+        key2 = match[1].toLowerCase();
         value = match[2];
         if (value[0] === '"') {
           value = value.substr(1, value.length - 2).replace(qescRegExp, "$1");
         }
-        params[key] = value;
+        params[key2] = value;
       }
       if (index !== -1 && index !== string.length) {
         throw new TypeError("invalid parameter format");
@@ -15646,9 +15646,9 @@ var require_json = __commonJS({
     function normalizeJsonSyntaxError(error, obj) {
       var keys = Object.getOwnPropertyNames(error);
       for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        if (key !== "stack" && key !== "message") {
-          delete error[key];
+        var key2 = keys[i];
+        if (key2 !== "stack" && key2 !== "message") {
+          delete error[key2];
         }
       }
       error.stack = obj.stack.replace(error.message, obj.message);
@@ -15990,8 +15990,8 @@ var require_object_inspect = __commonJS({
       if (isMap(obj)) {
         var mapParts = [];
         if (mapForEach) {
-          mapForEach.call(obj, function(value, key) {
-            mapParts.push(inspect(key, obj, true) + " => " + inspect(value, obj));
+          mapForEach.call(obj, function(value, key2) {
+            mapParts.push(inspect(key2, obj, true) + " => " + inspect(value, obj));
           });
         }
         return collectionOf("Map", mapSize.call(obj), mapParts, indent);
@@ -16109,11 +16109,11 @@ var require_object_inspect = __commonJS({
       }
       return false;
     }
-    var hasOwn = Object.prototype.hasOwnProperty || function(key) {
-      return key in this;
+    var hasOwn = Object.prototype.hasOwnProperty || function(key2) {
+      return key2 in this;
     };
-    function has(obj, key) {
-      return hasOwn.call(obj, key);
+    function has(obj, key2) {
+      return hasOwn.call(obj, key2);
     }
     function toStr(obj) {
       return objectToString.call(obj);
@@ -16304,19 +16304,19 @@ var require_object_inspect = __commonJS({
           symMap["$" + syms[k]] = syms[k];
         }
       }
-      for (var key in obj) {
-        if (!has(obj, key)) {
+      for (var key2 in obj) {
+        if (!has(obj, key2)) {
           continue;
         }
-        if (isArr && String(Number(key)) === key && key < obj.length) {
+        if (isArr && String(Number(key2)) === key2 && key2 < obj.length) {
           continue;
         }
-        if (hasShammedSymbols && symMap["$" + key] instanceof Symbol) {
+        if (hasShammedSymbols && symMap["$" + key2] instanceof Symbol) {
           continue;
-        } else if ($test.call(/[^\w$]/, key)) {
-          xs.push(inspect(key, obj) + ": " + inspect(obj[key], obj));
+        } else if ($test.call(/[^\w$]/, key2)) {
+          xs.push(inspect(key2, obj) + ": " + inspect(obj[key2], obj));
         } else {
-          xs.push(key + ": " + inspect(obj[key], obj));
+          xs.push(key2 + ": " + inspect(obj[key2], obj));
         }
       }
       if (typeof gOPS === "function") {
@@ -16337,11 +16337,11 @@ var require_side_channel_list = __commonJS({
     "use strict";
     var inspect = require_object_inspect();
     var $TypeError = require_type();
-    var listGetNode = function(list, key, isDelete) {
+    var listGetNode = function(list, key2, isDelete) {
       var prev = list;
       var curr;
       for (; (curr = prev.next) != null; prev = curr) {
-        if (curr.key === key) {
+        if (curr.key === key2) {
           prev.next = curr.next;
           if (!isDelete) {
             curr.next = /** @type {NonNullable<typeof list.next>} */
@@ -16352,60 +16352,60 @@ var require_side_channel_list = __commonJS({
         }
       }
     };
-    var listGet = function(objects, key) {
+    var listGet = function(objects, key2) {
       if (!objects) {
         return void 0;
       }
-      var node = listGetNode(objects, key);
+      var node = listGetNode(objects, key2);
       return node && node.value;
     };
-    var listSet = function(objects, key, value) {
-      var node = listGetNode(objects, key);
+    var listSet = function(objects, key2, value) {
+      var node = listGetNode(objects, key2);
       if (node) {
         node.value = value;
       } else {
         objects.next = /** @type {import('./list.d.ts').ListNode<typeof value, typeof key>} */
         {
           // eslint-disable-line no-param-reassign, no-extra-parens
-          key,
+          key: key2,
           next: objects.next,
           value
         };
       }
     };
-    var listHas = function(objects, key) {
+    var listHas = function(objects, key2) {
       if (!objects) {
         return false;
       }
-      return !!listGetNode(objects, key);
+      return !!listGetNode(objects, key2);
     };
-    var listDelete = function(objects, key) {
+    var listDelete = function(objects, key2) {
       if (objects) {
-        return listGetNode(objects, key, true);
+        return listGetNode(objects, key2, true);
       }
     };
     module2.exports = function getSideChannelList() {
       var $o;
       var channel = {
-        assert: function(key) {
-          if (!channel.has(key)) {
-            throw new $TypeError("Side channel does not contain " + inspect(key));
+        assert: function(key2) {
+          if (!channel.has(key2)) {
+            throw new $TypeError("Side channel does not contain " + inspect(key2));
           }
         },
-        "delete": function(key) {
-          var deletedNode = listDelete($o, key);
+        "delete": function(key2) {
+          var deletedNode = listDelete($o, key2);
           if (deletedNode && $o && !$o.next) {
             $o = void 0;
           }
           return !!deletedNode;
         },
-        get: function(key) {
-          return listGet($o, key);
+        get: function(key2) {
+          return listGet($o, key2);
         },
-        has: function(key) {
-          return listHas($o, key);
+        has: function(key2) {
+          return listHas($o, key2);
         },
-        set: function(key, value) {
+        set: function(key2, value) {
           if (!$o) {
             $o = {
               next: void 0
@@ -16414,7 +16414,7 @@ var require_side_channel_list = __commonJS({
           listSet(
             /** @type {NonNullable<typeof $o>} */
             $o,
-            key,
+            key2,
             value
           );
         }
@@ -17260,14 +17260,14 @@ var require_side_channel_map = __commonJS({
     function getSideChannelMap() {
       var $m;
       var channel = {
-        assert: function(key) {
-          if (!channel.has(key)) {
-            throw new $TypeError("Side channel does not contain " + inspect(key));
+        assert: function(key2) {
+          if (!channel.has(key2)) {
+            throw new $TypeError("Side channel does not contain " + inspect(key2));
           }
         },
-        "delete": function(key) {
+        "delete": function(key2) {
           if ($m) {
-            var result = $mapDelete($m, key);
+            var result = $mapDelete($m, key2);
             if ($mapSize($m) === 0) {
               $m = void 0;
             }
@@ -17275,22 +17275,22 @@ var require_side_channel_map = __commonJS({
           }
           return false;
         },
-        get: function(key) {
+        get: function(key2) {
           if ($m) {
-            return $mapGet($m, key);
+            return $mapGet($m, key2);
           }
         },
-        has: function(key) {
+        has: function(key2) {
           if ($m) {
-            return $mapHas($m, key);
+            return $mapHas($m, key2);
           }
           return false;
         },
-        set: function(key, value) {
+        set: function(key2, value) {
           if (!$m) {
             $m = new $Map();
           }
-          $mapSet($m, key, value);
+          $mapSet($m, key2, value);
         }
       };
       return channel;
@@ -17318,50 +17318,50 @@ var require_side_channel_weakmap = __commonJS({
         var $wm;
         var $m;
         var channel = {
-          assert: function(key) {
-            if (!channel.has(key)) {
-              throw new $TypeError("Side channel does not contain " + inspect(key));
+          assert: function(key2) {
+            if (!channel.has(key2)) {
+              throw new $TypeError("Side channel does not contain " + inspect(key2));
             }
           },
-          "delete": function(key) {
-            if ($WeakMap && key && (typeof key === "object" || typeof key === "function")) {
+          "delete": function(key2) {
+            if ($WeakMap && key2 && (typeof key2 === "object" || typeof key2 === "function")) {
               if ($wm) {
-                return $weakMapDelete($wm, key);
+                return $weakMapDelete($wm, key2);
               }
             } else if (getSideChannelMap) {
               if ($m) {
-                return $m["delete"](key);
+                return $m["delete"](key2);
               }
             }
             return false;
           },
-          get: function(key) {
-            if ($WeakMap && key && (typeof key === "object" || typeof key === "function")) {
+          get: function(key2) {
+            if ($WeakMap && key2 && (typeof key2 === "object" || typeof key2 === "function")) {
               if ($wm) {
-                return $weakMapGet($wm, key);
+                return $weakMapGet($wm, key2);
               }
             }
-            return $m && $m.get(key);
+            return $m && $m.get(key2);
           },
-          has: function(key) {
-            if ($WeakMap && key && (typeof key === "object" || typeof key === "function")) {
+          has: function(key2) {
+            if ($WeakMap && key2 && (typeof key2 === "object" || typeof key2 === "function")) {
               if ($wm) {
-                return $weakMapHas($wm, key);
+                return $weakMapHas($wm, key2);
               }
             }
-            return !!$m && $m.has(key);
+            return !!$m && $m.has(key2);
           },
-          set: function(key, value) {
-            if ($WeakMap && key && (typeof key === "object" || typeof key === "function")) {
+          set: function(key2, value) {
+            if ($WeakMap && key2 && (typeof key2 === "object" || typeof key2 === "function")) {
               if (!$wm) {
                 $wm = new $WeakMap();
               }
-              $weakMapSet($wm, key, value);
+              $weakMapSet($wm, key2, value);
             } else if (getSideChannelMap) {
               if (!$m) {
                 $m = getSideChannelMap();
               }
-              $m.set(key, value);
+              $m.set(key2, value);
             }
           }
         };
@@ -17384,25 +17384,25 @@ var require_side_channel = __commonJS({
     module2.exports = function getSideChannel() {
       var $channelData;
       var channel = {
-        assert: function(key) {
-          if (!channel.has(key)) {
-            throw new $TypeError("Side channel does not contain " + inspect(key));
+        assert: function(key2) {
+          if (!channel.has(key2)) {
+            throw new $TypeError("Side channel does not contain " + inspect(key2));
           }
         },
-        "delete": function(key) {
-          return !!$channelData && $channelData["delete"](key);
+        "delete": function(key2) {
+          return !!$channelData && $channelData["delete"](key2);
         },
-        get: function(key) {
-          return $channelData && $channelData.get(key);
+        get: function(key2) {
+          return $channelData && $channelData.get(key2);
         },
-        has: function(key) {
-          return !!$channelData && $channelData.has(key);
+        has: function(key2) {
+          return !!$channelData && $channelData.has(key2);
         },
-        set: function(key, value) {
+        set: function(key2, value) {
           if (!$channelData) {
             $channelData = makeChannel();
           }
-          $channelData.set(key, value);
+          $channelData.set(key2, value);
         }
       };
       return channel;
@@ -17550,19 +17550,19 @@ var require_utils = __commonJS({
         });
         return target;
       }
-      return Object.keys(source).reduce(function(acc, key) {
-        var value = source[key];
-        if (has.call(acc, key)) {
-          acc[key] = merge3(acc[key], value, options);
+      return Object.keys(source).reduce(function(acc, key2) {
+        var value = source[key2];
+        if (has.call(acc, key2)) {
+          acc[key2] = merge3(acc[key2], value, options);
         } else {
-          acc[key] = value;
+          acc[key2] = value;
         }
         if (isOverflow(source) && !isOverflow(acc)) {
           markOverflow(acc, getMaxIndex(source));
         }
         if (isOverflow(acc)) {
-          var keyNum = parseInt(key, 10);
-          if (String(keyNum) === key && keyNum >= 0 && keyNum > getMaxIndex(acc)) {
+          var keyNum = parseInt(key2, 10);
+          if (String(keyNum) === key2 && keyNum >= 0 && keyNum > getMaxIndex(acc)) {
             setMaxIndex(acc, keyNum);
           }
         }
@@ -17570,8 +17570,8 @@ var require_utils = __commonJS({
       }, mergeTarget);
     };
     var assign = function assignSingleSource(target, source) {
-      return Object.keys(source).reduce(function(acc, key) {
-        acc[key] = source[key];
+      return Object.keys(source).reduce(function(acc, key2) {
+        acc[key2] = source[key2];
         return acc;
       }, target);
     };
@@ -17640,10 +17640,10 @@ var require_utils = __commonJS({
         var obj = item.obj[item.prop];
         var keys = Object.keys(obj);
         for (var j = 0; j < keys.length; ++j) {
-          var key = keys[j];
-          var val = obj[key];
+          var key2 = keys[j];
+          var val = obj[key2];
           if (typeof val === "object" && val !== null && refs.indexOf(val) === -1) {
-            queue[queue.length] = { obj, prop: key };
+            queue[queue.length] = { obj, prop: key2 };
             refs[refs.length] = val;
           }
         }
@@ -17713,8 +17713,8 @@ var require_stringify = __commonJS({
         return prefix + "[]";
       },
       comma: "comma",
-      indices: function indices(prefix, key) {
-        return prefix + "[" + key + "]";
+      indices: function indices(prefix, key2) {
+        return prefix + "[" + key2 + "]";
       },
       repeat: function repeat(prefix) {
         return prefix;
@@ -17823,12 +17823,12 @@ var require_stringify = __commonJS({
         return adjustedPrefix + "[]";
       }
       for (var j = 0; j < objKeys.length; ++j) {
-        var key = objKeys[j];
-        var value = typeof key === "object" && key && typeof key.value !== "undefined" ? key.value : obj[key];
+        var key2 = objKeys[j];
+        var value = typeof key2 === "object" && key2 && typeof key2.value !== "undefined" ? key2.value : obj[key2];
         if (skipNulls && value === null) {
           continue;
         }
-        var encodedKey = allowDots && encodeDotInKeys ? String(key).replace(/\./g, "%2E") : String(key);
+        var encodedKey = allowDots && encodeDotInKeys ? String(key2).replace(/\./g, "%2E") : String(key2);
         var keyPrefix = isArray2(obj) ? typeof generateArrayPrefix === "function" ? generateArrayPrefix(adjustedPrefix, encodedKey) : adjustedPrefix : adjustedPrefix + (allowDots ? "." + encodedKey : "[" + encodedKey + "]");
         sideChannel.set(object, step);
         var valueSideChannel = getSideChannel();
@@ -17945,17 +17945,17 @@ var require_stringify = __commonJS({
       }
       var sideChannel = getSideChannel();
       for (var i = 0; i < objKeys.length; ++i) {
-        var key = objKeys[i];
-        if (typeof key === "undefined" || key === null) {
+        var key2 = objKeys[i];
+        if (typeof key2 === "undefined" || key2 === null) {
           continue;
         }
-        var value = obj[key];
+        var value = obj[key2];
         if (options.skipNulls && value === null) {
           continue;
         }
         pushToArray(keys, stringify(
           value,
-          key,
+          key2,
           generateArrayPrefix,
           commaRoundTrip,
           options.allowEmptyArrays,
@@ -18070,19 +18070,19 @@ var require_parse = __commonJS({
         var part = parts[i];
         var bracketEqualsPos = part.indexOf("]=");
         var pos = bracketEqualsPos === -1 ? part.indexOf("=") : bracketEqualsPos + 1;
-        var key;
+        var key2;
         var val;
         if (pos === -1) {
-          key = options.decoder(part, defaults2.decoder, charset, "key");
+          key2 = options.decoder(part, defaults2.decoder, charset, "key");
           val = options.strictNullHandling ? null : "";
         } else {
-          key = options.decoder(part.slice(0, pos), defaults2.decoder, charset, "key");
-          if (key !== null) {
+          key2 = options.decoder(part.slice(0, pos), defaults2.decoder, charset, "key");
+          if (key2 !== null) {
             val = utils.maybeMap(
               parseArrayValue(
                 part.slice(pos + 1),
                 options,
-                isArray2(obj[key]) ? obj[key].length : 0
+                isArray2(obj[key2]) ? obj[key2].length : 0
               ),
               function(encodedVal) {
                 return options.decoder(encodedVal, defaults2.decoder, charset, "value");
@@ -18102,17 +18102,17 @@ var require_parse = __commonJS({
           }
           val = utils.combine([], val, options.arrayLimit, options.plainObjects);
         }
-        if (key !== null) {
-          var existing = has.call(obj, key);
+        if (key2 !== null) {
+          var existing = has.call(obj, key2);
           if (existing && (options.duplicates === "combine" || part.indexOf("[]=") > -1)) {
-            obj[key] = utils.combine(
-              obj[key],
+            obj[key2] = utils.combine(
+              obj[key2],
               val,
               options.arrayLimit,
               options.plainObjects
             );
           } else if (!existing || options.duplicates === "last") {
-            obj[key] = val;
+            obj[key2] = val;
           }
         }
       }
@@ -18164,18 +18164,18 @@ var require_parse = __commonJS({
       return leaf;
     };
     var splitKeyIntoSegments = function splitKeyIntoSegments2(originalKey, options) {
-      var key = options.allowDots ? originalKey.replace(/\.([^.[]+)/g, "[$1]") : originalKey;
+      var key2 = options.allowDots ? originalKey.replace(/\.([^.[]+)/g, "[$1]") : originalKey;
       if (options.depth <= 0) {
-        if (!options.plainObjects && has.call(Object.prototype, key)) {
+        if (!options.plainObjects && has.call(Object.prototype, key2)) {
           if (!options.allowPrototypes) {
             return;
           }
         }
-        return [key];
+        return [key2];
       }
       var segments = [];
-      var first = key.indexOf("[");
-      var parent = first >= 0 ? key.slice(0, first) : key;
+      var first = key2.indexOf("[");
+      var parent = first >= 0 ? key2.slice(0, first) : key2;
       if (parent) {
         if (!options.plainObjects && has.call(Object.prototype, parent)) {
           if (!options.allowPrototypes) {
@@ -18184,7 +18184,7 @@ var require_parse = __commonJS({
         }
         segments[segments.length] = parent;
       }
-      var n = key.length;
+      var n = key2.length;
       var open = first;
       var collected = 0;
       while (open >= 0 && collected < options.depth) {
@@ -18192,7 +18192,7 @@ var require_parse = __commonJS({
         var i = open + 1;
         var close = -1;
         while (i < n && close < 0) {
-          var cu = key.charCodeAt(i);
+          var cu = key2.charCodeAt(i);
           if (cu === 91) {
             level += 1;
           } else if (cu === 93) {
@@ -18204,23 +18204,23 @@ var require_parse = __commonJS({
           i += 1;
         }
         if (close < 0) {
-          segments[segments.length] = "[" + key.slice(open) + "]";
+          segments[segments.length] = "[" + key2.slice(open) + "]";
           return segments;
         }
-        var seg = key.slice(open, close + 1);
+        var seg = key2.slice(open, close + 1);
         var content = seg.slice(1, -1);
         if (!options.plainObjects && has.call(Object.prototype, content) && !options.allowPrototypes) {
           return;
         }
         segments[segments.length] = seg;
         collected += 1;
-        open = key.indexOf("[", close + 1);
+        open = key2.indexOf("[", close + 1);
       }
       if (open >= 0) {
         if (options.strictDepth === true) {
           throw new RangeError("Input depth exceeded depth option of " + options.depth + " and strictDepth is true");
         }
-        segments[segments.length] = "[" + key.slice(open) + "]";
+        segments[segments.length] = "[" + key2.slice(open) + "]";
       }
       return segments;
     };
@@ -18294,8 +18294,8 @@ var require_parse = __commonJS({
       var obj = options.plainObjects ? { __proto__: null } : {};
       var keys = Object.keys(tempObj);
       for (var i = 0; i < keys.length; ++i) {
-        var key = keys[i];
-        var newObj = parseKeys(key, tempObj[key], options, typeof str === "string");
+        var key2 = keys[i];
+        var newObj = parseKeys(key2, tempObj[key2], options, typeof str === "string");
         obj = utils.merge(obj, newObj, options);
       }
       if (options.allowSparse === true) {
@@ -18905,13 +18905,13 @@ var require_node3 = __commonJS({
     exports2.load = load;
     exports2.useColors = useColors;
     exports2.colors = [6, 2, 3, 4, 5, 1];
-    exports2.inspectOpts = Object.keys(process.env).filter(function(key) {
-      return /^debug_/i.test(key);
-    }).reduce(function(obj, key) {
-      var prop = key.substring(6).toLowerCase().replace(/_([a-z])/g, function(_, k) {
+    exports2.inspectOpts = Object.keys(process.env).filter(function(key2) {
+      return /^debug_/i.test(key2);
+    }).reduce(function(obj, key2) {
+      var prop = key2.substring(6).toLowerCase().replace(/_([a-z])/g, function(_, k) {
         return k.toUpperCase();
       });
-      var val = process.env[key];
+      var val = process.env[key2];
       if (/^(yes|on|true|enabled)$/i.test(val)) val = true;
       else if (/^(no|off|false|disabled)$/i.test(val)) val = false;
       else if (val === "null") val = null;
@@ -19151,8 +19151,8 @@ var require_finalhandler = __commonJS({
       var headers = /* @__PURE__ */ Object.create(null);
       var keys = Object.keys(err.headers);
       for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        headers[key] = err.headers[key];
+        var key2 = keys[i];
+        headers[key2] = err.headers[key2];
       }
       return headers;
     }
@@ -19227,8 +19227,8 @@ var require_finalhandler = __commonJS({
       }
       var keys = Object.keys(headers);
       for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        res.setHeader(key, headers[key]);
+        var key2 = keys[i];
+        res.setHeader(key2, headers[key2]);
       }
     }
   }
@@ -19368,8 +19368,8 @@ var require_safe_buffer = __commonJS({
     var buffer = require("buffer");
     var Buffer4 = buffer.Buffer;
     function copyProps(src, dst) {
-      for (var key in src) {
-        dst[key] = src[key];
+      for (var key2 in src) {
+        dst[key2] = src[key2];
       }
     }
     if (Buffer4.from && Buffer4.alloc && Buffer4.allocUnsafe && Buffer4.allocUnsafeSlow) {
@@ -19526,7 +19526,7 @@ var require_content_disposition = __commonJS({
       }
       var index = match[0].length;
       var type = match[1].toLowerCase();
-      var key;
+      var key2;
       var names = [];
       var params = {};
       var value;
@@ -19536,25 +19536,25 @@ var require_content_disposition = __commonJS({
           throw new TypeError("invalid parameter format");
         }
         index += match[0].length;
-        key = match[1].toLowerCase();
+        key2 = match[1].toLowerCase();
         value = match[2];
-        if (names.indexOf(key) !== -1) {
+        if (names.indexOf(key2) !== -1) {
           throw new TypeError("invalid duplicate parameter");
         }
-        names.push(key);
-        if (key.indexOf("*") + 1 === key.length) {
-          key = key.slice(0, -1);
+        names.push(key2);
+        if (key2.indexOf("*") + 1 === key2.length) {
+          key2 = key2.slice(0, -1);
           value = decodefield(value);
-          params[key] = value;
+          params[key2] = value;
           continue;
         }
-        if (typeof params[key] === "string") {
+        if (typeof params[key2] === "string") {
           continue;
         }
         if (value[0] === '"') {
           value = value.substr(1, value.length - 2).replace(QESC_REGEXP, "$1");
         }
-        params[key] = value;
+        params[key2] = value;
       }
       if (index !== -1 && index !== string.length) {
         throw new TypeError("invalid parameter format");
@@ -19889,13 +19889,13 @@ var require_node4 = __commonJS({
     exports2.load = load;
     exports2.useColors = useColors;
     exports2.colors = [6, 2, 3, 4, 5, 1];
-    exports2.inspectOpts = Object.keys(process.env).filter(function(key) {
-      return /^debug_/i.test(key);
-    }).reduce(function(obj, key) {
-      var prop = key.substring(6).toLowerCase().replace(/_([a-z])/g, function(_, k) {
+    exports2.inspectOpts = Object.keys(process.env).filter(function(key2) {
+      return /^debug_/i.test(key2);
+    }).reduce(function(obj, key2) {
+      var prop = key2.substring(6).toLowerCase().replace(/_([a-z])/g, function(_, k) {
         return k.toUpperCase();
       });
-      var val = process.env[key];
+      var val = process.env[key2];
       if (/^(yes|on|true|enabled)$/i.test(val)) val = true;
       else if (/^(no|off|false|disabled)$/i.test(val)) val = false;
       else if (val === "null") val = null;
@@ -20918,8 +20918,8 @@ var require_send = __commonJS({
     function setHeaders(res, headers) {
       var keys = Object.keys(headers);
       for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        res.setHeader(key, headers[key]);
+        var key2 = keys[i];
+        res.setHeader(key2, headers[key2]);
       }
     }
   }
@@ -22476,14 +22476,14 @@ var require_mediaType = __commonJS({
         var kvps = splitParameters(match[3]).map(splitKeyValuePair);
         for (var j = 0; j < kvps.length; j++) {
           var pair = kvps[j];
-          var key = pair[0].toLowerCase();
+          var key2 = pair[0].toLowerCase();
           var val = pair[1];
           var value = val && val[0] === '"' && val[val.length - 1] === '"' ? val.substr(1, val.length - 2) : val;
-          if (key === "q") {
+          if (key2 === "q") {
             q = parseFloat(value);
             break;
           }
-          params[key] = value;
+          params[key2] = value;
         }
       }
       return {
@@ -22569,15 +22569,15 @@ var require_mediaType = __commonJS({
     }
     function splitKeyValuePair(str) {
       var index = str.indexOf("=");
-      var key;
+      var key2;
       var val;
       if (index === -1) {
-        key = str;
+        key2 = str;
       } else {
-        key = str.substr(0, index);
+        key2 = str.substr(0, index);
         val = str.substr(index + 1);
       }
-      return [key, val];
+      return [key2, val];
     }
     function splitMediaTypes(accept) {
       var accepts = accept.split(",");
@@ -22965,8 +22965,8 @@ var require_cookie = __commonJS({
         }
         var keyStartIdx = startIndex(str, index, eqIdx);
         var keyEndIdx = endIndex(str, eqIdx, keyStartIdx);
-        var key = str.slice(keyStartIdx, keyEndIdx);
-        if (!__hasOwnProperty.call(obj, key)) {
+        var key2 = str.slice(keyStartIdx, keyEndIdx);
+        if (!__hasOwnProperty.call(obj, key2)) {
           var valStartIdx = startIndex(str, eqIdx + 1, endIdx);
           var valEndIdx = endIndex(str, endIdx, valStartIdx);
           if (str.charCodeAt(valStartIdx) === 34 && str.charCodeAt(valEndIdx - 1) === 34) {
@@ -22974,7 +22974,7 @@ var require_cookie = __commonJS({
             valEndIdx--;
           }
           var val = str.slice(valStartIdx, valEndIdx);
-          obj[key] = tryDecode(val, dec);
+          obj[key2] = tryDecode(val, dec);
         }
         index = endIdx + 1;
       } while (index < len);
@@ -23444,9 +23444,9 @@ var require_response = __commonJS({
       if (opts && opts.headers) {
         var keys = Object.keys(opts.headers);
         for (var i = 0; i < keys.length; i++) {
-          var key = keys[i];
-          if (key.toLowerCase() !== "content-disposition") {
-            headers[key] = opts.headers[key];
+          var key2 = keys[i];
+          if (key2.toLowerCase() !== "content-disposition") {
+            headers[key2] = opts.headers[key2];
           }
         }
       }
@@ -23465,11 +23465,11 @@ var require_response = __commonJS({
       var keys = Object.keys(obj).filter(function(v) {
         return v !== "default";
       });
-      var key = keys.length > 0 ? req.accepts(keys) : false;
+      var key2 = keys.length > 0 ? req.accepts(keys) : false;
       this.vary("Accept");
-      if (key) {
-        this.set("Content-Type", normalizeType(key).value);
-        obj[key](req, this, next);
+      if (key2) {
+        this.set("Content-Type", normalizeType(key2).value);
+        obj[key2](req, this, next);
       } else if (obj.default) {
         obj.default(req, this, next);
       } else {
@@ -23510,8 +23510,8 @@ var require_response = __commonJS({
         }
         this.setHeader(field, value);
       } else {
-        for (var key in field) {
-          this.set(key, field[key]);
+        for (var key2 in field) {
+          this.set(key2, field[key2]);
         }
       }
       return this;
@@ -23944,9 +23944,9 @@ var require_object_assign = __commonJS({
       var symbols;
       for (var s = 1; s < arguments.length; s++) {
         from = Object(arguments[s]);
-        for (var key in from) {
-          if (hasOwnProperty2.call(from, key)) {
-            to[key] = from[key];
+        for (var key2 in from) {
+          if (hasOwnProperty2.call(from, key2)) {
+            to[key2] = from[key2];
           }
         }
         if (getOwnPropertySymbols) {
@@ -24495,14 +24495,14 @@ var require_mediaType2 = __commonJS({
         var kvps = splitParameters(match[3]).map(splitKeyValuePair);
         for (var j = 0; j < kvps.length; j++) {
           var pair = kvps[j];
-          var key = pair[0].toLowerCase();
+          var key2 = pair[0].toLowerCase();
           var val = pair[1];
           var value = val && val[0] === '"' && val[val.length - 1] === '"' ? val.slice(1, -1) : val;
-          if (key === "q") {
+          if (key2 === "q") {
             q = parseFloat(value);
             break;
           }
-          params[key] = value;
+          params[key2] = value;
         }
       }
       return {
@@ -24588,15 +24588,15 @@ var require_mediaType2 = __commonJS({
     }
     function splitKeyValuePair(str) {
       var index = str.indexOf("=");
-      var key;
+      var key2;
       var val;
       if (index === -1) {
-        key = str;
+        key2 = str;
       } else {
-        key = str.slice(0, index);
+        key2 = str.slice(0, index);
         val = str.slice(index + 1);
       }
-      return [key, val];
+      return [key2, val];
     }
     function splitMediaTypes(accept) {
       var accepts = accept.split(",");
@@ -34367,13 +34367,13 @@ var require_node5 = __commonJS({
     exports2.load = load;
     exports2.useColors = useColors;
     exports2.colors = [6, 2, 3, 4, 5, 1];
-    exports2.inspectOpts = Object.keys(process.env).filter(function(key) {
-      return /^debug_/i.test(key);
-    }).reduce(function(obj, key) {
-      var prop = key.substring(6).toLowerCase().replace(/_([a-z])/g, function(_, k) {
+    exports2.inspectOpts = Object.keys(process.env).filter(function(key2) {
+      return /^debug_/i.test(key2);
+    }).reduce(function(obj, key2) {
+      var prop = key2.substring(6).toLowerCase().replace(/_([a-z])/g, function(_, k) {
         return k.toUpperCase();
       });
-      var val = process.env[key];
+      var val = process.env[key2];
       if (/^(yes|on|true|enabled)$/i.test(val)) val = true;
       else if (/^(no|off|false|disabled)$/i.test(val)) val = false;
       else if (val === "null") val = null;
@@ -34551,11 +34551,11 @@ var require_on_headers = __commonJS({
       return args;
     }
     function set2dArray(res, headers) {
-      var key;
+      var key2;
       for (var i = 0; i < headers.length; i++) {
-        key = headers[i][0];
-        if (key) {
-          res.setHeader(key, headers[i][1]);
+        key2 = headers[i][0];
+        if (key2) {
+          res.setHeader(key2, headers[i][1]);
         }
       }
     }
@@ -34563,20 +34563,20 @@ var require_on_headers = __commonJS({
       for (var i = 0; i < headers.length; i += 2) {
         res.removeHeader(headers[i]);
       }
-      var key;
+      var key2;
       for (var j = 0; j < headers.length; j += 2) {
-        key = headers[j];
-        if (key) {
-          res.appendHeader(key, headers[j + 1]);
+        key2 = headers[j];
+        if (key2) {
+          res.appendHeader(key2, headers[j + 1]);
         }
       }
     }
     function set1dArrayWithSet(res, headers) {
-      var key;
+      var key2;
       for (var i = 0; i < headers.length; i += 2) {
-        key = headers[i];
-        if (key) {
-          res.setHeader(key, headers[i + 1]);
+        key2 = headers[i];
+        if (key2) {
+          res.setHeader(key2, headers[i + 1]);
         }
       }
     }
@@ -34838,7 +34838,7 @@ var require_main = __commonJS({
       lines = lines.replace(/\r\n?/mg, "\n");
       let match;
       while ((match = LINE.exec(lines)) != null) {
-        const key = match[1];
+        const key2 = match[1];
         let value = match[2] || "";
         value = value.trim();
         const maybeQuote = value[0];
@@ -34847,7 +34847,7 @@ var require_main = __commonJS({
           value = value.replace(/\\n/g, "\n");
           value = value.replace(/\\r/g, "\r");
         }
-        obj[key] = value;
+        obj[key2] = value;
       }
       return obj;
     }
@@ -34866,8 +34866,8 @@ var require_main = __commonJS({
       let decrypted;
       for (let i = 0; i < length; i++) {
         try {
-          const key = keys[i].trim();
-          const attrs = _instructions(result, key);
+          const key2 = keys[i].trim();
+          const attrs = _instructions(result, key2);
           decrypted = DotenvModule.decrypt(attrs.ciphertext, attrs.key);
           break;
         } catch (error) {
@@ -34908,8 +34908,8 @@ var require_main = __commonJS({
         }
         throw error;
       }
-      const key = uri.password;
-      if (!key) {
+      const key2 = uri.password;
+      if (!key2) {
         const err = new Error("INVALID_DOTENV_KEY: Missing key part");
         err.code = "INVALID_DOTENV_KEY";
         throw err;
@@ -34927,7 +34927,7 @@ var require_main = __commonJS({
         err.code = "NOT_FOUND_DOTENV_ENVIRONMENT";
         throw err;
       }
-      return { ciphertext, key };
+      return { ciphertext, key: key2 };
     }
     function _vaultPath(options) {
       let possibleVaultPath = null;
@@ -35041,13 +35041,13 @@ var require_main = __commonJS({
       return DotenvModule._configVault(options);
     }
     function decrypt(encrypted, keyStr) {
-      const key = Buffer.from(keyStr.slice(-64), "hex");
+      const key2 = Buffer.from(keyStr.slice(-64), "hex");
       let ciphertext = Buffer.from(encrypted, "base64");
       const nonce = ciphertext.subarray(0, 12);
       const authTag = ciphertext.subarray(-16);
       ciphertext = ciphertext.subarray(12, -16);
       try {
-        const aesgcm = crypto6.createDecipheriv("aes-256-gcm", key, nonce);
+        const aesgcm = crypto6.createDecipheriv("aes-256-gcm", key2, nonce);
         aesgcm.setAuthTag(authTag);
         return `${aesgcm.update(ciphertext)}${aesgcm.final()}`;
       } catch (error) {
@@ -35075,20 +35075,20 @@ var require_main = __commonJS({
         err.code = "OBJECT_REQUIRED";
         throw err;
       }
-      for (const key of Object.keys(parsed)) {
-        if (Object.prototype.hasOwnProperty.call(processEnv, key)) {
+      for (const key2 of Object.keys(parsed)) {
+        if (Object.prototype.hasOwnProperty.call(processEnv, key2)) {
           if (override === true) {
-            processEnv[key] = parsed[key];
+            processEnv[key2] = parsed[key2];
           }
           if (debug) {
             if (override === true) {
-              _debug(`"${key}" is already defined and WAS overwritten`);
+              _debug(`"${key2}" is already defined and WAS overwritten`);
             } else {
-              _debug(`"${key}" is already defined and was NOT overwritten`);
+              _debug(`"${key2}" is already defined and was NOT overwritten`);
             }
           }
         } else {
-          processEnv[key] = parsed[key];
+          processEnv[key2] = parsed[key2];
         }
       }
     }
@@ -35113,13 +35113,13 @@ var require_main = __commonJS({
 });
 
 // src/config/index.ts
-function required(key) {
-  const val = process.env[key];
-  if (!val) throw new Error(`Missing required environment variable: ${key}`);
+function required(key2) {
+  const val = process.env[key2];
+  if (!val) throw new Error(`Missing required environment variable: ${key2}`);
   return val;
 }
-function optional(key, fallback) {
-  return process.env[key] ?? fallback;
+function optional(key2, fallback) {
+  return process.env[key2] ?? fallback;
 }
 var import_dotenv, import_path, env;
 var init_config = __esm({
@@ -35262,15 +35262,15 @@ function __rest(s, e) {
     }
   return t;
 }
-function __decorate(decorators, target, key, desc) {
-  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-  else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-  return c > 3 && r && Object.defineProperty(target, key, r), r;
+function __decorate(decorators, target, key2, desc) {
+  var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key2, desc);
+  else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key2, r) : d(target, key2)) || r;
+  return c > 3 && r && Object.defineProperty(target, key2, r), r;
 }
 function __param(paramIndex, decorator) {
-  return function(target, key) {
-    decorator(target, key, paramIndex);
+  return function(target, key2) {
+    decorator(target, key2, paramIndex);
   };
 }
 function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
@@ -35278,7 +35278,7 @@ function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, e
     if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected");
     return f;
   }
-  var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
+  var kind = contextIn.kind, key2 = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
   var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
   var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
   var _, done = false;
@@ -35290,7 +35290,7 @@ function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, e
       if (done) throw new TypeError("Cannot add initializers after decoration has completed");
       extraInitializers.push(accept(f || null));
     };
-    var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
+    var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key2], context);
     if (kind === "accessor") {
       if (result === void 0) continue;
       if (result === null || typeof result !== "object") throw new TypeError("Object expected");
@@ -35299,7 +35299,7 @@ function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, e
       if (_ = accept(result.init)) initializers.unshift(_);
     } else if (_ = accept(result)) {
       if (kind === "field") initializers.unshift(_);
-      else descriptor[key] = _;
+      else descriptor[key2] = _;
     }
   }
   if (target) Object.defineProperty(target, contextIn.name, descriptor);
@@ -36888,9 +36888,9 @@ ${cause.stack}`;
       * ```
       */
       order(column, { ascending = true, nullsFirst, foreignTable, referencedTable = foreignTable } = {}) {
-        const key = referencedTable ? `${referencedTable}.order` : "order";
-        const existingOrder = this.url.searchParams.get(key);
-        this.url.searchParams.set(key, `${existingOrder ? `${existingOrder},` : ""}${column}.${ascending ? "asc" : "desc"}${nullsFirst === void 0 ? "" : nullsFirst ? ".nullsfirst" : ".nullslast"}`);
+        const key2 = referencedTable ? `${referencedTable}.order` : "order";
+        const existingOrder = this.url.searchParams.get(key2);
+        this.url.searchParams.set(key2, `${existingOrder ? `${existingOrder},` : ""}${column}.${ascending ? "asc" : "desc"}${nullsFirst === void 0 ? "" : nullsFirst ? ".nullsfirst" : ".nullslast"}`);
         return this;
       }
       /**
@@ -36994,8 +36994,8 @@ ${cause.stack}`;
       * ```
       */
       limit(count, { foreignTable, referencedTable = foreignTable } = {}) {
-        const key = typeof referencedTable === "undefined" ? "limit" : `${referencedTable}.limit`;
-        this.url.searchParams.set(key, `${count}`);
+        const key2 = typeof referencedTable === "undefined" ? "limit" : `${referencedTable}.limit`;
+        this.url.searchParams.set(key2, `${count}`);
         return this;
       }
       /**
@@ -39118,8 +39118,8 @@ ${cause.stack}`;
       * ```
       */
       or(filters, { foreignTable, referencedTable = foreignTable } = {}) {
-        const key = referencedTable ? `${referencedTable}.or` : "or";
-        this.url.searchParams.append(key, `(${filters})`);
+        const key2 = referencedTable ? `${referencedTable}.or` : "or";
+        this.url.searchParams.append(key2, `(${filters})`);
         return this;
       }
       /**
@@ -41376,7 +41376,7 @@ var require_serializer = __commonJS({
         if (!obj || typeof obj !== "object") {
           return {};
         }
-        return Object.fromEntries(Object.entries(obj).filter(([key]) => keys.includes(key)));
+        return Object.fromEntries(Object.entries(obj).filter(([key2]) => keys.includes(key2)));
       }
     };
     exports2.default = Serializer;
@@ -41576,9 +41576,9 @@ var require_phoenix_cjs = __commonJS({
     };
     var __copyProps2 = (to, from, except, desc) => {
       if (from && typeof from === "object" || typeof from === "function") {
-        for (let key of __getOwnPropNames2(from))
-          if (!__hasOwnProp2.call(to, key) && key !== except)
-            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
+        for (let key2 of __getOwnPropNames2(from))
+          if (!__hasOwnProp2.call(to, key2) && key2 !== except)
+            __defProp2(to, key2, { get: () => from[key2], enumerable: !(desc = __getOwnPropDesc2(from, key2)) || desc.enumerable });
       }
       return to;
     };
@@ -42164,8 +42164,8 @@ var require_phoenix_cjs = __commonJS({
       static xhrRequest(req, method, endPoint, headers, body, timeout, ontimeout, callback) {
         req.open(method, endPoint, true);
         req.timeout = timeout;
-        for (let [key, value] of Object.entries(headers)) {
-          req.setRequestHeader(key, value);
+        for (let [key2, value] of Object.entries(headers)) {
+          req.setRequestHeader(key2, value);
         }
         req.onerror = () => callback && callback(null);
         req.onreadystatechange = () => {
@@ -42193,12 +42193,12 @@ var require_phoenix_cjs = __commonJS({
       }
       static serialize(obj, parentKey) {
         let queryStr = [];
-        for (var key in obj) {
-          if (!Object.prototype.hasOwnProperty.call(obj, key)) {
+        for (var key2 in obj) {
+          if (!Object.prototype.hasOwnProperty.call(obj, key2)) {
             continue;
           }
-          let paramKey = parentKey ? `${parentKey}[${key}]` : key;
-          let paramVal = obj[key];
+          let paramKey = parentKey ? `${parentKey}[${key2}]` : key2;
+          let paramVal = obj[key2];
           if (typeof paramVal === "object") {
             queryStr.push(this.serialize(paramVal, paramKey));
           } else {
@@ -42465,28 +42465,28 @@ var require_phoenix_cjs = __commonJS({
         let state = this.clone(currentState);
         let joins = {};
         let leaves = {};
-        this.map(state, (key, presence) => {
-          if (!newState[key]) {
-            leaves[key] = presence;
+        this.map(state, (key2, presence) => {
+          if (!newState[key2]) {
+            leaves[key2] = presence;
           }
         });
-        this.map(newState, (key, newPresence) => {
-          let currentPresence = state[key];
+        this.map(newState, (key2, newPresence) => {
+          let currentPresence = state[key2];
           if (currentPresence) {
             let newRefs = newPresence.metas.map((m) => m.phx_ref);
             let curRefs = currentPresence.metas.map((m) => m.phx_ref);
             let joinedMetas = newPresence.metas.filter((m) => curRefs.indexOf(m.phx_ref) < 0);
             let leftMetas = currentPresence.metas.filter((m) => newRefs.indexOf(m.phx_ref) < 0);
             if (joinedMetas.length > 0) {
-              joins[key] = newPresence;
-              joins[key].metas = joinedMetas;
+              joins[key2] = newPresence;
+              joins[key2].metas = joinedMetas;
             }
             if (leftMetas.length > 0) {
-              leaves[key] = this.clone(currentPresence);
-              leaves[key].metas = leftMetas;
+              leaves[key2] = this.clone(currentPresence);
+              leaves[key2].metas = leftMetas;
             }
           } else {
-            joins[key] = newPresence;
+            joins[key2] = newPresence;
           }
         });
         return this.syncDiff(state, { joins, leaves }, onJoin, onLeave);
@@ -42515,18 +42515,18 @@ var require_phoenix_cjs = __commonJS({
           onLeave = function() {
           };
         }
-        this.map(joins, (key, newPresence) => {
-          let currentPresence = state[key];
-          state[key] = this.clone(newPresence);
+        this.map(joins, (key2, newPresence) => {
+          let currentPresence = state[key2];
+          state[key2] = this.clone(newPresence);
           if (currentPresence) {
-            let joinedRefs = state[key].metas.map((m) => m.phx_ref);
+            let joinedRefs = state[key2].metas.map((m) => m.phx_ref);
             let curMetas = currentPresence.metas.filter((m) => joinedRefs.indexOf(m.phx_ref) < 0);
-            state[key].metas.unshift(...curMetas);
+            state[key2].metas.unshift(...curMetas);
           }
-          onJoin(key, currentPresence, newPresence);
+          onJoin(key2, currentPresence, newPresence);
         });
-        this.map(leaves, (key, leftPresence) => {
-          let currentPresence = state[key];
+        this.map(leaves, (key2, leftPresence) => {
+          let currentPresence = state[key2];
           if (!currentPresence) {
             return;
           }
@@ -42534,9 +42534,9 @@ var require_phoenix_cjs = __commonJS({
           currentPresence.metas = currentPresence.metas.filter((p) => {
             return refsToRemove.indexOf(p.phx_ref) < 0;
           });
-          onLeave(key, currentPresence, leftPresence);
+          onLeave(key2, currentPresence, leftPresence);
           if (currentPresence.metas.length === 0) {
-            delete state[key];
+            delete state[key2];
           }
         });
         return state;
@@ -42552,12 +42552,12 @@ var require_phoenix_cjs = __commonJS({
        */
       static list(presences, chooser) {
         if (!chooser) {
-          chooser = function(key, pres) {
+          chooser = function(key2, pres) {
             return pres;
           };
         }
-        return this.map(presences, (key, presence) => {
-          return chooser(key, presence);
+        return this.map(presences, (key2, presence) => {
+          return chooser(key2, presence);
         });
       }
       // private
@@ -42567,7 +42567,7 @@ var require_phoenix_cjs = __commonJS({
       * @param {(key: string, obj: PresenceState) => T} func
       */
       static map(obj, func) {
-        return Object.getOwnPropertyNames(obj).map((key) => func(key, obj[key]));
+        return Object.getOwnPropertyNames(obj).map((key2) => func(key2, obj[key2]));
       }
       /**
       * @template T
@@ -43019,11 +43019,11 @@ var require_phoenix_cjs = __commonJS({
         this.conn.onmessage = (event) => this.onConnMessage(event);
         this.conn.onclose = (event) => this.onConnClose(event);
       }
-      getSession(key) {
-        return this.sessionStore && this.sessionStore.getItem(key);
+      getSession(key2) {
+        return this.sessionStore && this.sessionStore.getItem(key2);
       }
-      storeSession(key, val) {
-        this.sessionStore && this.sessionStore.setItem(key, val);
+      storeSession(key2, val) {
+        this.sessionStore && this.sessionStore.setItem(key2, val);
       }
       connectWithFallback(fallbackTransport, fallbackThreshold = 2500) {
         clearTimeout(this.fallbackTimer);
@@ -43234,8 +43234,8 @@ var require_phoenix_cjs = __commonJS({
        *                 `onOpen`, `onClose`, `onError,` and `onMessage`
        */
       off(refs) {
-        for (let key in this.stateChangeCallbacks) {
-          this.stateChangeCallbacks[key] = this.stateChangeCallbacks[key].filter(([ref]) => {
+        for (let key2 in this.stateChangeCallbacks) {
+          this.stateChangeCallbacks[key2] = this.stateChangeCallbacks[key2].filter(([ref]) => {
             return refs.indexOf(ref) === -1;
           });
         }
@@ -43380,12 +43380,12 @@ var require_presenceAdapter = __commonJS({
       constructor(channel, opts) {
         const phoenixOptions = phoenixPresenceOptions(opts);
         this.presence = new phoenix_1.Presence(channel.getChannel(), phoenixOptions);
-        this.presence.onJoin((key, currentPresence, newPresence) => {
-          const onJoinPayload = _PresenceAdapter.onJoinPayload(key, currentPresence, newPresence);
+        this.presence.onJoin((key2, currentPresence, newPresence) => {
+          const onJoinPayload = _PresenceAdapter.onJoinPayload(key2, currentPresence, newPresence);
           channel.getChannel().trigger("presence", onJoinPayload);
         });
-        this.presence.onLeave((key, currentPresence, leftPresence) => {
-          const onLeavePayload = _PresenceAdapter.onLeavePayload(key, currentPresence, leftPresence);
+        this.presence.onLeave((key2, currentPresence, leftPresence) => {
+          const onLeavePayload = _PresenceAdapter.onLeavePayload(key2, currentPresence, leftPresence);
           channel.getChannel().trigger("presence", onLeavePayload);
         });
         this.presence.onSync(() => {
@@ -43420,28 +43420,28 @@ var require_presenceAdapter = __commonJS({
        */
       static transformState(state) {
         state = cloneState(state);
-        return Object.getOwnPropertyNames(state).reduce((newState, key) => {
-          const presences = state[key];
-          newState[key] = transformState(presences);
+        return Object.getOwnPropertyNames(state).reduce((newState, key2) => {
+          const presences = state[key2];
+          newState[key2] = transformState(presences);
           return newState;
         }, {});
       }
-      static onJoinPayload(key, currentPresence, newPresence) {
+      static onJoinPayload(key2, currentPresence, newPresence) {
         const currentPresences = parseCurrentPresences(currentPresence);
         const newPresences = transformState(newPresence);
         return {
           event: "join",
-          key,
+          key: key2,
           currentPresences,
           newPresences
         };
       }
-      static onLeavePayload(key, currentPresence, leftPresence) {
+      static onLeavePayload(key2, currentPresence, leftPresence) {
         const currentPresences = parseCurrentPresences(currentPresence);
         const leftPresences = transformState(leftPresence);
         return {
           event: "leave",
-          key,
+          key: key2,
           currentPresences,
           leftPresences
         };
@@ -44487,18 +44487,18 @@ var require_RealtimeClient = __commonJS({
         clear() {
           store.clear();
         },
-        getItem(key) {
-          return store.has(key) ? store.get(key) : null;
+        getItem(key2) {
+          return store.has(key2) ? store.get(key2) : null;
         },
         key(index) {
           var _a;
           return (_a = Array.from(store.keys())[index]) !== null && _a !== void 0 ? _a : null;
         },
-        removeItem(key) {
-          store.delete(key);
+        removeItem(key2) {
+          store.delete(key2);
         },
-        setItem(key, value) {
-          store.set(key, String(value));
+        setItem(key2, value) {
+          store.set(key2, String(value));
         }
       };
     }
@@ -45165,9 +45165,9 @@ var require_main3 = __commonJS({
 function buildUrl(baseUrl, path2, query) {
   const url2 = new URL(path2, baseUrl);
   if (query) {
-    for (const [key, value] of Object.entries(query)) {
+    for (const [key2, value] of Object.entries(query)) {
       if (value !== void 0) {
-        url2.searchParams.set(key, value);
+        url2.searchParams.set(key2, value);
       }
     }
   }
@@ -45757,13 +45757,13 @@ function isStorageError(error) {
 function setHeader(headers, name, value) {
   const result = _objectSpread22({}, headers);
   const nameLower = name.toLowerCase();
-  for (const key of Object.keys(result)) if (key.toLowerCase() === nameLower) delete result[key];
+  for (const key2 of Object.keys(result)) if (key2.toLowerCase() === nameLower) delete result[key2];
   result[nameLower] = value;
   return result;
 }
 function normalizeHeaders(headers) {
   const result = {};
-  for (const [key, value] of Object.entries(headers)) result[key.toLowerCase()] = value;
+  for (const [key2, value] of Object.entries(headers)) result[key2.toLowerCase()] = value;
   return result;
 }
 async function _handleRequest(fetcher, method, url2, options, parameters, body, namespace) {
@@ -45852,8 +45852,8 @@ var init_dist3 = __esm({
       if (Array.isArray(item)) return item.map((el) => recursiveToCamel(el));
       else if (typeof item === "function" || item !== Object(item)) return item;
       const result = {};
-      Object.entries(item).forEach(([key, value]) => {
-        const newKey = key.replace(/([-_][a-z])/gi, (c) => c.toUpperCase().replace(/[-_]/g, ""));
+      Object.entries(item).forEach(([key2, value]) => {
+        const newKey = key2.replace(/([-_][a-z])/gi, (c) => c.toUpperCase().replace(/[-_]/g, ""));
         result[newKey] = recursiveToCamel(value);
       });
       return result;
@@ -45903,7 +45903,7 @@ var init_dist3 = __esm({
         var _contentType;
         const headers = (options === null || options === void 0 ? void 0 : options.headers) || {};
         let contentType;
-        for (const [key, value] of Object.entries(headers)) if (key.toLowerCase() === "content-type") contentType = value;
+        for (const [key2, value] of Object.entries(headers)) if (key2.toLowerCase() === "content-type") contentType = value;
         params.headers = setHeader(headers, "Content-Type", (_contentType = contentType) !== null && _contentType !== void 0 ? _contentType : "application/json");
         params.body = JSON.stringify(body);
       } else params.body = body;
@@ -46119,7 +46119,7 @@ var init_dist3 = __esm({
             if (metadata) headers["x-metadata"] = _this.toBase64(_this.encodeMetadata(metadata));
             if ((typeof ReadableStream !== "undefined" && body instanceof ReadableStream || body && typeof body === "object" && "pipe" in body && typeof body.pipe === "function") && !options.duplex) options.duplex = "half";
           }
-          if (fileOptions === null || fileOptions === void 0 ? void 0 : fileOptions.headers) for (const [key, value] of Object.entries(fileOptions.headers)) headers = setHeader(headers, key, value);
+          if (fileOptions === null || fileOptions === void 0 ? void 0 : fileOptions.headers) for (const [key2, value] of Object.entries(fileOptions.headers)) headers = setHeader(headers, key2, value);
           const cleanPath = _this._removeEmptyFolders(path2);
           const _path = _this._getFinalPath(cleanPath);
           const data = await (method == "PUT" ? put : post)(_this.fetch, `${_this.url}/object/${_path}`, body, _objectSpread22({ headers }, (options === null || options === void 0 ? void 0 : options.duplex) ? { duplex: options.duplex } : {}));
@@ -46250,7 +46250,7 @@ var init_dist3 = __esm({
             if (metadata) headers["x-metadata"] = _this3.toBase64(_this3.encodeMetadata(metadata));
             if ((typeof ReadableStream !== "undefined" && body instanceof ReadableStream || body && typeof body === "object" && "pipe" in body && typeof body.pipe === "function") && !options.duplex) options.duplex = "half";
           }
-          if (fileOptions === null || fileOptions === void 0 ? void 0 : fileOptions.headers) for (const [key, value] of Object.entries(fileOptions.headers)) headers = setHeader(headers, key, value);
+          if (fileOptions === null || fileOptions === void 0 ? void 0 : fileOptions.headers) for (const [key2, value] of Object.entries(fileOptions.headers)) headers = setHeader(headers, key2, value);
           return {
             path: cleanPath,
             fullPath: (await put(_this3.fetch, url2.toString(), body, _objectSpread22({ headers }, (options === null || options === void 0 ? void 0 : options.duplex) ? { duplex: options.duplex } : {}))).Key
@@ -48831,14 +48831,14 @@ var require_helpers = __commonJS({
       if (url2.hash && url2.hash[0] === "#") {
         try {
           const hashSearchParams = new URLSearchParams(url2.hash.substring(1));
-          hashSearchParams.forEach((value, key) => {
-            result[key] = value;
+          hashSearchParams.forEach((value, key2) => {
+            result[key2] = value;
           });
         } catch (_e) {
         }
       }
-      url2.searchParams.forEach((value, key) => {
-        result[key] = value;
+      url2.searchParams.forEach((value, key2) => {
+        result[key2] = value;
       });
       return result;
     }
@@ -48853,12 +48853,12 @@ var require_helpers = __commonJS({
       return typeof maybeResponse === "object" && maybeResponse !== null && "status" in maybeResponse && "ok" in maybeResponse && "json" in maybeResponse && typeof maybeResponse.json === "function";
     };
     exports2.looksLikeFetchResponse = looksLikeFetchResponse;
-    var setItemAsync = async (storage, key, data) => {
-      await storage.setItem(key, JSON.stringify(data));
+    var setItemAsync = async (storage, key2, data) => {
+      await storage.setItem(key2, JSON.stringify(data));
     };
     exports2.setItemAsync = setItemAsync;
-    var getItemAsync = async (storage, key) => {
-      const value = await storage.getItem(key);
+    var getItemAsync = async (storage, key2) => {
+      const value = await storage.getItem(key2);
       if (!value) {
         return null;
       }
@@ -48869,8 +48869,8 @@ var require_helpers = __commonJS({
       }
     };
     exports2.getItemAsync = getItemAsync;
-    var removeItemAsync = async (storage, key) => {
-      await storage.removeItem(key);
+    var removeItemAsync = async (storage, key2) => {
+      await storage.removeItem(key2);
     };
     exports2.removeItemAsync = removeItemAsync;
     var Deferred = class _Deferred {
@@ -50369,14 +50369,14 @@ var require_local_storage = __commonJS({
     exports2.memoryLocalStorageAdapter = memoryLocalStorageAdapter;
     function memoryLocalStorageAdapter(store = {}) {
       return {
-        getItem: (key) => {
-          return store[key] || null;
+        getItem: (key2) => {
+          return store[key2] || null;
         },
-        setItem: (key, value) => {
-          store[key] = value;
+        setItem: (key2, value) => {
+          store[key2] = value;
         },
-        removeItem: (key) => {
-          delete store[key];
+        removeItem: (key2) => {
+          delete store[key2];
         }
       };
     }
@@ -51121,23 +51121,23 @@ var require_webauthn = __commonJS({
       for (const source of sources) {
         if (!source)
           continue;
-        for (const key in source) {
-          const value = source[key];
+        for (const key2 in source) {
+          const value = source[key2];
           if (value === void 0)
             continue;
           if (Array.isArray(value)) {
-            result[key] = value;
+            result[key2] = value;
           } else if (isArrayBufferLike(value)) {
-            result[key] = value;
+            result[key2] = value;
           } else if (isObject3(value)) {
-            const existing = result[key];
+            const existing = result[key2];
             if (isObject3(existing)) {
-              result[key] = deepMerge(existing, value);
+              result[key2] = deepMerge(existing, value);
             } else {
-              result[key] = deepMerge(value);
+              result[key2] = deepMerge(value);
             }
           } else {
-            result[key] = value;
+            result[key2] = value;
           }
         }
       }
@@ -55866,12 +55866,12 @@ var require_GoTrueClient = __commonJS({
         }
       }
       async fetchJwk(kid, jwks = { keys: [] }) {
-        let jwk = jwks.keys.find((key) => key.kid === kid);
+        let jwk = jwks.keys.find((key2) => key2.kid === kid);
         if (jwk) {
           return jwk;
         }
         const now = Date.now();
-        jwk = this.jwks.keys.find((key) => key.kid === kid);
+        jwk = this.jwks.keys.find((key2) => key2.kid === kid);
         if (jwk && this.jwks_cached_at + constants_1.JWKS_TTL > now) {
           return jwk;
         }
@@ -55886,7 +55886,7 @@ var require_GoTrueClient = __commonJS({
         }
         this.jwks = data;
         this.jwks_cached_at = now;
-        jwk = data.keys.find((key) => key.kid === kid);
+        jwk = data.keys.find((key2) => key2.kid === kid);
         if (!jwk) {
           return null;
         }
@@ -57096,7 +57096,7 @@ var init_dist4 = __esm({
           fetch: fetch$1,
           lockAcquireTimeout,
           skipAutoInitialize,
-          hasCustomAuthorizationHeader: Object.keys(this.headers).some((key) => key.toLowerCase() === "authorization")
+          hasCustomAuthorizationHeader: Object.keys(this.headers).some((key2) => key2.toLowerCase() === "authorization")
         });
       }
       _initRealtimeClient(options) {
@@ -57194,24 +57194,24 @@ function forEach(obj, fn, { allOwnKeys = false } = {}) {
     }
     const keys = allOwnKeys ? Object.getOwnPropertyNames(obj) : Object.keys(obj);
     const len = keys.length;
-    let key;
+    let key2;
     for (i = 0; i < len; i++) {
-      key = keys[i];
-      fn.call(null, obj[key], key, obj);
+      key2 = keys[i];
+      fn.call(null, obj[key2], key2, obj);
     }
   }
 }
-function findKey(obj, key) {
+function findKey(obj, key2) {
   if (isBuffer(obj)) {
     return null;
   }
-  key = key.toLowerCase();
+  key2 = key2.toLowerCase();
   const keys = Object.keys(obj);
   let i = keys.length;
   let _key;
   while (i-- > 0) {
     _key = keys[i];
-    if (key === _key.toLowerCase()) {
+    if (key2 === _key.toLowerCase()) {
       return _key;
     }
   }
@@ -57220,11 +57220,11 @@ function findKey(obj, key) {
 function merge(...objs) {
   const { caseless, skipUndefined } = isContextDefined(this) && this || {};
   const result = {};
-  const assignValue = (val, key) => {
-    if (key === "__proto__" || key === "constructor" || key === "prototype") {
+  const assignValue = (val, key2) => {
+    if (key2 === "__proto__" || key2 === "constructor" || key2 === "prototype") {
       return;
     }
-    const targetKey = caseless && findKey(result, key) || key;
+    const targetKey = caseless && findKey(result, key2) || key2;
     const existing = hasOwnProperty(result, targetKey) ? result[targetKey] : void 0;
     if (isPlainObject2(existing) && isPlainObject2(val)) {
       result[targetKey] = merge(existing, val);
@@ -57325,9 +57325,9 @@ var init_utils = __esm({
     extend = (a, b, thisArg, { allOwnKeys } = {}) => {
       forEach(
         b,
-        (val, key) => {
+        (val, key2) => {
           if (thisArg && isFunction(val)) {
-            Object.defineProperty(a, key, {
+            Object.defineProperty(a, key2, {
               // Null-proto descriptor so a polluted Object.prototype.get cannot
               // hijack defineProperty's accessor-vs-data resolution.
               __proto__: null,
@@ -57337,7 +57337,7 @@ var init_utils = __esm({
               configurable: true
             });
           } else {
-            Object.defineProperty(a, key, {
+            Object.defineProperty(a, key2, {
               __proto__: null,
               value: val,
               writable: true,
@@ -57500,9 +57500,9 @@ var init_utils = __esm({
           if (!("toJSON" in source)) {
             visited.add(source);
             const target = isArray(source) ? [] : {};
-            forEach(source, (value, key) => {
+            forEach(source, (value, key2) => {
               const reducedValue = visit(value);
-              !isUndefined(reducedValue) && (target[key] = reducedValue);
+              !isUndefined(reducedValue) && (target[key2] = reducedValue);
             });
             visited.delete(source);
             return target;
@@ -57628,24 +57628,24 @@ var init_parseHeaders = __esm({
     ]);
     parseHeaders_default = (rawHeaders) => {
       const parsed = {};
-      let key;
+      let key2;
       let val;
       let i;
       rawHeaders && rawHeaders.split("\n").forEach(function parser(line) {
         i = line.indexOf(":");
-        key = line.substring(0, i).trim().toLowerCase();
+        key2 = line.substring(0, i).trim().toLowerCase();
         val = line.substring(i + 1).trim();
-        if (!key || parsed[key] && ignoreDuplicateOf[key]) {
+        if (!key2 || parsed[key2] && ignoreDuplicateOf[key2]) {
           return;
         }
-        if (key === "set-cookie") {
-          if (parsed[key]) {
-            parsed[key].push(val);
+        if (key2 === "set-cookie") {
+          if (parsed[key2]) {
+            parsed[key2].push(val);
           } else {
-            parsed[key] = [val];
+            parsed[key2] = [val];
           }
         } else {
-          parsed[key] = parsed[key] ? parsed[key] + ", " + val : val;
+          parsed[key2] = parsed[key2] ? parsed[key2] + ", " + val : val;
         }
       });
       return parsed;
@@ -57771,9 +57771,9 @@ var init_AxiosHeaders = __esm({
           if (!lHeader) {
             throw new Error("header name must be a non-empty string");
           }
-          const key = utils_default.findKey(self2, lHeader);
-          if (!key || self2[key] === void 0 || _rewrite === true || _rewrite === void 0 && self2[key] !== false) {
-            self2[key || _header] = normalizeValue(_value);
+          const key2 = utils_default.findKey(self2, lHeader);
+          if (!key2 || self2[key2] === void 0 || _rewrite === true || _rewrite === void 0 && self2[key2] !== false) {
+            self2[key2 || _header] = normalizeValue(_value);
           }
         }
         const setHeaders = (headers, _rewrite) => utils_default.forEach(headers, (_value, _header) => setHeader2(_value, _header, _rewrite));
@@ -57782,12 +57782,12 @@ var init_AxiosHeaders = __esm({
         } else if (utils_default.isString(header) && (header = header.trim()) && !isValidHeaderName(header)) {
           setHeaders(parseHeaders_default(header), valueOrRewrite);
         } else if (utils_default.isObject(header) && utils_default.isIterable(header)) {
-          let obj = {}, dest, key;
+          let obj = {}, dest, key2;
           for (const entry of header) {
             if (!utils_default.isArray(entry)) {
               throw TypeError("Object iterator must return a key-value pair");
             }
-            obj[key = entry[0]] = (dest = obj[key]) ? utils_default.isArray(dest) ? [...dest, entry[1]] : [dest, entry[1]] : entry[1];
+            obj[key2 = entry[0]] = (dest = obj[key2]) ? utils_default.isArray(dest) ? [...dest, entry[1]] : [dest, entry[1]] : entry[1];
           }
           setHeaders(obj, valueOrRewrite);
         } else {
@@ -57798,9 +57798,9 @@ var init_AxiosHeaders = __esm({
       get(header, parser) {
         header = normalizeHeader(header);
         if (header) {
-          const key = utils_default.findKey(this, header);
-          if (key) {
-            const value = this[key];
+          const key2 = utils_default.findKey(this, header);
+          if (key2) {
+            const value = this[key2];
             if (!parser) {
               return value;
             }
@@ -57808,7 +57808,7 @@ var init_AxiosHeaders = __esm({
               return parseTokens(value);
             }
             if (utils_default.isFunction(parser)) {
-              return parser.call(this, value, key);
+              return parser.call(this, value, key2);
             }
             if (utils_default.isRegExp(parser)) {
               return parser.exec(value);
@@ -57820,8 +57820,8 @@ var init_AxiosHeaders = __esm({
       has(header, matcher) {
         header = normalizeHeader(header);
         if (header) {
-          const key = utils_default.findKey(this, header);
-          return !!(key && this[key] !== void 0 && (!matcher || matchHeaderValue(this, this[key], key, matcher)));
+          const key2 = utils_default.findKey(this, header);
+          return !!(key2 && this[key2] !== void 0 && (!matcher || matchHeaderValue(this, this[key2], key2, matcher)));
         }
         return false;
       }
@@ -57831,9 +57831,9 @@ var init_AxiosHeaders = __esm({
         function deleteHeader(_header) {
           _header = normalizeHeader(_header);
           if (_header) {
-            const key = utils_default.findKey(self2, _header);
-            if (key && (!matcher || matchHeaderValue(self2, self2[key], key, matcher))) {
-              delete self2[key];
+            const key2 = utils_default.findKey(self2, _header);
+            if (key2 && (!matcher || matchHeaderValue(self2, self2[key2], key2, matcher))) {
+              delete self2[key2];
               deleted = true;
             }
           }
@@ -57850,9 +57850,9 @@ var init_AxiosHeaders = __esm({
         let i = keys.length;
         let deleted = false;
         while (i--) {
-          const key = keys[i];
-          if (!matcher || matchHeaderValue(this, this[key], key, matcher, true)) {
-            delete this[key];
+          const key2 = keys[i];
+          if (!matcher || matchHeaderValue(this, this[key2], key2, matcher, true)) {
+            delete this[key2];
             deleted = true;
           }
         }
@@ -57862,9 +57862,9 @@ var init_AxiosHeaders = __esm({
         const self2 = this;
         const headers = {};
         utils_default.forEach(this, (value, header) => {
-          const key = utils_default.findKey(headers, header);
-          if (key) {
-            self2[key] = normalizeValue(value);
+          const key2 = utils_default.findKey(headers, header);
+          if (key2) {
+            self2[key2] = normalizeValue(value);
             delete self2[header];
             return;
           }
@@ -57932,8 +57932,8 @@ var init_AxiosHeaders = __esm({
       "User-Agent",
       "Authorization"
     ]);
-    utils_default.reduceDescriptors(AxiosHeaders.prototype, ({ value }, key) => {
-      let mapped = key[0].toUpperCase() + key.slice(1);
+    utils_default.reduceDescriptors(AxiosHeaders.prototype, ({ value }, key2) => {
+      let mapped = key2[0].toUpperCase() + key2.slice(1);
       return {
         get: () => value,
         set(headerValue) {
@@ -57986,10 +57986,10 @@ function redactConfig(config2, redactKeys) {
         return source;
       }
       result = /* @__PURE__ */ Object.create(null);
-      for (const [key, value] of Object.entries(source)) {
-        const reducedValue = lowerKeys.has(key.toLowerCase()) ? REDACTED : visit(value);
+      for (const [key2, value] of Object.entries(source)) {
+        const reducedValue = lowerKeys.has(key2.toLowerCase()) ? REDACTED : visit(value);
         if (!utils_default.isUndefined(reducedValue)) {
-          result[key] = reducedValue;
+          result[key2] = reducedValue;
         }
       }
     }
@@ -58395,9 +58395,9 @@ var require_abort = __commonJS({
       Object.keys(state.jobs).forEach(clean.bind(state));
       state.jobs = {};
     }
-    function clean(key) {
-      if (typeof this.jobs[key] == "function") {
-        this.jobs[key]();
+    function clean(key2) {
+      if (typeof this.jobs[key2] == "function") {
+        this.jobs[key2]();
       }
     }
   }
@@ -58410,26 +58410,26 @@ var require_iterate = __commonJS({
     var abort = require_abort();
     module2.exports = iterate;
     function iterate(list, iterator2, state, callback) {
-      var key = state["keyedList"] ? state["keyedList"][state.index] : state.index;
-      state.jobs[key] = runJob(iterator2, key, list[key], function(error, output) {
-        if (!(key in state.jobs)) {
+      var key2 = state["keyedList"] ? state["keyedList"][state.index] : state.index;
+      state.jobs[key2] = runJob(iterator2, key2, list[key2], function(error, output) {
+        if (!(key2 in state.jobs)) {
           return;
         }
-        delete state.jobs[key];
+        delete state.jobs[key2];
         if (error) {
           abort(state);
         } else {
-          state.results[key] = output;
+          state.results[key2] = output;
         }
         callback(error, state.results);
       });
     }
-    function runJob(iterator2, key, item, callback) {
+    function runJob(iterator2, key2, item, callback) {
       var aborter;
       if (iterator2.length == 2) {
         aborter = iterator2(item, async(callback));
       } else {
-        aborter = iterator2(item, key, async(callback));
+        aborter = iterator2(item, key2, async(callback));
       }
       return aborter;
     }
@@ -58949,12 +58949,12 @@ var init_FormData = __esm({
 function isVisitable(thing) {
   return utils_default.isPlainObject(thing) || utils_default.isArray(thing);
 }
-function removeBrackets(key) {
-  return utils_default.endsWith(key, "[]") ? key.slice(0, -2) : key;
+function removeBrackets(key2) {
+  return utils_default.endsWith(key2, "[]") ? key2.slice(0, -2) : key2;
 }
-function renderKey(path2, key, dots) {
-  if (!path2) return key;
-  return path2.concat(key).map(function each(token, i) {
+function renderKey(path2, key2, dots) {
+  if (!path2) return key2;
+  return path2.concat(key2).map(function each(token, i) {
     token = removeBrackets(token);
     return !dots && i ? "[" + token + "]" : token;
   }).join(dots ? "." : "");
@@ -59005,22 +59005,22 @@ function toFormData(obj, formData, options) {
     }
     return value;
   }
-  function defaultVisitor(value, key, path2) {
+  function defaultVisitor(value, key2, path2) {
     let arr = value;
     if (utils_default.isReactNative(formData) && utils_default.isReactNativeBlob(value)) {
-      formData.append(renderKey(path2, key, dots), convertValue(value));
+      formData.append(renderKey(path2, key2, dots), convertValue(value));
       return false;
     }
     if (value && !path2 && typeof value === "object") {
-      if (utils_default.endsWith(key, "{}")) {
-        key = metaTokens ? key : key.slice(0, -2);
+      if (utils_default.endsWith(key2, "{}")) {
+        key2 = metaTokens ? key2 : key2.slice(0, -2);
         value = JSON.stringify(value);
-      } else if (utils_default.isArray(value) && isFlatArray(value) || (utils_default.isFileList(value) || utils_default.endsWith(key, "[]")) && (arr = utils_default.toArray(value))) {
-        key = removeBrackets(key);
+      } else if (utils_default.isArray(value) && isFlatArray(value) || (utils_default.isFileList(value) || utils_default.endsWith(key2, "[]")) && (arr = utils_default.toArray(value))) {
+        key2 = removeBrackets(key2);
         arr.forEach(function each(el, index) {
           !(utils_default.isUndefined(el) || el === null) && formData.append(
             // eslint-disable-next-line no-nested-ternary
-            indexes === true ? renderKey([key], index, dots) : indexes === null ? key : key + "[]",
+            indexes === true ? renderKey([key2], index, dots) : indexes === null ? key2 : key2 + "[]",
             convertValue(el)
           );
         });
@@ -59030,7 +59030,7 @@ function toFormData(obj, formData, options) {
     if (isVisitable(value)) {
       return true;
     }
-    formData.append(renderKey(path2, key, dots), convertValue(value));
+    formData.append(renderKey(path2, key2, dots), convertValue(value));
     return false;
   }
   const stack = [];
@@ -59051,10 +59051,10 @@ function toFormData(obj, formData, options) {
       throw Error("Circular reference detected in " + path2.join("."));
     }
     stack.push(value);
-    utils_default.forEach(value, function each(el, key) {
-      const result = !(utils_default.isUndefined(el) || el === null) && visitor.call(formData, el, utils_default.isString(key) ? key.trim() : key, path2, exposedHelpers);
+    utils_default.forEach(value, function each(el, key2) {
+      const result = !(utils_default.isUndefined(el) || el === null) && visitor.call(formData, el, utils_default.isString(key2) ? key2.trim() : key2, path2, exposedHelpers);
       if (result === true) {
-        build(el, path2 ? path2.concat(key) : [key], depth + 1);
+        build(el, path2 ? path2.concat(key2) : [key2], depth + 1);
       }
     });
     stack.pop();
@@ -59327,9 +59327,9 @@ var init_platform = __esm({
 // ../../node_modules/axios/lib/helpers/toURLEncodedForm.js
 function toURLEncodedForm(data, options) {
   return toFormData_default(data, new platform_default.classes.URLSearchParams(), {
-    visitor: function(value, key, path2, helpers) {
+    visitor: function(value, key2, path2, helpers) {
       if (platform_default.isNode && utils_default.isBuffer(value)) {
-        this.append(key, value.toString("base64"));
+        this.append(key2, value.toString("base64"));
         return false;
       }
       return helpers.defaultVisitor.apply(this, arguments);
@@ -59357,10 +59357,10 @@ function arrayToObject(arr) {
   const keys = Object.keys(arr);
   let i;
   const len = keys.length;
-  let key;
+  let key2;
   for (i = 0; i < len; i++) {
-    key = keys[i];
-    obj[key] = arr[key];
+    key2 = keys[i];
+    obj[key2] = arr[key2];
   }
   return obj;
 }
@@ -59431,7 +59431,7 @@ var init_defaults = __esm({
     init_toURLEncodedForm();
     init_platform();
     init_formDataToJSON();
-    own = (obj, key) => obj != null && utils_default.hasOwnProp(obj, key) ? obj[key] : void 0;
+    own = (obj, key2) => obj != null && utils_default.hasOwnProp(obj, key2) ? obj[key2] : void 0;
     defaults = {
       transitional: transitional_default,
       adapter: ["xhr", "http", "fetch"],
@@ -59709,8 +59709,8 @@ function shouldProxy(hostname, port) {
     return !hostname.endsWith(parsedProxyHostname);
   });
 }
-function getEnv(key) {
-  return process.env[key.toLowerCase()] || process.env[key.toUpperCase()] || "";
+function getEnv(key2) {
+  return process.env[key2.toLowerCase()] || process.env[key2.toUpperCase()] || "";
 }
 var DEFAULT_PORTS;
 var init_proxy_from_env = __esm({
@@ -59739,8 +59739,8 @@ var require_common = __commonJS({
       createDebug.enabled = enabled;
       createDebug.humanize = require_ms5();
       createDebug.destroy = destroy;
-      Object.keys(env2).forEach((key) => {
-        createDebug[key] = env2[key];
+      Object.keys(env2).forEach((key2) => {
+        createDebug[key2] = env2[key2];
       });
       createDebug.names = [];
       createDebug.skips = [];
@@ -60290,13 +60290,13 @@ var require_node6 = __commonJS({
       }
     } catch (error) {
     }
-    exports2.inspectOpts = Object.keys(process.env).filter((key) => {
-      return /^debug_/i.test(key);
-    }).reduce((obj, key) => {
-      const prop = key.substring(6).toLowerCase().replace(/_([a-z])/g, (_, k) => {
+    exports2.inspectOpts = Object.keys(process.env).filter((key2) => {
+      return /^debug_/i.test(key2);
+    }).reduce((obj, key2) => {
+      const prop = key2.substring(6).toLowerCase().replace(/_([a-z])/g, (_, k) => {
         return k.toUpperCase();
       });
-      let val = process.env[key];
+      let val = process.env[key2];
       if (/^(yes|on|true|enabled)$/i.test(val)) {
         val = true;
       } else if (/^(no|off|false|disabled)$/i.test(val)) {
@@ -60794,10 +60794,10 @@ var require_agent = __commonJS({
     }
     function omit(obj, ...keys) {
       const ret = {};
-      let key;
-      for (key in obj) {
-        if (!keys.includes(key)) {
-          ret[key] = obj[key];
+      let key2;
+      for (key2 in obj) {
+        if (!keys.includes(key2)) {
+          ret[key2] = obj[key2];
         }
       }
       return ret;
@@ -61276,8 +61276,8 @@ var require_follow_redirects = __commonJS({
     }
     function spreadUrlObject(urlObject, target) {
       var spread3 = target || {};
-      for (var key of preservedUrlFields) {
-        spread3[key] = urlObject[key];
+      for (var key2 of preservedUrlFields) {
+        spread3[key2] = urlObject[key2];
       }
       if (spread3.hostname.startsWith("[")) {
         spread3.hostname = spread3.hostname.slice(1, -1);
@@ -62054,21 +62054,21 @@ function setFormDataHeaders(headers, formHeaders, policy) {
     headers.set(formHeaders);
     return;
   }
-  Object.entries(formHeaders).forEach(([key, val]) => {
-    if (FORM_DATA_CONTENT_HEADERS.includes(key.toLowerCase())) {
-      headers.set(key, val);
+  Object.entries(formHeaders).forEach(([key2, val]) => {
+    if (FORM_DATA_CONTENT_HEADERS.includes(key2.toLowerCase())) {
+      headers.set(key2, val);
     }
   });
 }
 function getTunnelingAgent(agentOptions, userHttpsAgent) {
-  const key = agentOptions.protocol + "//" + agentOptions.hostname + ":" + (agentOptions.port || "") + "#" + (agentOptions.auth || "");
+  const key2 = agentOptions.protocol + "//" + agentOptions.hostname + ":" + (agentOptions.port || "") + "#" + (agentOptions.auth || "");
   const cache = userHttpsAgent ? tunnelingAgentCacheUser.get(userHttpsAgent) || tunnelingAgentCacheUser.set(userHttpsAgent, /* @__PURE__ */ new Map()).get(userHttpsAgent) : tunnelingAgentCache;
-  let agent = cache.get(key);
+  let agent = cache.get(key2);
   if (agent) return agent;
   const merged = userHttpsAgent && userHttpsAgent.options ? { ...userHttpsAgent.options, ...agentOptions } : agentOptions;
   agent = new import_https_proxy_agent.default(merged);
   agent[kAxiosInstalledTunnel] = true;
-  cache.set(key, agent);
+  cache.set(key2, agent);
   return agent;
 }
 function dispatchBeforeRedirect(options, responseDetails, requestDetails) {
@@ -62101,7 +62101,7 @@ function setProxy(options, configProxy, location2, isRedirect, configHttpsAgent)
   }
   if (proxy) {
     const isProxyURL = proxy instanceof URL;
-    const readProxyField = (key) => isProxyURL || utils_default.hasOwnProp(proxy, key) ? proxy[key] : void 0;
+    const readProxyField = (key2) => isProxyURL || utils_default.hasOwnProp(proxy, key2) ? proxy[key2] : void 0;
     const proxyUsername = readProxyField("username");
     const proxyPassword = readProxyField("password");
     let proxyAuth = utils_default.hasOwnProp(proxy, "auth") ? proxy.auth : void 0;
@@ -62376,7 +62376,7 @@ var init_http = __esm({
     };
     http_default = isHttpAdapterSupported && function httpAdapter(config2) {
       return wrapAsync(async function dispatchHttpRequest(resolve, reject, onDone) {
-        const own2 = (key) => utils_default.hasOwnProp(config2, key) ? config2[key] : void 0;
+        const own2 = (key2) => utils_default.hasOwnProp(config2, key2) ? config2[key2] : void 0;
         let data = own2("data");
         let lookup = own2("lookup");
         let family = own2("family");
@@ -63164,9 +63164,9 @@ function setFormDataHeaders2(headers, formHeaders, policy) {
     headers.set(formHeaders);
     return;
   }
-  Object.entries(formHeaders).forEach(([key, val]) => {
-    if (FORM_DATA_CONTENT_HEADERS2.includes(key.toLowerCase())) {
-      headers.set(key, val);
+  Object.entries(formHeaders).forEach(([key2, val]) => {
+    if (FORM_DATA_CONTENT_HEADERS2.includes(key2.toLowerCase())) {
+      headers.set(key2, val);
     }
   });
 }
@@ -63188,7 +63188,7 @@ var init_resolveConfig = __esm({
     );
     resolveConfig_default = (config2) => {
       const newConfig = mergeConfig({}, config2);
-      const own2 = (key) => utils_default.hasOwnProp(newConfig, key) ? newConfig[key] : void 0;
+      const own2 = (key2) => utils_default.hasOwnProp(newConfig, key2) ? newConfig[key2] : void 0;
       const data = own2("data");
       let withXSRFToken = own2("withXSRFToken");
       const xsrfHeaderName = own2("xsrfHeaderName");
@@ -63345,8 +63345,8 @@ var init_xhr = __esm({
         };
         requestData === void 0 && requestHeaders.setContentType(null);
         if ("setRequestHeader" in request) {
-          utils_default.forEach(toByteStringHeaderObject(requestHeaders), function setRequestHeader(val, key) {
-            request.setRequestHeader(key, val);
+          utils_default.forEach(toByteStringHeaderObject(requestHeaders), function setRequestHeader(val, key2) {
+            request.setRequestHeader(key2, val);
           });
         }
         if (!utils_default.isUndefined(_config.withCredentials)) {
@@ -64490,8 +64490,8 @@ var init_HttpStatusCode = __esm({
       SslHandshakeFailed: 525,
       InvalidSslCertificate: 526
     };
-    Object.entries(HttpStatusCode).forEach(([key, value]) => {
-      HttpStatusCode[value] = key;
+    Object.entries(HttpStatusCode).forEach(([key2, value]) => {
+      HttpStatusCode[value] = key2;
     });
     HttpStatusCode_default = HttpStatusCode;
   }
@@ -64827,11 +64827,13 @@ var init_src3 = __esm({
           last_four: lastFour,
           expiry_month: Number(expMonth) || 12,
           expiry_year: Number(expYear) || (/* @__PURE__ */ new Date()).getFullYear() + 3,
-          // VitalPay never returns the full PAN or a separate raw token — the
-          // card id is the only stable handle we get back, so it doubles as
-          // the token here.
+          // The card id is the only stable handle VitalPay returns — it
+          // doubles as the token here.
           card_token: card.id,
-          status: card.status
+          status: card.status,
+          // One-shot full card details, present only on the issue response.
+          full_pan: card.card_number,
+          pin_code: card.pin_code
         };
       }
       async freezeCard(providerCardId) {
@@ -64919,6 +64921,30 @@ var init_provider = __esm({
   }
 });
 
+// src/utils/cardCrypto.ts
+function encryptCardSecret(plaintext) {
+  const iv = (0, import_crypto3.randomBytes)(12);
+  const cipher = (0, import_crypto3.createCipheriv)("aes-256-gcm", key, iv);
+  const data = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
+  return `${iv.toString("hex")}:${cipher.getAuthTag().toString("hex")}:${data.toString("hex")}`;
+}
+function decryptCardSecret(ciphertext) {
+  const [ivHex, tagHex, dataHex] = ciphertext.split(":");
+  if (!ivHex || !tagHex || !dataHex) throw new Error("Malformed encrypted card data");
+  const decipher = (0, import_crypto3.createDecipheriv)("aes-256-gcm", key, Buffer.from(ivHex, "hex"));
+  decipher.setAuthTag(Buffer.from(tagHex, "hex"));
+  return Buffer.concat([decipher.update(Buffer.from(dataHex, "hex")), decipher.final()]).toString("utf8");
+}
+var import_crypto3, key;
+var init_cardCrypto = __esm({
+  "src/utils/cardCrypto.ts"() {
+    "use strict";
+    import_crypto3 = require("crypto");
+    init_config();
+    key = (0, import_crypto3.createHash)("sha256").update(env.ENCRYPTION_KEY).digest();
+  }
+});
+
 // src/services/cardService.ts
 var cardService_exports = {};
 __export(cardService_exports, {
@@ -64932,6 +64958,7 @@ var init_cardService = __esm({
     init_supabase();
     init_provider();
     init_logger();
+    init_cardCrypto();
     CardService = class {
       async issueCard(params) {
         const { data: cardholderProfile } = await supabaseAdmin.from("profiles").select("email").eq("id", params.user_id).single();
@@ -64990,6 +65017,12 @@ var init_cardService = __esm({
           card_token: providerResponse.card_token,
           masked_pan: providerResponse.masked_pan,
           last_four: providerResponse.last_four,
+          // VitalPay delivers the full card number exactly once, in the issue
+          // response — its model is card-on-customer-dashboard (confirmed by
+          // their support). Encrypted at rest; decrypted only by the
+          // owner-gated /api/cards/:id/reveal endpoint.
+          encrypted_pan: providerResponse.full_pan ? encryptCardSecret(providerResponse.full_pan) : null,
+          encrypted_pin: providerResponse.pin_code ? encryptCardSecret(providerResponse.pin_code) : null,
           cardholder_name: params.cardholder_name,
           expiry_month: providerResponse.expiry_month,
           expiry_year: providerResponse.expiry_year,
@@ -65178,8 +65211,8 @@ var Router = require_router();
 var last = (arr = []) => arr[arr.length - 1];
 var noop = Function.prototype;
 function copyFnProps(oldFn, newFn) {
-  Object.keys(oldFn).forEach((key) => {
-    newFn[key] = oldFn[key];
+  Object.keys(oldFn).forEach((key2) => {
+    newFn[key2] = oldFn[key2];
   });
   return newFn;
 }
@@ -65783,9 +65816,9 @@ var getResetSeconds = (resetTime, windowMs) => {
   }
   return resetSeconds;
 };
-var getPartitionKey = (key) => {
+var getPartitionKey = (key2) => {
   const hash = (0, import_node_crypto.createHash)("sha256");
-  hash.update(key);
+  hash.update(key2);
   const partitionKey = hash.digest("hex").slice(0, 12);
   return import_node_buffer.Buffer.from(partitionKey).toString("base64");
 };
@@ -65821,11 +65854,11 @@ var setDraft7Headers = (response, info, windowMs) => {
     `limit=${info.limit}, remaining=${info.remaining}, reset=${resetSeconds}`
   );
 };
-var setDraft8Headers = (response, info, windowMs, name, key) => {
+var setDraft8Headers = (response, info, windowMs, name, key2) => {
   if (response.headersSent) return;
   const windowSeconds = Math.ceil(windowMs / 1e3);
   const resetSeconds = getResetSeconds(info.resetTime, windowMs);
-  const partitionKey = getPartitionKey(key);
+  const partitionKey = getPartitionKey(key2);
   const policy = `q=${info.limit}; w=${windowSeconds}; pk=:${partitionKey}:`;
   const header = `r=${info.remaining}; t=${resetSeconds}`;
   response.append("RateLimit-Policy", `"${name}"; ${policy}`);
@@ -65959,7 +65992,7 @@ var validations = {
    *
    * @returns {void}
    */
-  singleCount(request, store, key) {
+  singleCount(request, store, key2) {
     let storeKeys = singleCountKeys.get(request);
     if (!storeKeys) {
       storeKeys = /* @__PURE__ */ new Map();
@@ -65971,11 +66004,11 @@ var validations = {
       keys = [];
       storeKeys.set(storeKey, keys);
     }
-    const prefixedKey = `${store.prefix ?? ""}${key}`;
+    const prefixedKey = `${store.prefix ?? ""}${key2}`;
     if (keys.includes(prefixedKey)) {
       throw new ValidationError(
         "ERR_ERL_DOUBLE_COUNT",
-        `The hit count for ${key} was incremented more than once for a single request.`
+        `The hit count for ${key2} was incremented more than once for a single request.`
       );
     }
     keys.push(prefixedKey);
@@ -66073,11 +66106,11 @@ var validations = {
       (k) => !["enabled", "disable"].includes(k)
     );
     supportedValidations.push("default");
-    for (const key of Object.keys(this.enabled)) {
-      if (!supportedValidations.includes(key)) {
+    for (const key2 of Object.keys(this.enabled)) {
+      if (!supportedValidations.includes(key2)) {
         throw new ValidationError(
           "ERR_ERL_UNKNOWN_VALIDATION",
-          `options.validate.${key} is not recognized. Supported validate options are: ${supportedValidations.join(
+          `options.validate.${key2} is not recognized. Supported validate options are: ${supportedValidations.join(
             ", "
           )}.`
         );
@@ -66170,8 +66203,8 @@ var MemoryStore = class {
    *
    * @public
    */
-  async get(key) {
-    return this.current.get(key) ?? this.previous.get(key);
+  async get(key2) {
+    return this.current.get(key2) ?? this.previous.get(key2);
   }
   /**
    * Method to increment a client's hit counter.
@@ -66182,8 +66215,8 @@ var MemoryStore = class {
    *
    * @public
    */
-  async increment(key) {
-    const client = this.getClient(key);
+  async increment(key2) {
+    const client = this.getClient(key2);
     const now = Date.now();
     if (client.resetTime.getTime() <= now) {
       this.resetClient(client, now);
@@ -66198,8 +66231,8 @@ var MemoryStore = class {
    *
    * @public
    */
-  async decrement(key) {
-    const client = this.getClient(key);
+  async decrement(key2) {
+    const client = this.getClient(key2);
     if (client.totalHits > 0) client.totalHits--;
   }
   /**
@@ -66209,9 +66242,9 @@ var MemoryStore = class {
    *
    * @public
    */
-  async resetKey(key) {
-    this.current.delete(key);
-    this.previous.delete(key);
+  async resetKey(key2) {
+    this.current.delete(key2);
+    this.previous.delete(key2);
   }
   /**
    * Method to reset everyone's hit counter.
@@ -66257,17 +66290,17 @@ var MemoryStore = class {
    *
    * @returns {Client} - The requested client.
    */
-  getClient(key) {
-    if (this.current.has(key)) return this.current.get(key);
+  getClient(key2) {
+    if (this.current.has(key2)) return this.current.get(key2);
     let client;
-    if (this.previous.has(key)) {
-      client = this.previous.get(key);
-      this.previous.delete(key);
+    if (this.previous.has(key2)) {
+      client = this.previous.get(key2);
+      this.previous.delete(key2);
     } else {
       client = { totalHits: 0, resetTime: /* @__PURE__ */ new Date() };
       this.resetClient(client);
     }
-    this.current.set(key, client);
+    this.current.set(key2, client);
     return client;
   }
   /**
@@ -66291,10 +66324,10 @@ var promisifyStore = (passedStore) => {
   }
   const legacyStore = passedStore;
   class PromisifiedStore {
-    async increment(key) {
+    async increment(key2) {
       return new Promise((resolve, reject) => {
         legacyStore.incr(
-          key,
+          key2,
           (error, totalHits, resetTime) => {
             if (error) reject(error);
             resolve({ totalHits, resetTime });
@@ -66302,11 +66335,11 @@ var promisifyStore = (passedStore) => {
         );
       });
     }
-    async decrement(key) {
-      return legacyStore.decrement(key);
+    async decrement(key2) {
+      return legacyStore.decrement(key2);
     }
-    async resetKey(key) {
-      return legacyStore.resetKey(key);
+    async resetKey(key2) {
+      return legacyStore.resetKey(key2);
     }
     /* istanbul ignore next */
     async resetAll() {
@@ -66326,9 +66359,9 @@ var getOptionsFromConfig = (config2) => {
 var omitUndefinedOptions = (passedOptions) => {
   const omittedOptions = {};
   for (const k of Object.keys(passedOptions)) {
-    const key = k;
-    if (passedOptions[key] !== void 0) {
-      omittedOptions[key] = passedOptions[key];
+    const key2 = k;
+    if (passedOptions[key2] !== void 0) {
+      omittedOptions[key2] = passedOptions[key2];
     }
   }
   return omittedOptions;
@@ -66425,11 +66458,11 @@ var rateLimit = (passedOptions) => {
         return;
       }
       const augmentedRequest = request;
-      const key = await config2.keyGenerator(request, response);
+      const key2 = await config2.keyGenerator(request, response);
       let totalHits = 0;
       let resetTime;
       try {
-        const incrementResult = await config2.store.increment(key);
+        const incrementResult = await config2.store.increment(key2);
         totalHits = incrementResult.totalHits;
         resetTime = incrementResult.resetTime;
       } catch (error) {
@@ -66444,7 +66477,7 @@ var rateLimit = (passedOptions) => {
         throw error;
       }
       config2.validations.positiveHits(totalHits);
-      config2.validations.singleCount(request, config2.store, key);
+      config2.validations.singleCount(request, config2.store, key2);
       const retrieveLimit = typeof config2.limit === "function" ? config2.limit(request, response) : config2.limit;
       const limit = await retrieveLimit;
       config2.validations.limit(limit);
@@ -66478,7 +66511,7 @@ var rateLimit = (passedOptions) => {
             const retrieveName = typeof config2.identifier === "function" ? config2.identifier(request, response) : config2.identifier;
             const name = await retrieveName;
             config2.validations.headersResetTime(info.resetTime);
-            setDraft8Headers(response, info, config2.windowMs, name, key);
+            setDraft8Headers(response, info, config2.windowMs, name, key2);
             break;
           }
           default: {
@@ -66491,7 +66524,7 @@ var rateLimit = (passedOptions) => {
         let decremented = false;
         const decrementKey = async () => {
           if (!decremented) {
-            await config2.store.decrement(key);
+            await config2.store.decrement(key2);
             decremented = true;
           }
         };
@@ -66683,9 +66716,9 @@ var util;
   };
   util6.objectKeys = typeof Object.keys === "function" ? (obj) => Object.keys(obj) : (object) => {
     const keys = [];
-    for (const key in object) {
-      if (Object.prototype.hasOwnProperty.call(object, key)) {
-        keys.push(key);
+    for (const key2 in object) {
+      if (Object.prototype.hasOwnProperty.call(object, key2)) {
+        keys.push(key2);
       }
     }
     return keys;
@@ -67085,10 +67118,10 @@ var ParseStatus = class _ParseStatus {
   static async mergeObjectAsync(status, pairs) {
     const syncPairs = [];
     for (const pair of pairs) {
-      const key = await pair.key;
+      const key2 = await pair.key;
       const value = await pair.value;
       syncPairs.push({
-        key,
+        key: key2,
         value
       });
     }
@@ -67097,17 +67130,17 @@ var ParseStatus = class _ParseStatus {
   static mergeObjectSync(status, pairs) {
     const finalObject = {};
     for (const pair of pairs) {
-      const { key, value } = pair;
-      if (key.status === "aborted")
+      const { key: key2, value } = pair;
+      if (key2.status === "aborted")
         return INVALID;
       if (value.status === "aborted")
         return INVALID;
-      if (key.status === "dirty")
+      if (key2.status === "dirty")
         status.dirty();
       if (value.status === "dirty")
         status.dirty();
-      if (key.value !== "__proto__" && (typeof value.value !== "undefined" || pair.alwaysSet)) {
-        finalObject[key.value] = value.value;
+      if (key2.value !== "__proto__" && (typeof value.value !== "undefined" || pair.alwaysSet)) {
+        finalObject[key2.value] = value.value;
       }
     }
     return { status: status.value, value: finalObject };
@@ -67132,12 +67165,12 @@ var errorUtil;
 
 // ../../node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path2, key) {
+  constructor(parent, value, path2, key2) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
     this._path = path2;
-    this._key = key;
+    this._key = key2;
   }
   get path() {
     if (!this._cachedPath.length) {
@@ -68882,9 +68915,9 @@ ZodArray.create = (schema, params) => {
 function deepPartialify(schema) {
   if (schema instanceof ZodObject) {
     const newShape = {};
-    for (const key in schema.shape) {
-      const fieldSchema = schema.shape[key];
-      newShape[key] = ZodOptional.create(deepPartialify(fieldSchema));
+    for (const key2 in schema.shape) {
+      const fieldSchema = schema.shape[key2];
+      newShape[key2] = ZodOptional.create(deepPartialify(fieldSchema));
     }
     return new ZodObject({
       ...schema._def,
@@ -68935,29 +68968,29 @@ var ZodObject = class _ZodObject extends ZodType {
     const { shape, keys: shapeKeys } = this._getCached();
     const extraKeys = [];
     if (!(this._def.catchall instanceof ZodNever && this._def.unknownKeys === "strip")) {
-      for (const key in ctx.data) {
-        if (!shapeKeys.includes(key)) {
-          extraKeys.push(key);
+      for (const key2 in ctx.data) {
+        if (!shapeKeys.includes(key2)) {
+          extraKeys.push(key2);
         }
       }
     }
     const pairs = [];
-    for (const key of shapeKeys) {
-      const keyValidator = shape[key];
-      const value = ctx.data[key];
+    for (const key2 of shapeKeys) {
+      const keyValidator = shape[key2];
+      const value = ctx.data[key2];
       pairs.push({
-        key: { status: "valid", value: key },
-        value: keyValidator._parse(new ParseInputLazyPath(ctx, value, ctx.path, key)),
-        alwaysSet: key in ctx.data
+        key: { status: "valid", value: key2 },
+        value: keyValidator._parse(new ParseInputLazyPath(ctx, value, ctx.path, key2)),
+        alwaysSet: key2 in ctx.data
       });
     }
     if (this._def.catchall instanceof ZodNever) {
       const unknownKeys = this._def.unknownKeys;
       if (unknownKeys === "passthrough") {
-        for (const key of extraKeys) {
+        for (const key2 of extraKeys) {
           pairs.push({
-            key: { status: "valid", value: key },
-            value: { status: "valid", value: ctx.data[key] }
+            key: { status: "valid", value: key2 },
+            value: { status: "valid", value: ctx.data[key2] }
           });
         }
       } else if (unknownKeys === "strict") {
@@ -68974,15 +69007,15 @@ var ZodObject = class _ZodObject extends ZodType {
       }
     } else {
       const catchall = this._def.catchall;
-      for (const key of extraKeys) {
-        const value = ctx.data[key];
+      for (const key2 of extraKeys) {
+        const value = ctx.data[key2];
         pairs.push({
-          key: { status: "valid", value: key },
+          key: { status: "valid", value: key2 },
           value: catchall._parse(
-            new ParseInputLazyPath(ctx, value, ctx.path, key)
+            new ParseInputLazyPath(ctx, value, ctx.path, key2)
             //, ctx.child(key), value, getParsedType(value)
           ),
-          alwaysSet: key in ctx.data
+          alwaysSet: key2 in ctx.data
         });
       }
     }
@@ -68990,10 +69023,10 @@ var ZodObject = class _ZodObject extends ZodType {
       return Promise.resolve().then(async () => {
         const syncPairs = [];
         for (const pair of pairs) {
-          const key = await pair.key;
+          const key2 = await pair.key;
           const value = await pair.value;
           syncPairs.push({
-            key,
+            key: key2,
             value,
             alwaysSet: pair.alwaysSet
           });
@@ -69118,8 +69151,8 @@ var ZodObject = class _ZodObject extends ZodType {
   //   }) as any;
   //   return merged;
   // }
-  setKey(key, schema) {
-    return this.augment({ [key]: schema });
+  setKey(key2, schema) {
+    return this.augment({ [key2]: schema });
   }
   // merge<Incoming extends AnyZodObject>(
   //   merging: Incoming
@@ -69150,9 +69183,9 @@ var ZodObject = class _ZodObject extends ZodType {
   }
   pick(mask) {
     const shape = {};
-    for (const key of util.objectKeys(mask)) {
-      if (mask[key] && this.shape[key]) {
-        shape[key] = this.shape[key];
+    for (const key2 of util.objectKeys(mask)) {
+      if (mask[key2] && this.shape[key2]) {
+        shape[key2] = this.shape[key2];
       }
     }
     return new _ZodObject({
@@ -69162,9 +69195,9 @@ var ZodObject = class _ZodObject extends ZodType {
   }
   omit(mask) {
     const shape = {};
-    for (const key of util.objectKeys(this.shape)) {
-      if (!mask[key]) {
-        shape[key] = this.shape[key];
+    for (const key2 of util.objectKeys(this.shape)) {
+      if (!mask[key2]) {
+        shape[key2] = this.shape[key2];
       }
     }
     return new _ZodObject({
@@ -69180,12 +69213,12 @@ var ZodObject = class _ZodObject extends ZodType {
   }
   partial(mask) {
     const newShape = {};
-    for (const key of util.objectKeys(this.shape)) {
-      const fieldSchema = this.shape[key];
-      if (mask && !mask[key]) {
-        newShape[key] = fieldSchema;
+    for (const key2 of util.objectKeys(this.shape)) {
+      const fieldSchema = this.shape[key2];
+      if (mask && !mask[key2]) {
+        newShape[key2] = fieldSchema;
       } else {
-        newShape[key] = fieldSchema.optional();
+        newShape[key2] = fieldSchema.optional();
       }
     }
     return new _ZodObject({
@@ -69195,16 +69228,16 @@ var ZodObject = class _ZodObject extends ZodType {
   }
   required(mask) {
     const newShape = {};
-    for (const key of util.objectKeys(this.shape)) {
-      if (mask && !mask[key]) {
-        newShape[key] = this.shape[key];
+    for (const key2 of util.objectKeys(this.shape)) {
+      if (mask && !mask[key2]) {
+        newShape[key2] = this.shape[key2];
       } else {
-        const fieldSchema = this.shape[key];
+        const fieldSchema = this.shape[key2];
         let newField = fieldSchema;
         while (newField instanceof ZodOptional) {
           newField = newField._def.innerType;
         }
-        newShape[key] = newField;
+        newShape[key2] = newField;
       }
     }
     return new _ZodObject({
@@ -69448,14 +69481,14 @@ function mergeValues(a, b) {
     return { valid: true, data: a };
   } else if (aType === ZodParsedType.object && bType === ZodParsedType.object) {
     const bKeys = util.objectKeys(b);
-    const sharedKeys = util.objectKeys(a).filter((key) => bKeys.indexOf(key) !== -1);
+    const sharedKeys = util.objectKeys(a).filter((key2) => bKeys.indexOf(key2) !== -1);
     const newObj = { ...a, ...b };
-    for (const key of sharedKeys) {
-      const sharedValue = mergeValues(a[key], b[key]);
+    for (const key2 of sharedKeys) {
+      const sharedValue = mergeValues(a[key2], b[key2]);
       if (!sharedValue.valid) {
         return { valid: false };
       }
-      newObj[key] = sharedValue.data;
+      newObj[key2] = sharedValue.data;
     }
     return { valid: true, data: newObj };
   } else if (aType === ZodParsedType.array && bType === ZodParsedType.array) {
@@ -69619,11 +69652,11 @@ var ZodRecord = class _ZodRecord extends ZodType {
     const pairs = [];
     const keyType = this._def.keyType;
     const valueType = this._def.valueType;
-    for (const key in ctx.data) {
+    for (const key2 in ctx.data) {
       pairs.push({
-        key: keyType._parse(new ParseInputLazyPath(ctx, key, ctx.path, key)),
-        value: valueType._parse(new ParseInputLazyPath(ctx, ctx.data[key], ctx.path, key)),
-        alwaysSet: key in ctx.data
+        key: keyType._parse(new ParseInputLazyPath(ctx, key2, ctx.path, key2)),
+        value: valueType._parse(new ParseInputLazyPath(ctx, ctx.data[key2], ctx.path, key2)),
+        alwaysSet: key2 in ctx.data
       });
     }
     if (ctx.common.async) {
@@ -69671,9 +69704,9 @@ var ZodMap = class extends ZodType {
     }
     const keyType = this._def.keyType;
     const valueType = this._def.valueType;
-    const pairs = [...ctx.data.entries()].map(([key, value], index) => {
+    const pairs = [...ctx.data.entries()].map(([key2, value], index) => {
       return {
-        key: keyType._parse(new ParseInputLazyPath(ctx, key, ctx.path, [index, "key"])),
+        key: keyType._parse(new ParseInputLazyPath(ctx, key2, ctx.path, [index, "key"])),
         value: valueType._parse(new ParseInputLazyPath(ctx, value, ctx.path, [index, "value"]))
       };
     });
@@ -69681,30 +69714,30 @@ var ZodMap = class extends ZodType {
       const finalMap = /* @__PURE__ */ new Map();
       return Promise.resolve().then(async () => {
         for (const pair of pairs) {
-          const key = await pair.key;
+          const key2 = await pair.key;
           const value = await pair.value;
-          if (key.status === "aborted" || value.status === "aborted") {
+          if (key2.status === "aborted" || value.status === "aborted") {
             return INVALID;
           }
-          if (key.status === "dirty" || value.status === "dirty") {
+          if (key2.status === "dirty" || value.status === "dirty") {
             status.dirty();
           }
-          finalMap.set(key.value, value.value);
+          finalMap.set(key2.value, value.value);
         }
         return { status: status.value, value: finalMap };
       });
     } else {
       const finalMap = /* @__PURE__ */ new Map();
       for (const pair of pairs) {
-        const key = pair.key;
+        const key2 = pair.key;
         const value = pair.value;
-        if (key.status === "aborted" || value.status === "aborted") {
+        if (key2.status === "aborted" || value.status === "aborted") {
           return INVALID;
         }
-        if (key.status === "dirty" || value.status === "dirty") {
+        if (key2.status === "dirty" || value.status === "dirty") {
           status.dirty();
         }
-        finalMap.set(key.value, value.value);
+        finalMap.set(key2.value, value.value);
       }
       return { status: status.value, value: finalMap };
     }
@@ -70751,7 +70784,7 @@ var crypto2 = __toESM(require("node:crypto"), 1);
 var util3 = __toESM(require("node:util"), 1);
 var webcrypto2 = crypto2.webcrypto;
 var webcrypto_default = webcrypto2;
-var isCryptoKey = (key) => util3.types.isCryptoKey(key);
+var isCryptoKey = (key2) => util3.types.isCryptoKey(key2);
 
 // ../../node_modules/jose/dist/node/esm/lib/crypto_key.js
 function unusable(name, prop = "algorithm.name") {
@@ -70775,8 +70808,8 @@ function getNamedCurve(alg) {
       throw new Error("unreachable");
   }
 }
-function checkUsage(key, usages) {
-  if (usages.length && !usages.some((expected) => key.usages.includes(expected))) {
+function checkUsage(key2, usages) {
+  if (usages.length && !usages.some((expected) => key2.usages.includes(expected))) {
     let msg = "CryptoKey does not support this operation, its usages must include ";
     if (usages.length > 2) {
       const last2 = usages.pop();
@@ -70789,15 +70822,15 @@ function checkUsage(key, usages) {
     throw new TypeError(msg);
   }
 }
-function checkSigCryptoKey(key, alg, ...usages) {
+function checkSigCryptoKey(key2, alg, ...usages) {
   switch (alg) {
     case "HS256":
     case "HS384":
     case "HS512": {
-      if (!isAlgorithm(key.algorithm, "HMAC"))
+      if (!isAlgorithm(key2.algorithm, "HMAC"))
         throw unusable("HMAC");
       const expected = parseInt(alg.slice(2), 10);
-      const actual = getHashLength(key.algorithm.hash);
+      const actual = getHashLength(key2.algorithm.hash);
       if (actual !== expected)
         throw unusable(`SHA-${expected}`, "algorithm.hash");
       break;
@@ -70805,10 +70838,10 @@ function checkSigCryptoKey(key, alg, ...usages) {
     case "RS256":
     case "RS384":
     case "RS512": {
-      if (!isAlgorithm(key.algorithm, "RSASSA-PKCS1-v1_5"))
+      if (!isAlgorithm(key2.algorithm, "RSASSA-PKCS1-v1_5"))
         throw unusable("RSASSA-PKCS1-v1_5");
       const expected = parseInt(alg.slice(2), 10);
-      const actual = getHashLength(key.algorithm.hash);
+      const actual = getHashLength(key2.algorithm.hash);
       if (actual !== expected)
         throw unusable(`SHA-${expected}`, "algorithm.hash");
       break;
@@ -70816,32 +70849,32 @@ function checkSigCryptoKey(key, alg, ...usages) {
     case "PS256":
     case "PS384":
     case "PS512": {
-      if (!isAlgorithm(key.algorithm, "RSA-PSS"))
+      if (!isAlgorithm(key2.algorithm, "RSA-PSS"))
         throw unusable("RSA-PSS");
       const expected = parseInt(alg.slice(2), 10);
-      const actual = getHashLength(key.algorithm.hash);
+      const actual = getHashLength(key2.algorithm.hash);
       if (actual !== expected)
         throw unusable(`SHA-${expected}`, "algorithm.hash");
       break;
     }
     case "EdDSA": {
-      if (key.algorithm.name !== "Ed25519" && key.algorithm.name !== "Ed448") {
+      if (key2.algorithm.name !== "Ed25519" && key2.algorithm.name !== "Ed448") {
         throw unusable("Ed25519 or Ed448");
       }
       break;
     }
     case "Ed25519": {
-      if (!isAlgorithm(key.algorithm, "Ed25519"))
+      if (!isAlgorithm(key2.algorithm, "Ed25519"))
         throw unusable("Ed25519");
       break;
     }
     case "ES256":
     case "ES384":
     case "ES512": {
-      if (!isAlgorithm(key.algorithm, "ECDSA"))
+      if (!isAlgorithm(key2.algorithm, "ECDSA"))
         throw unusable("ECDSA");
       const expected = getNamedCurve(alg);
-      const actual = key.algorithm.namedCurve;
+      const actual = key2.algorithm.namedCurve;
       if (actual !== expected)
         throw unusable(expected, "algorithm.namedCurve");
       break;
@@ -70849,7 +70882,7 @@ function checkSigCryptoKey(key, alg, ...usages) {
     default:
       throw new TypeError("CryptoKey does not support this operation");
   }
-  checkUsage(key, usages);
+  checkUsage(key2, usages);
 }
 
 // ../../node_modules/jose/dist/node/esm/lib/invalid_key_input.js
@@ -70882,7 +70915,7 @@ function withAlg(alg, actual, ...types4) {
 }
 
 // ../../node_modules/jose/dist/node/esm/runtime/is_key_like.js
-var is_key_like_default = (key) => is_key_object_default(key) || isCryptoKey(key);
+var is_key_like_default = (key2) => is_key_object_default(key2) || isCryptoKey(key2);
 var types3 = ["KeyObject"];
 if (globalThis.CryptoKey || webcrypto_default?.CryptoKey) {
   types3.push("CryptoKey");
@@ -70934,17 +70967,17 @@ function isObject(input) {
 var import_node_crypto2 = require("node:crypto");
 
 // ../../node_modules/jose/dist/node/esm/lib/is_jwk.js
-function isJWK(key) {
-  return isObject(key) && typeof key.kty === "string";
+function isJWK(key2) {
+  return isObject(key2) && typeof key2.kty === "string";
 }
-function isPrivateJWK(key) {
-  return key.kty !== "oct" && typeof key.d === "string";
+function isPrivateJWK(key2) {
+  return key2.kty !== "oct" && typeof key2.d === "string";
 }
-function isPublicJWK(key) {
-  return key.kty !== "oct" && typeof key.d === "undefined";
+function isPublicJWK(key2) {
+  return key2.kty !== "oct" && typeof key2.d === "undefined";
 }
-function isSecretJWK(key) {
-  return isJWK(key) && key.kty === "oct" && typeof key.k === "string";
+function isSecretJWK(key2) {
+  return isJWK(key2) && key2.kty === "oct" && typeof key2.k === "string";
 }
 
 // ../../node_modules/jose/dist/node/esm/runtime/get_named_curve.js
@@ -70963,28 +70996,28 @@ var namedCurveToJOSE = (namedCurve) => {
   }
 };
 var getNamedCurve2 = (kee, raw) => {
-  let key;
+  let key2;
   if (isCryptoKey(kee)) {
-    key = import_node_crypto2.KeyObject.from(kee);
+    key2 = import_node_crypto2.KeyObject.from(kee);
   } else if (is_key_object_default(kee)) {
-    key = kee;
+    key2 = kee;
   } else if (isJWK(kee)) {
     return kee.crv;
   } else {
     throw new TypeError(invalid_key_input_default(kee, ...types3));
   }
-  if (key.type === "secret") {
+  if (key2.type === "secret") {
     throw new TypeError('only "private" or "public" type keys can be used for this operation');
   }
-  switch (key.asymmetricKeyType) {
+  switch (key2.asymmetricKeyType) {
     case "ed25519":
     case "ed448":
-      return `Ed${key.asymmetricKeyType.slice(2)}`;
+      return `Ed${key2.asymmetricKeyType.slice(2)}`;
     case "x25519":
     case "x448":
-      return `X${key.asymmetricKeyType.slice(1)}`;
+      return `X${key2.asymmetricKeyType.slice(1)}`;
     case "ec": {
-      const namedCurve = key.asymmetricKeyDetails.namedCurve;
+      const namedCurve = key2.asymmetricKeyDetails.namedCurve;
       if (raw) {
         return namedCurve;
       }
@@ -70998,13 +71031,13 @@ var get_named_curve_default = getNamedCurve2;
 
 // ../../node_modules/jose/dist/node/esm/runtime/check_key_length.js
 var import_node_crypto3 = require("node:crypto");
-var check_key_length_default = (key, alg) => {
+var check_key_length_default = (key2, alg) => {
   let modulusLength;
   try {
-    if (key instanceof import_node_crypto3.KeyObject) {
-      modulusLength = key.asymmetricKeyDetails?.modulusLength;
+    if (key2 instanceof import_node_crypto3.KeyObject) {
+      modulusLength = key2.asymmetricKeyDetails?.modulusLength;
     } else {
-      modulusLength = Buffer.from(key.n, "base64url").byteLength << 3;
+      modulusLength = Buffer.from(key2.n, "base64url").byteLength << 3;
     }
   } catch {
   }
@@ -71015,11 +71048,11 @@ var check_key_length_default = (key, alg) => {
 
 // ../../node_modules/jose/dist/node/esm/runtime/jwk_to_key.js
 var import_node_crypto4 = require("node:crypto");
-var parse = (key) => {
-  if (key.d) {
-    return (0, import_node_crypto4.createPrivateKey)({ format: "jwk", key });
+var parse = (key2) => {
+  if (key2.d) {
+    return (0, import_node_crypto4.createPrivateKey)({ format: "jwk", key: key2 });
   }
-  return (0, import_node_crypto4.createPublicKey)({ format: "jwk", key });
+  return (0, import_node_crypto4.createPublicKey)({ format: "jwk", key: key2 });
 };
 var jwk_to_key_default = parse;
 
@@ -71048,72 +71081,72 @@ async function importJWK(jwk, alg) {
 }
 
 // ../../node_modules/jose/dist/node/esm/lib/check_key_type.js
-var tag = (key) => key?.[Symbol.toStringTag];
-var jwkMatchesOp = (alg, key, usage) => {
-  if (key.use !== void 0 && key.use !== "sig") {
+var tag = (key2) => key2?.[Symbol.toStringTag];
+var jwkMatchesOp = (alg, key2, usage) => {
+  if (key2.use !== void 0 && key2.use !== "sig") {
     throw new TypeError("Invalid key for this operation, when present its use must be sig");
   }
-  if (key.key_ops !== void 0 && key.key_ops.includes?.(usage) !== true) {
+  if (key2.key_ops !== void 0 && key2.key_ops.includes?.(usage) !== true) {
     throw new TypeError(`Invalid key for this operation, when present its key_ops must include ${usage}`);
   }
-  if (key.alg !== void 0 && key.alg !== alg) {
+  if (key2.alg !== void 0 && key2.alg !== alg) {
     throw new TypeError(`Invalid key for this operation, when present its alg must be ${alg}`);
   }
   return true;
 };
-var symmetricTypeCheck = (alg, key, usage, allowJwk) => {
-  if (key instanceof Uint8Array)
+var symmetricTypeCheck = (alg, key2, usage, allowJwk) => {
+  if (key2 instanceof Uint8Array)
     return;
-  if (allowJwk && isJWK(key)) {
-    if (isSecretJWK(key) && jwkMatchesOp(alg, key, usage))
+  if (allowJwk && isJWK(key2)) {
+    if (isSecretJWK(key2) && jwkMatchesOp(alg, key2, usage))
       return;
     throw new TypeError(`JSON Web Key for symmetric algorithms must have JWK "kty" (Key Type) equal to "oct" and the JWK "k" (Key Value) present`);
   }
-  if (!is_key_like_default(key)) {
-    throw new TypeError(withAlg(alg, key, ...types3, "Uint8Array", allowJwk ? "JSON Web Key" : null));
+  if (!is_key_like_default(key2)) {
+    throw new TypeError(withAlg(alg, key2, ...types3, "Uint8Array", allowJwk ? "JSON Web Key" : null));
   }
-  if (key.type !== "secret") {
-    throw new TypeError(`${tag(key)} instances for symmetric algorithms must be of type "secret"`);
+  if (key2.type !== "secret") {
+    throw new TypeError(`${tag(key2)} instances for symmetric algorithms must be of type "secret"`);
   }
 };
-var asymmetricTypeCheck = (alg, key, usage, allowJwk) => {
-  if (allowJwk && isJWK(key)) {
+var asymmetricTypeCheck = (alg, key2, usage, allowJwk) => {
+  if (allowJwk && isJWK(key2)) {
     switch (usage) {
       case "sign":
-        if (isPrivateJWK(key) && jwkMatchesOp(alg, key, usage))
+        if (isPrivateJWK(key2) && jwkMatchesOp(alg, key2, usage))
           return;
         throw new TypeError(`JSON Web Key for this operation be a private JWK`);
       case "verify":
-        if (isPublicJWK(key) && jwkMatchesOp(alg, key, usage))
+        if (isPublicJWK(key2) && jwkMatchesOp(alg, key2, usage))
           return;
         throw new TypeError(`JSON Web Key for this operation be a public JWK`);
     }
   }
-  if (!is_key_like_default(key)) {
-    throw new TypeError(withAlg(alg, key, ...types3, allowJwk ? "JSON Web Key" : null));
+  if (!is_key_like_default(key2)) {
+    throw new TypeError(withAlg(alg, key2, ...types3, allowJwk ? "JSON Web Key" : null));
   }
-  if (key.type === "secret") {
-    throw new TypeError(`${tag(key)} instances for asymmetric algorithms must not be of type "secret"`);
+  if (key2.type === "secret") {
+    throw new TypeError(`${tag(key2)} instances for asymmetric algorithms must not be of type "secret"`);
   }
-  if (usage === "sign" && key.type === "public") {
-    throw new TypeError(`${tag(key)} instances for asymmetric algorithm signing must be of type "private"`);
+  if (usage === "sign" && key2.type === "public") {
+    throw new TypeError(`${tag(key2)} instances for asymmetric algorithm signing must be of type "private"`);
   }
-  if (usage === "decrypt" && key.type === "public") {
-    throw new TypeError(`${tag(key)} instances for asymmetric algorithm decryption must be of type "private"`);
+  if (usage === "decrypt" && key2.type === "public") {
+    throw new TypeError(`${tag(key2)} instances for asymmetric algorithm decryption must be of type "private"`);
   }
-  if (key.algorithm && usage === "verify" && key.type === "private") {
-    throw new TypeError(`${tag(key)} instances for asymmetric algorithm verifying must be of type "public"`);
+  if (key2.algorithm && usage === "verify" && key2.type === "private") {
+    throw new TypeError(`${tag(key2)} instances for asymmetric algorithm verifying must be of type "public"`);
   }
-  if (key.algorithm && usage === "encrypt" && key.type === "private") {
-    throw new TypeError(`${tag(key)} instances for asymmetric algorithm encryption must be of type "public"`);
+  if (key2.algorithm && usage === "encrypt" && key2.type === "private") {
+    throw new TypeError(`${tag(key2)} instances for asymmetric algorithm encryption must be of type "public"`);
   }
 };
-function checkKeyType(allowJwk, alg, key, usage) {
+function checkKeyType(allowJwk, alg, key2, usage) {
   const symmetric = alg.startsWith("HS") || alg === "dir" || alg.startsWith("PBES2") || /^A\d{3}(?:GCM)?KW$/.test(alg);
   if (symmetric) {
-    symmetricTypeCheck(alg, key, usage, allowJwk);
+    symmetricTypeCheck(alg, key2, usage, allowJwk);
   } else {
-    asymmetricTypeCheck(alg, key, usage, allowJwk);
+    asymmetricTypeCheck(alg, key2, usage, allowJwk);
   }
 }
 var check_key_type_default = checkKeyType.bind(void 0, false);
@@ -71199,16 +71232,16 @@ var ecCurveAlgMap = /* @__PURE__ */ new Map([
   ["ES384", "P-384"],
   ["ES512", "P-521"]
 ]);
-function keyForCrypto(alg, key) {
+function keyForCrypto(alg, key2) {
   let asymmetricKeyType;
   let asymmetricKeyDetails;
   let isJWK2;
-  if (key instanceof import_node_crypto5.KeyObject) {
-    asymmetricKeyType = key.asymmetricKeyType;
-    asymmetricKeyDetails = key.asymmetricKeyDetails;
+  if (key2 instanceof import_node_crypto5.KeyObject) {
+    asymmetricKeyType = key2.asymmetricKeyType;
+    asymmetricKeyDetails = key2.asymmetricKeyDetails;
   } else {
     isJWK2 = true;
-    switch (key.kty) {
+    switch (key2.kty) {
       case "RSA":
         asymmetricKeyType = "rsa";
         break;
@@ -71216,11 +71249,11 @@ function keyForCrypto(alg, key) {
         asymmetricKeyType = "ec";
         break;
       case "OKP": {
-        if (key.crv === "Ed25519") {
+        if (key2.crv === "Ed25519") {
           asymmetricKeyType = "ed25519";
           break;
         }
-        if (key.crv === "Ed448") {
+        if (key2.crv === "Ed448") {
           asymmetricKeyType = "ed448";
           break;
         }
@@ -71248,7 +71281,7 @@ function keyForCrypto(alg, key) {
       if (asymmetricKeyType !== "rsa") {
         throw new TypeError("Invalid key for this operation, its asymmetricKeyType must be rsa");
       }
-      check_key_length_default(key, alg);
+      check_key_length_default(key2, alg);
       break;
     case "PS256":
     case "PS384":
@@ -71265,7 +71298,7 @@ function keyForCrypto(alg, key) {
       } else if (asymmetricKeyType !== "rsa") {
         throw new TypeError("Invalid key for this operation, its asymmetricKeyType must be rsa or rsa-pss");
       }
-      check_key_length_default(key, alg);
+      check_key_length_default(key2, alg);
       options = {
         padding: import_node_crypto5.constants.RSA_PKCS1_PSS_PADDING,
         saltLength: import_node_crypto5.constants.RSA_PSS_SALTLEN_DIGEST
@@ -71278,7 +71311,7 @@ function keyForCrypto(alg, key) {
       if (asymmetricKeyType !== "ec") {
         throw new TypeError("Invalid key for this operation, its asymmetricKeyType must be ec");
       }
-      const actual = get_named_curve_default(key);
+      const actual = get_named_curve_default(key2);
       const expected = ecCurveAlgMap.get(alg);
       if (actual !== expected) {
         throw new TypeError(`Invalid key curve for the algorithm, its curve must be ${expected}, got ${actual}`);
@@ -71290,9 +71323,9 @@ function keyForCrypto(alg, key) {
       throw new JOSENotSupported(`alg ${alg} is not supported either by JOSE or your javascript runtime`);
   }
   if (isJWK2) {
-    return { format: "jwk", key, ...options };
+    return { format: "jwk", key: key2, ...options };
   }
-  return options ? { ...options, key } : key;
+  return options ? { ...options, key: key2 } : key2;
 }
 
 // ../../node_modules/jose/dist/node/esm/runtime/sign.js
@@ -71315,33 +71348,33 @@ function hmacDigest(alg) {
 
 // ../../node_modules/jose/dist/node/esm/runtime/get_sign_verify_key.js
 var import_node_crypto6 = require("node:crypto");
-function getSignVerifyKey(alg, key, usage) {
-  if (key instanceof Uint8Array) {
+function getSignVerifyKey(alg, key2, usage) {
+  if (key2 instanceof Uint8Array) {
     if (!alg.startsWith("HS")) {
-      throw new TypeError(invalid_key_input_default(key, ...types3));
+      throw new TypeError(invalid_key_input_default(key2, ...types3));
     }
-    return (0, import_node_crypto6.createSecretKey)(key);
+    return (0, import_node_crypto6.createSecretKey)(key2);
   }
-  if (key instanceof import_node_crypto6.KeyObject) {
-    return key;
+  if (key2 instanceof import_node_crypto6.KeyObject) {
+    return key2;
   }
-  if (isCryptoKey(key)) {
-    checkSigCryptoKey(key, alg, usage);
-    return import_node_crypto6.KeyObject.from(key);
+  if (isCryptoKey(key2)) {
+    checkSigCryptoKey(key2, alg, usage);
+    return import_node_crypto6.KeyObject.from(key2);
   }
-  if (isJWK(key)) {
+  if (isJWK(key2)) {
     if (alg.startsWith("HS")) {
-      return (0, import_node_crypto6.createSecretKey)(Buffer.from(key.k, "base64url"));
+      return (0, import_node_crypto6.createSecretKey)(Buffer.from(key2.k, "base64url"));
     }
-    return key;
+    return key2;
   }
-  throw new TypeError(invalid_key_input_default(key, ...types3, "Uint8Array", "JSON Web Key"));
+  throw new TypeError(invalid_key_input_default(key2, ...types3, "Uint8Array", "JSON Web Key"));
 }
 
 // ../../node_modules/jose/dist/node/esm/runtime/sign.js
 var oneShotSign = (0, import_node_util.promisify)(crypto3.sign);
-var sign2 = async (alg, key, data) => {
-  const k = getSignVerifyKey(alg, key, "sign");
+var sign2 = async (alg, key2, data) => {
+  const k = getSignVerifyKey(alg, key2, "sign");
   if (alg.startsWith("HS")) {
     const hmac = crypto3.createHmac(hmacDigest(alg), k);
     hmac.update(data);
@@ -71353,8 +71386,8 @@ var sign_default = sign2;
 
 // ../../node_modules/jose/dist/node/esm/runtime/verify.js
 var oneShotVerify = (0, import_node_util2.promisify)(crypto4.verify);
-var verify2 = async (alg, key, signature, data) => {
-  const k = getSignVerifyKey(alg, key, "verify");
+var verify2 = async (alg, key2, signature, data) => {
+  const k = getSignVerifyKey(alg, key2, "verify");
   if (alg.startsWith("HS")) {
     const expected = await sign_default(alg, k, data);
     const actual = signature;
@@ -71375,7 +71408,7 @@ var verify2 = async (alg, key, signature, data) => {
 var verify_default = verify2;
 
 // ../../node_modules/jose/dist/node/esm/jws/flattened/verify.js
-async function flattenedVerify(jws, key, options) {
+async function flattenedVerify(jws, key2, options) {
   if (!isObject(jws)) {
     throw new JWSInvalid("Flattened JWS must be an object");
   }
@@ -71434,15 +71467,15 @@ async function flattenedVerify(jws, key, options) {
     throw new JWSInvalid("JWS Payload must be a string or an Uint8Array instance");
   }
   let resolvedKey = false;
-  if (typeof key === "function") {
-    key = await key(parsedProt, jws);
+  if (typeof key2 === "function") {
+    key2 = await key2(parsedProt, jws);
     resolvedKey = true;
-    checkKeyTypeWithJwk(alg, key, "verify");
-    if (isJWK(key)) {
-      key = await importJWK(key, alg);
+    checkKeyTypeWithJwk(alg, key2, "verify");
+    if (isJWK(key2)) {
+      key2 = await importJWK(key2, alg);
     }
   } else {
-    checkKeyTypeWithJwk(alg, key, "verify");
+    checkKeyTypeWithJwk(alg, key2, "verify");
   }
   const data = concat(encoder.encode(jws.protected ?? ""), encoder.encode("."), typeof jws.payload === "string" ? encoder.encode(jws.payload) : jws.payload);
   let signature;
@@ -71451,7 +71484,7 @@ async function flattenedVerify(jws, key, options) {
   } catch {
     throw new JWSInvalid("Failed to base64url decode the signature");
   }
-  const verified = await verify_default(alg, key, signature, data);
+  const verified = await verify_default(alg, key2, signature, data);
   if (!verified) {
     throw new JWSSignatureVerificationFailed();
   }
@@ -71475,13 +71508,13 @@ async function flattenedVerify(jws, key, options) {
     result.unprotectedHeader = jws.header;
   }
   if (resolvedKey) {
-    return { ...result, key };
+    return { ...result, key: key2 };
   }
   return result;
 }
 
 // ../../node_modules/jose/dist/node/esm/jws/compact/verify.js
-async function compactVerify(jws, key, options) {
+async function compactVerify(jws, key2, options) {
   if (jws instanceof Uint8Array) {
     jws = decoder.decode(jws);
   }
@@ -71492,9 +71525,9 @@ async function compactVerify(jws, key, options) {
   if (length !== 3) {
     throw new JWSInvalid("Invalid Compact JWS");
   }
-  const verified = await flattenedVerify({ payload, protected: protectedHeader, signature }, key, options);
+  const verified = await flattenedVerify({ payload, protected: protectedHeader, signature }, key2, options);
   const result = { payload: verified.payload, protectedHeader: verified.protectedHeader };
-  if (typeof key === "function") {
+  if (typeof key2 === "function") {
     return { ...result, key: verified.key };
   }
   return result;
@@ -71657,14 +71690,14 @@ var jwt_claims_set_default = (protectedHeader, encodedPayload, options = {}) => 
 };
 
 // ../../node_modules/jose/dist/node/esm/jwt/verify.js
-async function jwtVerify(jwt, key, options) {
-  const verified = await compactVerify(jwt, key, options);
+async function jwtVerify(jwt, key2, options) {
+  const verified = await compactVerify(jwt, key2, options);
   if (verified.protectedHeader.crit?.includes("b64") && verified.protectedHeader.b64 === false) {
     throw new JWTInvalid("JWTs MUST NOT use unencoded payload");
   }
   const payload = jwt_claims_set_default(verified.protectedHeader, verified.payload, options);
   const result = { payload, protectedHeader: verified.protectedHeader };
-  if (typeof key === "function") {
+  if (typeof key2 === "function") {
     return { ...result, key: verified.key };
   }
   return result;
@@ -71687,8 +71720,8 @@ function getKtyFromAlg(alg) {
 function isJWKSLike(jwks) {
   return jwks && typeof jwks === "object" && Array.isArray(jwks.keys) && jwks.keys.every(isJWKLike);
 }
-function isJWKLike(key) {
-  return isObject(key);
+function isJWKLike(key2) {
+  return isObject(key2);
 }
 function clone(obj) {
   if (typeof structuredClone === "function") {
@@ -71769,11 +71802,11 @@ var LocalJWKSet = class {
 async function importWithAlgCache(cache, jwk, alg) {
   const cached = cache.get(jwk) || cache.set(jwk, {}).get(jwk);
   if (cached[alg] === void 0) {
-    const key = await importJWK({ ...jwk, ext: true }, alg);
-    if (key instanceof Uint8Array || key.type !== "public") {
+    const key2 = await importJWK({ ...jwk, ext: true }, alg);
+    if (key2 instanceof Uint8Array || key2.type !== "public") {
       throw new JWKSInvalid("JSON Web Key Set members must be public keys");
     }
-    cached[alg] = key;
+    cached[alg] = key2;
   }
   return cached[alg];
 }
@@ -72026,6 +72059,7 @@ var requireAgent = requireRole("super_admin", "staff", "agent");
 // src/routes/cards.ts
 init_cardService();
 init_supabase();
+init_cardCrypto();
 var router = (0, import_express.Router)();
 var issueCardSchema = external_exports.object({
   cardholder_name: external_exports.string().min(2).max(26),
@@ -72055,7 +72089,35 @@ router.get("/:id", authenticate, async (req, res) => {
     res.status(404).json({ success: false, error: "Card not found" });
     return;
   }
+  delete data.encrypted_pan;
+  delete data.encrypted_pin;
   res.json({ success: true, data });
+});
+router.get("/:id/reveal", authenticate, async (req, res) => {
+  const { data: card } = await supabaseAdmin.from("cards").select("id, user_id, status, encrypted_pan, encrypted_pin, expiry_month, expiry_year, cardholder_name").eq("id", req.params.id).eq("user_id", req.user.id).single();
+  if (!card) {
+    res.status(404).json({ success: false, error: "Card not found" });
+    return;
+  }
+  if (card.status === "terminated" || card.status === "expired") {
+    res.status(410).json({ success: false, error: "Card is no longer active" });
+    return;
+  }
+  if (!card.encrypted_pan) {
+    res.json({ success: true, data: { has_details: false } });
+    return;
+  }
+  res.json({
+    success: true,
+    data: {
+      has_details: true,
+      pan: decryptCardSecret(card.encrypted_pan),
+      pin: card.encrypted_pin ? decryptCardSecret(card.encrypted_pin) : null,
+      expiry_month: card.expiry_month,
+      expiry_year: card.expiry_year,
+      cardholder_name: card.cardholder_name
+    }
+  });
 });
 router.post("/", authenticate, requireAgent, async (req, res) => {
   const body = issueCardSchema.parse(req.body);

@@ -5,6 +5,7 @@
 import { supabaseAdmin } from '../utils/supabase.js';
 import { provider } from '../utils/provider.js';
 import { logger } from '../utils/logger.js';
+import { encryptCardSecret } from '../utils/cardCrypto.js';
 import type { Card, CardType, CardNetwork, CardCurrency } from '@vpay/types';
 
 export interface IssueCardParams {
@@ -119,6 +120,12 @@ export class CardService {
         card_token: providerResponse.card_token,
         masked_pan: providerResponse.masked_pan,
         last_four: providerResponse.last_four,
+        // VitalPay delivers the full card number exactly once, in the issue
+        // response — its model is card-on-customer-dashboard (confirmed by
+        // their support). Encrypted at rest; decrypted only by the
+        // owner-gated /api/cards/:id/reveal endpoint.
+        encrypted_pan: providerResponse.full_pan ? encryptCardSecret(providerResponse.full_pan) : null,
+        encrypted_pin: providerResponse.pin_code ? encryptCardSecret(providerResponse.pin_code) : null,
         cardholder_name: params.cardholder_name,
         expiry_month: providerResponse.expiry_month,
         expiry_year: providerResponse.expiry_year,

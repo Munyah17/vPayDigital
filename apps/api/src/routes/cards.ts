@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authenticate, requireAdmin, requireAgent, AuthenticatedRequest } from '../middleware/auth.js';
 import { cardService } from '../services/cardService.js';
 import { supabaseAdmin } from '../utils/supabase.js';
+import { decryptCardSecret } from '../utils/cardCrypto.js';
 
 const router = Router();
 
@@ -50,7 +51,50 @@ router.get('/:id', authenticate, async (req: AuthenticatedRequest, res: Response
     res.status(404).json({ success: false, error: 'Card not found' });
     return;
   }
+  // Ciphertext never leaves the API — full details only via /:id/reveal.
+  delete (data as Record<string, unknown>).encrypted_pan;
+  delete (data as Record<string, unknown>).encrypted_pin;
   res.json({ success: true, data });
+});
+
+// GET /api/cards/:id/reveal — full card details, card owner only.
+// VitalPay's model (confirmed by their support): the full card number is
+// delivered once in the issue response and is meant to be displayed on the
+// end customer's own dashboard. We store it encrypted at issuance and
+// decrypt it here on demand. Cards issued before this shipped (or ones
+// VitalPay didn't return a PAN for) return has_details: false.
+router.get('/:id/reveal', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  const { data: card } = await supabaseAdmin
+    .from('cards')
+    .select('id, user_id, status, encrypted_pan, encrypted_pin, expiry_month, expiry_year, cardholder_name')
+    .eq('id', req.params.id)
+    .eq('user_id', req.user!.id)
+    .single();
+
+  if (!card) {
+    res.status(404).json({ success: false, error: 'Card not found' });
+    return;
+  }
+  if (card.status === 'terminated' || card.status === 'expired') {
+    res.status(410).json({ success: false, error: 'Card is no longer active' });
+    return;
+  }
+  if (!card.encrypted_pan) {
+    res.json({ success: true, data: { has_details: false } });
+    return;
+  }
+
+  res.json({
+    success: true,
+    data: {
+      has_details: true,
+      pan: decryptCardSecret(card.encrypted_pan),
+      pin: card.encrypted_pin ? decryptCardSecret(card.encrypted_pin) : null,
+      expiry_month: card.expiry_month,
+      expiry_year: card.expiry_year,
+      cardholder_name: card.cardholder_name,
+    },
+  });
 });
 
 // POST /api/cards — issue card (agents and admins only — debits issuer float)

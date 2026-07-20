@@ -43,6 +43,11 @@ export interface VitalPayCard {
   // confirmed by direct testing. There is no card_uid field in practice.
   id: string; label: string; masked_pan: string; expiry: string;
   currency: string; balance: number; status: string;
+  // Present ONLY in the issue response (verified by direct testing: GET
+  // /virtual-cards/{id} afterwards returns masked_pan only). VitalPay's
+  // model is that the full card details are shown on the end customer's
+  // dashboard — this one-shot delivery is the only chance to capture them.
+  card_number?: string; pin_code?: string;
 }
 
 export interface VitalPayGiftCardProduct {
@@ -396,11 +401,13 @@ export class VitalPayProvider implements PaymentProvider {
       last_four: lastFour,
       expiry_month: Number(expMonth) || 12,
       expiry_year: Number(expYear) || new Date().getFullYear() + 3,
-      // VitalPay never returns the full PAN or a separate raw token — the
-      // card id is the only stable handle we get back, so it doubles as
-      // the token here.
+      // The card id is the only stable handle VitalPay returns — it
+      // doubles as the token here.
       card_token: card.id,
       status: card.status,
+      // One-shot full card details, present only on the issue response.
+      full_pan: card.card_number,
+      pin_code: card.pin_code,
     };
   }
 

@@ -459,6 +459,11 @@ export interface ProviderCardIssueResponse {
   expiry_year: number;
   card_token: string;
   status: string;
+  // Delivered once, at issuance only, by providers whose model is
+  // "display the card on the end customer's dashboard" (VitalPay).
+  // Callers must encrypt-at-rest immediately and never log these.
+  full_pan?: string;
+  pin_code?: string;
 }
 
 export interface ProviderPayoutRequest {
