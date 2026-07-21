@@ -1305,17 +1305,17 @@ var require_router = __commonJS({
     var toString3 = Object.prototype.toString;
     var proto = module2.exports = function(options) {
       var opts = options || {};
-      function router14(req, res, next) {
-        router14.handle(req, res, next);
+      function router21(req, res, next) {
+        router21.handle(req, res, next);
       }
-      setPrototypeOf(router14, proto);
-      router14.params = {};
-      router14._params = [];
-      router14.caseSensitive = opts.caseSensitive;
-      router14.mergeParams = opts.mergeParams;
-      router14.strict = opts.strict;
-      router14.stack = [];
-      return router14;
+      setPrototypeOf(router21, proto);
+      router21.params = {};
+      router21._params = [];
+      router21.caseSensitive = opts.caseSensitive;
+      router21.mergeParams = opts.mergeParams;
+      router21.strict = opts.strict;
+      router21.stack = [];
+      return router21;
     };
     proto.param = function param(name, fn) {
       if (typeof name === "function") {
@@ -21896,7 +21896,7 @@ var require_application = __commonJS({
   "../../node_modules/express/lib/application.js"(exports2, module2) {
     "use strict";
     var finalhandler = require_finalhandler();
-    var Router15 = require_router();
+    var Router22 = require_router();
     var methods = require_methods();
     var middleware = require_init();
     var query = require_query();
@@ -21961,7 +21961,7 @@ var require_application = __commonJS({
     };
     app2.lazyrouter = function lazyrouter() {
       if (!this._router) {
-        this._router = new Router15({
+        this._router = new Router22({
           caseSensitive: this.enabled("case sensitive routing"),
           strict: this.enabled("strict routing")
         });
@@ -21970,17 +21970,17 @@ var require_application = __commonJS({
       }
     };
     app2.handle = function handle(req, res, callback) {
-      var router14 = this._router;
+      var router21 = this._router;
       var done = callback || finalhandler(req, res, {
         env: this.get("env"),
         onerror: logerror.bind(this)
       });
-      if (!router14) {
+      if (!router21) {
         debug("no routes defined on app");
         done();
         return;
       }
-      router14.handle(req, res, done);
+      router21.handle(req, res, done);
     };
     app2.use = function use(fn) {
       var offset = 0;
@@ -22000,15 +22000,15 @@ var require_application = __commonJS({
         throw new TypeError("app.use() requires a middleware function");
       }
       this.lazyrouter();
-      var router14 = this._router;
+      var router21 = this._router;
       fns.forEach(function(fn2) {
         if (!fn2 || !fn2.handle || !fn2.set) {
-          return router14.use(path2, fn2);
+          return router21.use(path2, fn2);
         }
         debug(".use app under %s", path2);
         fn2.mountpath = path2;
         fn2.parent = this;
-        router14.use(path2, function mounted_app(req, res, next) {
+        router21.use(path2, function mounted_app(req, res, next) {
           var orig = req.app;
           fn2.handle(req, res, function(err) {
             setPrototypeOf(req, orig.request);
@@ -23825,7 +23825,7 @@ var require_express = __commonJS({
     var mixin = require_merge_descriptors();
     var proto = require_application();
     var Route = require_route();
-    var Router15 = require_router();
+    var Router22 = require_router();
     var req = require_request();
     var res = require_response();
     exports2 = module2.exports = createApplication;
@@ -23848,7 +23848,7 @@ var require_express = __commonJS({
     exports2.request = req;
     exports2.response = res;
     exports2.Route = Route;
-    exports2.Router = Router15;
+    exports2.Router = Router22;
     exports2.json = bodyParser.json;
     exports2.query = require_query();
     exports2.raw = bodyParser.raw;
@@ -35151,6 +35151,7 @@ var init_config = __esm({
       REDIS_URL: optional("REDIS_URL", "redis://localhost:6379"),
       ENCRYPTION_KEY: required("ENCRYPTION_KEY"),
       RESEND_API_KEY: optional("RESEND_API_KEY", ""),
+      ANTHROPIC_API_KEY: optional("ANTHROPIC_API_KEY", ""),
       EMAIL_FROM: optional("EMAIL_FROM", "noreply@vpay.app"),
       TWILIO_ACCOUNT_SID: optional("TWILIO_ACCOUNT_SID", ""),
       TWILIO_AUTH_TOKEN: optional("TWILIO_AUTH_TOKEN", ""),
@@ -63567,10 +63568,10 @@ var init_fetch = __esm({
         },
         env2
       );
-      const { fetch: envFetch, Request, Response: Response14 } = env2;
+      const { fetch: envFetch, Request, Response: Response21 } = env2;
       const isFetchSupported = envFetch ? isFunction2(envFetch) : typeof fetch === "function";
       const isRequestSupported = isFunction2(Request);
-      const isResponseSupported = isFunction2(Response14);
+      const isResponseSupported = isFunction2(Response21);
       if (!isFetchSupported) {
         return false;
       }
@@ -63592,7 +63593,7 @@ var init_fetch = __esm({
         }
         return duplexAccessed && !hasContentType;
       });
-      const supportsResponseStream = isResponseSupported && isReadableStreamSupported && test(() => utils_default.isReadableStream(new Response14("").body));
+      const supportsResponseStream = isResponseSupported && isReadableStreamSupported && test(() => utils_default.isReadableStream(new Response21("").body));
       const resolvers = {
         stream: supportsResponseStream && ((res) => res.body)
       };
@@ -63769,7 +63770,7 @@ var init_fetch = __esm({
               }
               onProgress && onProgress(loadedBytes);
             };
-            response = new Response14(
+            response = new Response21(
               trackStream(response.body, DEFAULT_CHUNK_SIZE, onChunkProgress, () => {
                 flush && flush();
                 unsubscribe && unsubscribe();
@@ -63843,8 +63844,8 @@ var init_fetch = __esm({
     seedCache = /* @__PURE__ */ new Map();
     getFetch = (config2) => {
       let env2 = config2 && config2.env || {};
-      const { fetch: fetch2, Request, Response: Response14 } = env2;
-      const seeds = [Request, Response14, fetch2];
+      const { fetch: fetch2, Request, Response: Response21 } = env2;
+      const seeds = [Request, Response21, fetch2];
       let len = seeds.length, i = len, seed, target, map = seedCache;
       while (i--) {
         seed = seeds[i];
@@ -65265,7 +65266,7 @@ Object.defineProperty(Layer.prototype, "handle", {
 patchRouterParam();
 
 // src/app.ts
-var import_express14 = __toESM(require_express2());
+var import_express21 = __toESM(require_express2());
 
 // ../../node_modules/helmet/index.mjs
 var dangerouslyDisableDefaultSrc = /* @__PURE__ */ Symbol("dangerouslyDisableDefaultSrc");
@@ -74640,6 +74641,648 @@ router13.patch("/:id", authenticate, requireAdmin, async (req, res) => {
   res.json({ success: true, data });
 });
 
+// src/routes/invoicing.ts
+var import_express14 = __toESM(require_express2());
+init_supabase();
+var router14 = (0, import_express14.Router)();
+var lineItemSchema = external_exports.object({
+  description: external_exports.string().min(1),
+  quantity: external_exports.number().positive(),
+  unit_price: external_exports.number().nonnegative()
+});
+function computeTotals(lineItems, taxPercent) {
+  const subtotal = lineItems.reduce((sum, li) => sum + li.quantity * li.unit_price, 0);
+  const taxAmount = subtotal * (taxPercent / 100);
+  return { subtotal: round2(subtotal), taxAmount: round2(taxAmount), total: round2(subtotal + taxAmount) };
+}
+function round2(n) {
+  return Math.round(n * 100) / 100;
+}
+var clientSchema = external_exports.object({
+  name: external_exports.string().min(1).max(150),
+  email: external_exports.string().email().optional(),
+  phone: external_exports.string().max(30).optional(),
+  address: external_exports.string().max(300).optional()
+});
+router14.get("/clients", authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin.from("billing_clients").select("*").order("name");
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router14.post("/clients", authenticate, requireAdmin, async (req, res) => {
+  const body = clientSchema.parse(req.body);
+  const { data, error } = await supabaseAdmin.from("billing_clients").insert({ ...body, created_by: req.user.id }).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.status(201).json({ success: true, data });
+});
+var quoteSchema = external_exports.object({
+  client_id: external_exports.string().uuid(),
+  line_items: external_exports.array(lineItemSchema).min(1),
+  currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]).default("USD"),
+  tax_percent: external_exports.number().min(0).max(100).default(0),
+  valid_until: external_exports.string().optional(),
+  notes: external_exports.string().max(1e3).optional()
+});
+router14.get("/quotations", authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin.from("quotations").select("*, billing_clients(name, email)").order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router14.post("/quotations", authenticate, requireAdmin, async (req, res) => {
+  const body = quoteSchema.parse(req.body);
+  const totals = computeTotals(body.line_items, body.tax_percent);
+  const { data, error } = await supabaseAdmin.from("quotations").insert({ ...body, subtotal: totals.subtotal, tax_amount: totals.taxAmount, total: totals.total, created_by: req.user.id }).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.status(201).json({ success: true, data });
+});
+router14.patch("/quotations/:id", authenticate, requireAdmin, async (req, res) => {
+  const { status } = req.body;
+  const { data, error } = await supabaseAdmin.from("quotations").update({ status }).eq("id", req.params.id).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router14.post("/quotations/:id/convert", authenticate, requireAdmin, async (req, res) => {
+  const { data: quote } = await supabaseAdmin.from("quotations").select("*").eq("id", req.params.id).single();
+  if (!quote) {
+    res.status(404).json({ success: false, error: "Quotation not found" });
+    return;
+  }
+  const { data: invoice, error } = await supabaseAdmin.from("invoices").insert({
+    client_id: quote.client_id,
+    quotation_id: quote.id,
+    line_items: quote.line_items,
+    currency: quote.currency,
+    subtotal: quote.subtotal,
+    tax_percent: quote.tax_percent,
+    tax_amount: quote.tax_amount,
+    total: quote.total,
+    notes: quote.notes,
+    created_by: req.user.id
+  }).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.status(201).json({ success: true, data: invoice });
+});
+var invoiceSchema = external_exports.object({
+  client_id: external_exports.string().uuid(),
+  line_items: external_exports.array(lineItemSchema).min(1),
+  currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]).default("USD"),
+  tax_percent: external_exports.number().min(0).max(100).default(0),
+  due_date: external_exports.string().optional(),
+  notes: external_exports.string().max(1e3).optional()
+});
+router14.get("/invoices", authenticate, requireAdmin, async (req, res) => {
+  const { status } = req.query;
+  let query = supabaseAdmin.from("invoices").select("*, billing_clients(name, email)").order("created_at", { ascending: false });
+  if (status) query = query.eq("status", status);
+  const { data, error } = await query;
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router14.post("/invoices", authenticate, requireAdmin, async (req, res) => {
+  const body = invoiceSchema.parse(req.body);
+  const totals = computeTotals(body.line_items, body.tax_percent);
+  const { data, error } = await supabaseAdmin.from("invoices").insert({ ...body, subtotal: totals.subtotal, tax_amount: totals.taxAmount, total: totals.total, created_by: req.user.id }).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.status(201).json({ success: true, data });
+});
+router14.patch("/invoices/:id", authenticate, requireAdmin, async (req, res) => {
+  const { status } = req.body;
+  const { data, error } = await supabaseAdmin.from("invoices").update({ status }).eq("id", req.params.id).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+var paymentSchema = external_exports.object({
+  payment_method: external_exports.string().min(1).max(100),
+  payment_reference: external_exports.string().max(200).optional()
+});
+router14.post("/invoices/:id/record-payment", authenticate, requireAdmin, async (req, res) => {
+  const body = paymentSchema.parse(req.body);
+  const { data: invoice } = await supabaseAdmin.from("invoices").select("*").eq("id", req.params.id).single();
+  if (!invoice) {
+    res.status(404).json({ success: false, error: "Invoice not found" });
+    return;
+  }
+  if (invoice.status === "paid") {
+    res.status(400).json({ success: false, error: "Already paid" });
+    return;
+  }
+  await supabaseAdmin.from("invoices").update({ status: "paid", paid_at: (/* @__PURE__ */ new Date()).toISOString(), payment_reference: body.payment_reference ?? null }).eq("id", invoice.id);
+  const { data: receipt, error } = await supabaseAdmin.from("receipts").insert({
+    invoice_id: invoice.id,
+    amount: invoice.total,
+    currency: invoice.currency,
+    payment_method: body.payment_method,
+    issued_by: req.user.id
+  }).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.status(201).json({ success: true, data: receipt });
+});
+router14.get("/receipts", authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin.from("receipts").select("*, invoices(invoice_number, billing_clients(name))").order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+
+// src/routes/loans.ts
+var import_express15 = __toESM(require_express2());
+init_supabase();
+var router15 = (0, import_express15.Router)();
+var createSchema6 = external_exports.object({
+  borrower_email: external_exports.string().email(),
+  principal: external_exports.number().positive(),
+  interest_rate_percent: external_exports.number().min(0).max(100),
+  term_months: external_exports.number().int().positive(),
+  currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]).default("USD"),
+  notes: external_exports.string().max(1e3).optional()
+});
+router15.get("/", authenticate, requireAdmin, async (req, res) => {
+  const { status } = req.query;
+  let query = supabaseAdmin.from("loans").select("*, profiles!loans_borrower_id_fkey(email, full_name)").order("created_at", { ascending: false });
+  if (status) query = query.eq("status", status);
+  const { data, error } = await query;
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router15.post("/", authenticate, requireAdmin, async (req, res) => {
+  const body = createSchema6.parse(req.body);
+  const { data: borrower } = await supabaseAdmin.from("profiles").select("id").eq("email", body.borrower_email).single();
+  if (!borrower) {
+    res.status(404).json({ success: false, error: `No user with email ${body.borrower_email}` });
+    return;
+  }
+  const { borrower_email: _drop, ...rest } = body;
+  const { data, error } = await supabaseAdmin.from("loans").insert({ ...rest, borrower_id: borrower.id, created_by: req.user.id }).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.status(201).json({ success: true, data });
+});
+router15.post("/:id/approve", authenticate, requireAdmin, async (req, res) => {
+  const { data: loan } = await supabaseAdmin.from("loans").select("*").eq("id", req.params.id).single();
+  if (!loan) {
+    res.status(404).json({ success: false, error: "Loan not found" });
+    return;
+  }
+  if (loan.status !== "pending") {
+    res.status(400).json({ success: false, error: `Cannot approve from status ${loan.status}` });
+    return;
+  }
+  const totalRepayable = Math.round(loan.principal * (1 + loan.interest_rate_percent / 100) * 100) / 100;
+  const dueDate = /* @__PURE__ */ new Date();
+  dueDate.setMonth(dueDate.getMonth() + loan.term_months);
+  const { data, error } = await supabaseAdmin.from("loans").update({ status: "approved", total_repayable: totalRepayable, due_date: dueDate.toISOString().slice(0, 10), approved_by: req.user.id }).eq("id", loan.id).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router15.post("/:id/reject", authenticate, requireAdmin, async (req, res) => {
+  const { data, error } = await supabaseAdmin.from("loans").update({ status: "rejected" }).eq("id", req.params.id).eq("status", "pending").select().single();
+  if (error || !data) {
+    res.status(400).json({ success: false, error: error?.message ?? "Cannot reject this loan" });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router15.post("/:id/disburse", authenticate, requireAdmin, async (req, res) => {
+  const { data: loan } = await supabaseAdmin.from("loans").select("*").eq("id", req.params.id).single();
+  if (!loan) {
+    res.status(404).json({ success: false, error: "Loan not found" });
+    return;
+  }
+  if (loan.status !== "approved") {
+    res.status(400).json({ success: false, error: `Cannot disburse from status ${loan.status}` });
+    return;
+  }
+  const { data: wallet } = await supabaseAdmin.from("wallets").select("id").eq("user_id", loan.borrower_id).eq("currency", loan.currency).eq("wallet_type", "consumer").single();
+  if (!wallet) {
+    res.status(404).json({ success: false, error: "Borrower has no wallet in that currency" });
+    return;
+  }
+  await supabaseAdmin.rpc("record_wallet_credit", {
+    p_wallet_id: wallet.id,
+    p_amount: loan.principal,
+    p_type: "deposit",
+    p_description: `Loan disbursement: ${loan.reference}`,
+    p_metadata: { loan_id: loan.id }
+  });
+  const { data, error } = await supabaseAdmin.from("loans").update({ status: "active", disbursed_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", loan.id).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+var repaySchema = external_exports.object({ amount: external_exports.number().positive() });
+router15.post("/:id/repay", authenticate, requireAdmin, async (req, res) => {
+  const { amount } = repaySchema.parse(req.body);
+  const { data: loan } = await supabaseAdmin.from("loans").select("*").eq("id", req.params.id).single();
+  if (!loan) {
+    res.status(404).json({ success: false, error: "Loan not found" });
+    return;
+  }
+  if (loan.status !== "active") {
+    res.status(400).json({ success: false, error: `Cannot record repayment from status ${loan.status}` });
+    return;
+  }
+  const { data: wallet } = await supabaseAdmin.from("wallets").select("id, balance").eq("user_id", loan.borrower_id).eq("currency", loan.currency).eq("wallet_type", "consumer").single();
+  if (!wallet) {
+    res.status(404).json({ success: false, error: "Borrower has no wallet in that currency" });
+    return;
+  }
+  if (wallet.balance < amount) {
+    res.status(402).json({ success: false, error: `Borrower's balance (${wallet.balance}) is less than the repayment amount` });
+    return;
+  }
+  await supabaseAdmin.rpc("record_wallet_debit", {
+    p_wallet_id: wallet.id,
+    p_amount: amount,
+    p_type: "withdrawal",
+    p_description: `Loan repayment: ${loan.reference}`,
+    p_metadata: { loan_id: loan.id }
+  });
+  const newAmountRepaid = Number(loan.amount_repaid) + amount;
+  const isFullyRepaid = loan.total_repayable !== null && newAmountRepaid >= Number(loan.total_repayable);
+  const { data, error } = await supabaseAdmin.from("loans").update({ amount_repaid: newAmountRepaid, status: isFullyRepaid ? "repaid" : loan.status }).eq("id", loan.id).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router15.post("/:id/default", authenticate, requireAdmin, async (req, res) => {
+  const { data, error } = await supabaseAdmin.from("loans").update({ status: "defaulted" }).eq("id", req.params.id).eq("status", "active").select().single();
+  if (error || !data) {
+    res.status(400).json({ success: false, error: error?.message ?? "Cannot mark this loan defaulted" });
+    return;
+  }
+  res.json({ success: true, data });
+});
+
+// src/routes/partners.ts
+var import_express16 = __toESM(require_express2());
+init_supabase();
+var router16 = (0, import_express16.Router)();
+var createSchema7 = external_exports.object({
+  name: external_exports.string().min(1).max(150),
+  type: external_exports.string().max(50).optional(),
+  contact_email: external_exports.string().email().optional(),
+  contact_phone: external_exports.string().max(30).optional(),
+  revenue_share_percent: external_exports.number().min(0).max(100).optional(),
+  notes: external_exports.string().max(1e3).optional()
+});
+var updateSchema3 = external_exports.object({
+  status: external_exports.enum(["active", "inactive", "pending"]).optional(),
+  notes: external_exports.string().max(1e3).optional()
+});
+router16.get("/", authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin.from("partners").select("*").order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router16.post("/", authenticate, requireAdmin, async (req, res) => {
+  const body = createSchema7.parse(req.body);
+  const { data, error } = await supabaseAdmin.from("partners").insert({ ...body, created_by: req.user.id }).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.status(201).json({ success: true, data });
+});
+router16.patch("/:id", authenticate, requireAdmin, async (req, res) => {
+  const body = updateSchema3.parse(req.body);
+  const { data, error } = await supabaseAdmin.from("partners").update(body).eq("id", req.params.id).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+
+// src/routes/tasks.ts
+var import_express17 = __toESM(require_express2());
+init_supabase();
+var router17 = (0, import_express17.Router)();
+var createSchema8 = external_exports.object({
+  title: external_exports.string().min(1).max(200),
+  description: external_exports.string().max(2e3).optional(),
+  priority: external_exports.enum(["low", "medium", "high", "urgent"]).default("medium"),
+  assigned_to: external_exports.string().uuid().optional(),
+  due_date: external_exports.string().optional()
+});
+var updateSchema4 = external_exports.object({
+  status: external_exports.enum(["todo", "in_progress", "done"]).optional(),
+  priority: external_exports.enum(["low", "medium", "high", "urgent"]).optional(),
+  assigned_to: external_exports.string().uuid().nullable().optional()
+});
+router17.get("/", authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin.from("tasks").select("*, assignee:assigned_to(email, full_name)").order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router17.post("/", authenticate, requireAdmin, async (req, res) => {
+  const body = createSchema8.parse(req.body);
+  const { data, error } = await supabaseAdmin.from("tasks").insert({ ...body, created_by: req.user.id }).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.status(201).json({ success: true, data });
+});
+router17.patch("/:id", authenticate, requireAdmin, async (req, res) => {
+  const body = updateSchema4.parse(req.body);
+  const { data, error } = await supabaseAdmin.from("tasks").update(body).eq("id", req.params.id).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router17.delete("/:id", authenticate, requireAdmin, async (req, res) => {
+  const { error } = await supabaseAdmin.from("tasks").delete().eq("id", req.params.id);
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true });
+});
+
+// src/routes/apiKeys.ts
+var import_express18 = __toESM(require_express2());
+var import_crypto4 = require("crypto");
+init_supabase();
+var router18 = (0, import_express18.Router)();
+var createSchema9 = external_exports.object({
+  name: external_exports.string().min(1).max(150),
+  partner_id: external_exports.string().uuid().optional(),
+  scopes: external_exports.array(external_exports.string()).default([])
+});
+function generateApiKey() {
+  const secret = (0, import_crypto4.randomBytes)(24).toString("base64url");
+  const fullKey = `epsm_live_${secret}`;
+  const prefix = fullKey.slice(0, 16);
+  const hash = (0, import_crypto4.createHash)("sha256").update(fullKey).digest("hex");
+  return { fullKey, prefix, hash };
+}
+router18.get("/", authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin.from("api_keys").select("id, name, key_prefix, partner_id, scopes, last_used_at, revoked, created_at, partners(name)").order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router18.post("/", authenticate, requireAdmin, async (req, res) => {
+  const body = createSchema9.parse(req.body);
+  const { fullKey, prefix, hash } = generateApiKey();
+  const { data, error } = await supabaseAdmin.from("api_keys").insert({ name: body.name, partner_id: body.partner_id, scopes: body.scopes, key_prefix: prefix, key_hash: hash, created_by: req.user.id }).select("id, name, key_prefix, scopes, created_at").single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.status(201).json({ success: true, data: { ...data, full_key: fullKey } });
+});
+router18.post("/:id/revoke", authenticate, requireAdmin, async (req, res) => {
+  const { data, error } = await supabaseAdmin.from("api_keys").update({ revoked: true }).eq("id", req.params.id).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+
+// src/routes/aiAssistant.ts
+var import_express19 = __toESM(require_express2());
+init_supabase();
+init_config();
+var router19 = (0, import_express19.Router)();
+var askSchema = external_exports.object({
+  mode: external_exports.enum(["marketing", "analytics", "general"]).default("general"),
+  prompt: external_exports.string().min(1).max(4e3)
+});
+var SYSTEM_PROMPTS = {
+  marketing: "You are a marketing copywriter for ePay Smart, a Zimbabwe-focused digital wallet and virtual card platform. Write concise, compelling copy. No emoji unless asked.",
+  analytics: "You are a data analyst for ePay Smart, a Zimbabwe-focused digital wallet platform. You are given real current platform metrics as context \u2014 answer questions grounded in that data, and say plainly if the data provided cannot answer the question rather than guessing.",
+  general: "You are an operations assistant for ePay Smart, a Zimbabwe-focused digital wallet and virtual card platform."
+};
+router19.post("/ask", authenticate, requireAdmin, async (req, res) => {
+  const body = askSchema.parse(req.body);
+  if (!env.ANTHROPIC_API_KEY) {
+    res.status(503).json({ success: false, error: "AI Assistant needs an ANTHROPIC_API_KEY configured on the server \u2014 nothing has been added yet." });
+    return;
+  }
+  let context = "";
+  if (body.mode === "analytics") {
+    const { data: metrics } = await supabaseAdmin.from("vw_platform_metrics").select("*").single();
+    context = metrics ? `
+
+Current platform metrics:
+${JSON.stringify(metrics, null, 2)}` : "";
+  }
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-5",
+        max_tokens: 1024,
+        system: SYSTEM_PROMPTS[body.mode] + context,
+        messages: [{ role: "user", content: body.prompt }]
+      })
+    });
+    if (!resp.ok) {
+      const errBody = await resp.text();
+      res.status(502).json({ success: false, error: `Anthropic API error: ${resp.status} ${errBody.slice(0, 300)}` });
+      return;
+    }
+    const data = await resp.json();
+    const text = data.content.find((c) => c.type === "text")?.text ?? "";
+    res.json({ success: true, data: { response: text } });
+  } catch (err) {
+    res.status(502).json({ success: false, error: err instanceof Error ? err.message : "Failed to reach Anthropic API" });
+  }
+});
+
+// src/routes/hr.ts
+var import_express20 = __toESM(require_express2());
+init_supabase();
+var router20 = (0, import_express20.Router)();
+var staffSchema = external_exports.object({
+  profile_email: external_exports.string().email(),
+  job_title: external_exports.string().max(150).optional(),
+  department: external_exports.string().max(100).optional(),
+  employment_type: external_exports.enum(["full_time", "part_time", "contract"]).default("full_time"),
+  base_salary: external_exports.number().nonnegative(),
+  currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]).default("USD"),
+  start_date: external_exports.string().optional()
+});
+router20.get("/staff", authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin.from("staff_records").select("*, profiles(email, full_name)").order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router20.post("/staff", authenticate, requireAdmin, async (req, res) => {
+  const body = staffSchema.parse(req.body);
+  const { data: profile } = await supabaseAdmin.from("profiles").select("id").eq("email", body.profile_email).single();
+  if (!profile) {
+    res.status(404).json({ success: false, error: `No user with email ${body.profile_email}` });
+    return;
+  }
+  const { profile_email: _drop, ...rest } = body;
+  const { data, error } = await supabaseAdmin.from("staff_records").insert({ ...rest, profile_id: profile.id }).select().single();
+  if (error) {
+    const message2 = error.code === "23505" ? "This user already has a staff record" : error.message;
+    res.status(error.code === "23505" ? 409 : 500).json({ success: false, error: message2 });
+    return;
+  }
+  res.status(201).json({ success: true, data });
+});
+router20.patch("/staff/:id", authenticate, requireAdmin, async (req, res) => {
+  const { active, base_salary } = req.body;
+  const patch = {};
+  if (active !== void 0) patch.active = active;
+  if (base_salary !== void 0) patch.base_salary = base_salary;
+  const { data, error } = await supabaseAdmin.from("staff_records").update(patch).eq("id", req.params.id).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+var runSchema = external_exports.object({
+  period_start: external_exports.string(),
+  period_end: external_exports.string(),
+  currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]).default("USD")
+});
+router20.get("/payroll", authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin.from("payroll_runs").select("*").order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router20.get("/payroll/:id/items", authenticate, requireAdmin, async (req, res) => {
+  const { data, error } = await supabaseAdmin.from("payroll_items").select("*, staff_records(job_title, profiles(email, full_name))").eq("payroll_run_id", req.params.id);
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router20.post("/payroll", authenticate, requireAdmin, async (req, res) => {
+  const body = runSchema.parse(req.body);
+  const { data: staff } = await supabaseAdmin.from("staff_records").select("id, base_salary, currency").eq("active", true).eq("currency", body.currency);
+  if (!staff || staff.length === 0) {
+    res.status(400).json({ success: false, error: `No active staff records in ${body.currency}` });
+    return;
+  }
+  const totalAmount = staff.reduce((sum, s) => sum + Number(s.base_salary), 0);
+  const { data: run, error: runErr } = await supabaseAdmin.from("payroll_runs").insert({ ...body, total_amount: totalAmount, created_by: req.user.id }).select().single();
+  if (runErr || !run) {
+    res.status(500).json({ success: false, error: runErr?.message ?? "Failed to create run" });
+    return;
+  }
+  const items = staff.map((s) => ({ payroll_run_id: run.id, staff_record_id: s.id, gross_amount: s.base_salary, net_amount: s.base_salary }));
+  const { error: itemsErr } = await supabaseAdmin.from("payroll_items").insert(items);
+  if (itemsErr) {
+    res.status(500).json({ success: false, error: itemsErr.message });
+    return;
+  }
+  res.status(201).json({ success: true, data: run });
+});
+router20.post("/payroll/:id/process", authenticate, requireAdmin, async (req, res) => {
+  const { data, error } = await supabaseAdmin.from("payroll_runs").update({ status: "processed" }).eq("id", req.params.id).eq("status", "draft").select().single();
+  if (error || !data) {
+    res.status(400).json({ success: false, error: error?.message ?? "Cannot process this run" });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router20.post("/payroll/:id/pay", authenticate, requireAdmin, async (req, res) => {
+  const { data: run } = await supabaseAdmin.from("payroll_runs").select("*").eq("id", req.params.id).single();
+  if (!run) {
+    res.status(404).json({ success: false, error: "Payroll run not found" });
+    return;
+  }
+  if (run.status !== "processed") {
+    res.status(400).json({ success: false, error: "Run must be processed before paying" });
+    return;
+  }
+  const { data: items } = await supabaseAdmin.from("payroll_items").select("*, staff_records(profile_id)").eq("payroll_run_id", run.id).eq("paid", false);
+  let paidCount = 0, skippedCount = 0;
+  for (const item of items ?? []) {
+    const profileId = item.staff_records.profile_id;
+    const { data: wallet } = await supabaseAdmin.from("wallets").select("id").eq("user_id", profileId).eq("currency", run.currency).eq("wallet_type", "consumer").single();
+    if (!wallet) {
+      skippedCount++;
+      continue;
+    }
+    await supabaseAdmin.rpc("record_wallet_credit", {
+      p_wallet_id: wallet.id,
+      p_amount: item.net_amount,
+      p_type: "deposit",
+      p_description: `Payroll: ${run.reference}`,
+      p_metadata: { payroll_run_id: run.id }
+    });
+    await supabaseAdmin.from("payroll_items").update({ paid: true }).eq("id", item.id);
+    paidCount++;
+  }
+  const { data: updatedRun } = await supabaseAdmin.from("payroll_runs").update({ status: "paid", processed_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", run.id).select().single();
+  res.json({ success: true, data: { run: updatedRun, paid_count: paidCount, skipped_count: skippedCount } });
+});
+
 // src/webhooks/vitalPayWebhook.ts
 init_src3();
 init_supabase();
@@ -74780,7 +75423,7 @@ function mapVitalPayEvent(vitalPayEvent) {
 
 // src/app.ts
 init_supabase();
-var app = (0, import_express14.default)();
+var app = (0, import_express21.default)();
 app.set("trust proxy", 1);
 app.use(helmet({
   contentSecurityPolicy: {
@@ -74832,7 +75475,7 @@ app.use("/api/auth", strictLimiter);
 app.use((0, import_compression.default)());
 app.post(
   "/webhooks/vitalpay",
-  import_express14.default.raw({ type: "application/json" }),
+  import_express21.default.raw({ type: "application/json" }),
   (req, _res, next) => {
     req.rawBody = req.body.toString();
     req.body = JSON.parse(req.body.toString());
@@ -74840,8 +75483,8 @@ app.post(
   },
   handleVitalPayWebhook
 );
-app.use(import_express14.default.json({ limit: "10kb" }));
-app.use(import_express14.default.urlencoded({ extended: true, limit: "10kb" }));
+app.use(import_express21.default.json({ limit: "10kb" }));
+app.use(import_express21.default.urlencoded({ extended: true, limit: "10kb" }));
 app.use((req, _res, next) => {
   logger.info({ method: req.method, url: req.url }, "Incoming request");
   next();
@@ -74883,6 +75526,13 @@ app.use("/api/disputes", router10);
 app.use("/api/admin/communications", router11);
 app.use("/api/promo", router12);
 app.use("/api/admin/leads", router13);
+app.use("/api/admin/invoicing", router14);
+app.use("/api/admin/loans", router15);
+app.use("/api/admin/partners", router16);
+app.use("/api/admin/tasks", router17);
+app.use("/api/admin/api-keys", router18);
+app.use("/api/admin/ai-assistant", router19);
+app.use("/api/admin/hr", router20);
 app.get("/api/profile", authenticate, async (req, res) => {
   const { data, error } = await supabaseAdmin.from("profiles").select("*, agent_profiles!agent_profiles_user_id_fkey(*)").eq("id", req.user.id).single();
   if (error) {

@@ -29,6 +29,8 @@ import { loansRouter } from './routes/loans.js';
 import { partnersRouter } from './routes/partners.js';
 import { tasksRouter } from './routes/tasks.js';
 import { apiKeysRouter } from './routes/apiKeys.js';
+import { aiAssistantRouter } from './routes/aiAssistant.js';
+import { hrRouter } from './routes/hr.js';
 import { handleVitalPayWebhook } from './webhooks/vitalPayWebhook.js';
 import { authenticate, requireAdmin, requireAgent, requireSuperAdmin, AuthenticatedRequest } from './middleware/auth.js';
 import { supabaseAdmin } from './utils/supabase.js';
@@ -196,6 +198,8 @@ app.use('/api/admin/loans', loansRouter);
 app.use('/api/admin/partners', partnersRouter);
 app.use('/api/admin/tasks', tasksRouter);
 app.use('/api/admin/api-keys', apiKeysRouter);
+app.use('/api/admin/ai-assistant', aiAssistantRouter);
+app.use('/api/admin/hr', hrRouter);
 
 // ─── Profile Routes ───────────────────────────────────────────────────────────
 app.get('/api/profile', authenticate, async (req: AuthenticatedRequest, res) => {

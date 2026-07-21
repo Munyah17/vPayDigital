@@ -81,7 +81,8 @@ const LoansPage           = lazy(() => import('./pages/admin/loans/LoansPage'));
 const PartnersPage        = lazy(() => import('./pages/admin/partners/PartnersPage'));
 const TasksPage           = lazy(() => import('./pages/admin/tasks/TasksPage'));
 const ApiManagementPage   = lazy(() => import('./pages/admin/apiManagement/ApiManagementPage'));
-const ModulePlaceholder   = lazy(() => import('./pages/admin/shared/ModulePlaceholder'));
+const AiAssistantPage     = lazy(() => import('./pages/admin/aiAssistant/AiAssistantPage'));
+const HrPayrollPage       = lazy(() => import('./pages/admin/hr/HrPayrollPage'));
 
 // ─── Query client ─────────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
@@ -252,14 +253,10 @@ export default function App() {
               <Route path="invoicing" element={<InvoicingPage />} />
               <Route path="loans" element={<LoansPage />} />
               <Route path="partners" element={<PartnersPage />} />
-              <Route path="ai-assistant" element={<ModulePlaceholder
-                title="AI Assistant" description="AI-assisted marketing copy, analytics summaries, and operational suggestions."
-                needs="Which tasks first (marketing copy vs. analytics Q&A are very different builds) and an AI provider/budget decision." />} />
+              <Route path="ai-assistant" element={<AiAssistantPage />} />
               <Route path="tasks" element={<TasksPage />} />
               <Route path="api-management" element={<ApiManagementPage />} />
-              <Route path="hr-payroll" element={<ModulePlaceholder
-                title="HR & Payroll" description="Internal staff records, leave, and payroll processing."
-                needs="This manages your own company's staff, not platform users — confirm it belongs in this admin at all vs. a separate internal tool." />} />
+              <Route path="hr-payroll" element={<HrPayrollPage />} />
             </Route>
           </Routes>
         </Suspense>
