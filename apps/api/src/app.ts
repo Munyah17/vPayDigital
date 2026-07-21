@@ -17,6 +17,8 @@ import { voucherRouter } from './routes/vouchers.js';
 import { bankingRouter } from './routes/banking.js';
 import { beneficiaryRouter } from './routes/beneficiaries.js';
 import { vasRouter } from './routes/vas.js';
+import { reportsRouter } from './routes/reports.js';
+import { providersRouter } from './routes/providers.js';
 import { handleVitalPayWebhook } from './webhooks/vitalPayWebhook.js';
 import { authenticate, requireAdmin, requireAgent, requireSuperAdmin, AuthenticatedRequest } from './middleware/auth.js';
 import { supabaseAdmin } from './utils/supabase.js';
@@ -150,6 +152,21 @@ app.get('/api/announcements/active', async (_req, res) => {
   res.json({ success: true, data: announcement });
 });
 
+// GET /api/feature-flags — unauthenticated. Modules can be toggled off from
+// Super Admin → Modules without a deploy; the frontend gates features by
+// checking this. Unset flags default to true (opt-out, not opt-in) so
+// existing features don't silently disappear the first time this loads
+// with no config row yet.
+app.get('/api/feature-flags', async (_req, res) => {
+  const { data } = await supabaseAdmin
+    .from('system_config')
+    .select('value')
+    .eq('key', 'feature_flags')
+    .maybeSingle();
+
+  res.json({ success: true, data: (data?.value as Record<string, boolean>) ?? {} });
+});
+
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/cards', cardRouter);
 app.use('/api/wallets', walletRouter);
@@ -157,6 +174,8 @@ app.use('/api/vouchers', voucherRouter);
 app.use('/api/banking', bankingRouter);
 app.use('/api/beneficiaries', beneficiaryRouter);
 app.use('/api/vas', vasRouter);
+app.use('/api/admin/reports', reportsRouter);
+app.use('/api/admin/providers', providersRouter);
 
 // ─── Profile Routes ───────────────────────────────────────────────────────────
 app.get('/api/profile', authenticate, async (req: AuthenticatedRequest, res) => {

@@ -68,6 +68,9 @@ const AdminTransactionsPage = lazy(() => import('./pages/admin/transactions/Tran
 const AdminBankingPage    = lazy(() => import('./pages/admin/banking/AdminBankingPage'));
 const SystemHealthPage    = lazy(() => import('./pages/admin/health/SystemHealthPage'));
 const AnnouncementsPage   = lazy(() => import('./pages/admin/announcements/AnnouncementsPage'));
+const ReportsPage         = lazy(() => import('./pages/admin/reports/ReportsPage'));
+const ProvidersPage       = lazy(() => import('./pages/admin/providers/ProvidersPage'));
+const ModulesPage         = lazy(() => import('./pages/admin/modules/ModulesPage'));
 const ModulePlaceholder   = lazy(() => import('./pages/admin/shared/ModulePlaceholder'));
 
 // ─── Query client ─────────────────────────────────────────────────────────────
@@ -231,15 +234,9 @@ export default function App() {
               {/* Command-center modules with no backend/data model yet —
                   honest "needs scoping" pages rather than fake or missing
                   routes, so the sidebar reflects the full intended shape. */}
-              <Route path="reports" element={<ModulePlaceholder
-                title="Reports" description="Exportable operational/financial reports beyond the dashboard's live stats."
-                needs="Which reports, what date ranges, and what export formats (CSV/PDF) matter most — the dashboard already covers live metrics." />} />
-              <Route path="providers" element={<ModulePlaceholder
-                title="Providers" description="Manage payment/service provider configuration and connection status."
-                needs="Whether this should just surface VitalPay's live status (already on the System Health page) or manage multiple providers' credentials/routing." />} />
-              <Route path="modules" element={<ModulePlaceholder
-                title="Modules Management" description="Enable/disable platform features (e.g. gift cards, bill payments) without a deploy."
-                needs="A feature-flag table and the specific modules you want toggleable." />} />
+              <Route path="reports" element={<ReportsPage />} />
+              <Route path="providers" element={<ProvidersPage />} />
+              <Route path="modules" element={<ModulesPage />} />
               <Route path="escrow" element={<ModulePlaceholder
                 title="Escrow" description="Hold funds between two parties until a condition is met."
                 needs="The actual escrow product definition — release conditions, dispute handling, who initiates it." />} />

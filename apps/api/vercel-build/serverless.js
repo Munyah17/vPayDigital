@@ -1305,17 +1305,17 @@ var require_router = __commonJS({
     var toString3 = Object.prototype.toString;
     var proto = module2.exports = function(options) {
       var opts = options || {};
-      function router7(req, res, next) {
-        router7.handle(req, res, next);
+      function router9(req, res, next) {
+        router9.handle(req, res, next);
       }
-      setPrototypeOf(router7, proto);
-      router7.params = {};
-      router7._params = [];
-      router7.caseSensitive = opts.caseSensitive;
-      router7.mergeParams = opts.mergeParams;
-      router7.strict = opts.strict;
-      router7.stack = [];
-      return router7;
+      setPrototypeOf(router9, proto);
+      router9.params = {};
+      router9._params = [];
+      router9.caseSensitive = opts.caseSensitive;
+      router9.mergeParams = opts.mergeParams;
+      router9.strict = opts.strict;
+      router9.stack = [];
+      return router9;
     };
     proto.param = function param(name, fn) {
       if (typeof name === "function") {
@@ -21896,7 +21896,7 @@ var require_application = __commonJS({
   "../../node_modules/express/lib/application.js"(exports2, module2) {
     "use strict";
     var finalhandler = require_finalhandler();
-    var Router8 = require_router();
+    var Router10 = require_router();
     var methods = require_methods();
     var middleware = require_init();
     var query = require_query();
@@ -21961,7 +21961,7 @@ var require_application = __commonJS({
     };
     app2.lazyrouter = function lazyrouter() {
       if (!this._router) {
-        this._router = new Router8({
+        this._router = new Router10({
           caseSensitive: this.enabled("case sensitive routing"),
           strict: this.enabled("strict routing")
         });
@@ -21970,17 +21970,17 @@ var require_application = __commonJS({
       }
     };
     app2.handle = function handle(req, res, callback) {
-      var router7 = this._router;
+      var router9 = this._router;
       var done = callback || finalhandler(req, res, {
         env: this.get("env"),
         onerror: logerror.bind(this)
       });
-      if (!router7) {
+      if (!router9) {
         debug("no routes defined on app");
         done();
         return;
       }
-      router7.handle(req, res, done);
+      router9.handle(req, res, done);
     };
     app2.use = function use(fn) {
       var offset = 0;
@@ -22000,15 +22000,15 @@ var require_application = __commonJS({
         throw new TypeError("app.use() requires a middleware function");
       }
       this.lazyrouter();
-      var router7 = this._router;
+      var router9 = this._router;
       fns.forEach(function(fn2) {
         if (!fn2 || !fn2.handle || !fn2.set) {
-          return router7.use(path2, fn2);
+          return router9.use(path2, fn2);
         }
         debug(".use app under %s", path2);
         fn2.mountpath = path2;
         fn2.parent = this;
-        router7.use(path2, function mounted_app(req, res, next) {
+        router9.use(path2, function mounted_app(req, res, next) {
           var orig = req.app;
           fn2.handle(req, res, function(err) {
             setPrototypeOf(req, orig.request);
@@ -23825,7 +23825,7 @@ var require_express = __commonJS({
     var mixin = require_merge_descriptors();
     var proto = require_application();
     var Route = require_route();
-    var Router8 = require_router();
+    var Router10 = require_router();
     var req = require_request();
     var res = require_response();
     exports2 = module2.exports = createApplication;
@@ -23848,7 +23848,7 @@ var require_express = __commonJS({
     exports2.request = req;
     exports2.response = res;
     exports2.Route = Route;
-    exports2.Router = Router8;
+    exports2.Router = Router10;
     exports2.json = bodyParser.json;
     exports2.query = require_query();
     exports2.raw = bodyParser.raw;
@@ -63567,10 +63567,10 @@ var init_fetch = __esm({
         },
         env2
       );
-      const { fetch: envFetch, Request, Response: Response7 } = env2;
+      const { fetch: envFetch, Request, Response: Response9 } = env2;
       const isFetchSupported = envFetch ? isFunction2(envFetch) : typeof fetch === "function";
       const isRequestSupported = isFunction2(Request);
-      const isResponseSupported = isFunction2(Response7);
+      const isResponseSupported = isFunction2(Response9);
       if (!isFetchSupported) {
         return false;
       }
@@ -63592,7 +63592,7 @@ var init_fetch = __esm({
         }
         return duplexAccessed && !hasContentType;
       });
-      const supportsResponseStream = isResponseSupported && isReadableStreamSupported && test(() => utils_default.isReadableStream(new Response7("").body));
+      const supportsResponseStream = isResponseSupported && isReadableStreamSupported && test(() => utils_default.isReadableStream(new Response9("").body));
       const resolvers = {
         stream: supportsResponseStream && ((res) => res.body)
       };
@@ -63769,7 +63769,7 @@ var init_fetch = __esm({
               }
               onProgress && onProgress(loadedBytes);
             };
-            response = new Response7(
+            response = new Response9(
               trackStream(response.body, DEFAULT_CHUNK_SIZE, onChunkProgress, () => {
                 flush && flush();
                 unsubscribe && unsubscribe();
@@ -63843,8 +63843,8 @@ var init_fetch = __esm({
     seedCache = /* @__PURE__ */ new Map();
     getFetch = (config2) => {
       let env2 = config2 && config2.env || {};
-      const { fetch: fetch2, Request, Response: Response7 } = env2;
-      const seeds = [Request, Response7, fetch2];
+      const { fetch: fetch2, Request, Response: Response9 } = env2;
+      const seeds = [Request, Response9, fetch2];
       let len = seeds.length, i = len, seed, target, map = seedCache;
       while (i--) {
         seed = seeds[i];
@@ -65265,7 +65265,7 @@ Object.defineProperty(Layer.prototype, "handle", {
 patchRouterParam();
 
 // src/app.ts
-var import_express7 = __toESM(require_express2());
+var import_express9 = __toESM(require_express2());
 
 // ../../node_modules/helmet/index.mjs
 var dangerouslyDisableDefaultSrc = /* @__PURE__ */ Symbol("dangerouslyDisableDefaultSrc");
@@ -74157,6 +74157,135 @@ router6.get("/orders", authenticate, async (req, res) => {
   res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
 });
 
+// src/routes/reports.ts
+var import_express7 = __toESM(require_express2());
+init_supabase();
+var router7 = (0, import_express7.Router)();
+var rangeSchema = external_exports.object({
+  from: external_exports.string().datetime().optional(),
+  to: external_exports.string().datetime().optional()
+});
+function toCsv(rows) {
+  if (rows.length === 0) return "";
+  const headers = Object.keys(rows[0]);
+  const escape2 = (v) => {
+    const s = v === null || v === void 0 ? "" : String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  return [headers.join(","), ...rows.map((r) => headers.map((h) => escape2(r[h])).join(","))].join("\n");
+}
+router7.get("/transactions", authenticate, requireAdmin, async (req, res) => {
+  const { from, to } = rangeSchema.parse(req.query);
+  const format = req.query.format ?? "json";
+  let query = supabaseAdmin.from("wallet_transactions").select("reference, type, direction, amount, fee, net_amount, currency, status, created_at").order("created_at", { ascending: false }).limit(5e3);
+  if (from) query = query.gte("created_at", from);
+  if (to) query = query.lte("created_at", to);
+  const { data, error } = await query;
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  if (format === "csv") {
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", 'attachment; filename="transactions-report.csv"');
+    res.send(toCsv(data ?? []));
+    return;
+  }
+  res.json({ success: true, data });
+});
+router7.get("/revenue", authenticate, requireAdmin, async (req, res) => {
+  const { from, to } = rangeSchema.parse(req.query);
+  let query = supabaseAdmin.from("wallet_transactions").select("type, fee, currency, created_at").eq("status", "completed").gt("fee", 0);
+  if (from) query = query.gte("created_at", from);
+  if (to) query = query.lte("created_at", to);
+  const { data, error } = await query;
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  const byType = /* @__PURE__ */ new Map();
+  let total = 0;
+  for (const row of data ?? []) {
+    const fee = Number(row.fee);
+    byType.set(row.type, (byType.get(row.type) ?? 0) + fee);
+    total += fee;
+  }
+  res.json({
+    success: true,
+    data: {
+      total_fees: total,
+      by_type: Array.from(byType.entries()).map(([type, amount]) => ({ type, amount })),
+      transaction_count: (data ?? []).length
+    }
+  });
+});
+router7.get("/user-growth", authenticate, requireAdmin, async (req, res) => {
+  const { from, to } = rangeSchema.parse(req.query);
+  let query = supabaseAdmin.from("profiles").select("role, created_at").order("created_at");
+  if (from) query = query.gte("created_at", from);
+  if (to) query = query.lte("created_at", to);
+  const { data, error } = await query;
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  const byDay = /* @__PURE__ */ new Map();
+  for (const row of data ?? []) {
+    const day2 = row.created_at.slice(0, 10);
+    byDay.set(day2, (byDay.get(day2) ?? 0) + 1);
+  }
+  res.json({
+    success: true,
+    data: {
+      total: (data ?? []).length,
+      by_role: Object.fromEntries(
+        Object.entries(
+          (data ?? []).reduce((acc, r) => {
+            acc[r.role] = (acc[r.role] ?? 0) + 1;
+            return acc;
+          }, {})
+        )
+      ),
+      daily: Array.from(byDay.entries()).map(([date, count]) => ({ date, count })).sort((a, b) => a.date.localeCompare(b.date))
+    }
+  });
+});
+
+// src/routes/providers.ts
+var import_express8 = __toESM(require_express2());
+init_supabase();
+init_provider();
+init_config();
+var router8 = (0, import_express8.Router)();
+router8.get("/", authenticate, requireAdmin, async (_req, res) => {
+  const start = Date.now();
+  let reachable = true;
+  let latencyMs = null;
+  try {
+    await vitalPay.getCategories();
+    latencyMs = Date.now() - start;
+  } catch {
+    reachable = false;
+  }
+  const { data: recentLogs } = await supabaseAdmin.from("provider_logs").select("operation, success, duration_ms, error_message, created_at").order("created_at", { ascending: false }).limit(50);
+  const successCount = (recentLogs ?? []).filter((l) => l.success).length;
+  const failureCount = (recentLogs ?? []).length - successCount;
+  res.json({
+    success: true,
+    data: {
+      providers: [{
+        name: provider.name,
+        base_url: env.VITALPAY_BASE_URL,
+        reachable,
+        latency_ms: latencyMs,
+        recent_operations: recentLogs ?? [],
+        recent_success_count: successCount,
+        recent_failure_count: failureCount
+      }]
+    }
+  });
+});
+
 // src/webhooks/vitalPayWebhook.ts
 init_src3();
 init_supabase();
@@ -74297,7 +74426,7 @@ function mapVitalPayEvent(vitalPayEvent) {
 
 // src/app.ts
 init_supabase();
-var app = (0, import_express7.default)();
+var app = (0, import_express9.default)();
 app.set("trust proxy", 1);
 app.use(helmet({
   contentSecurityPolicy: {
@@ -74349,7 +74478,7 @@ app.use("/api/auth", strictLimiter);
 app.use((0, import_compression.default)());
 app.post(
   "/webhooks/vitalpay",
-  import_express7.default.raw({ type: "application/json" }),
+  import_express9.default.raw({ type: "application/json" }),
   (req, _res, next) => {
     req.rawBody = req.body.toString();
     req.body = JSON.parse(req.body.toString());
@@ -74357,8 +74486,8 @@ app.post(
   },
   handleVitalPayWebhook
 );
-app.use(import_express7.default.json({ limit: "10kb" }));
-app.use(import_express7.default.urlencoded({ extended: true, limit: "10kb" }));
+app.use(import_express9.default.json({ limit: "10kb" }));
+app.use(import_express9.default.urlencoded({ extended: true, limit: "10kb" }));
 app.use((req, _res, next) => {
   logger.info({ method: req.method, url: req.url }, "Incoming request");
   next();
@@ -74383,12 +74512,18 @@ app.get("/api/announcements/active", async (_req, res) => {
   }
   res.json({ success: true, data: announcement });
 });
+app.get("/api/feature-flags", async (_req, res) => {
+  const { data } = await supabaseAdmin.from("system_config").select("value").eq("key", "feature_flags").maybeSingle();
+  res.json({ success: true, data: data?.value ?? {} });
+});
 app.use("/api/cards", router);
 app.use("/api/wallets", router2);
 app.use("/api/vouchers", router3);
 app.use("/api/banking", router4);
 app.use("/api/beneficiaries", router5);
 app.use("/api/vas", router6);
+app.use("/api/admin/reports", router7);
+app.use("/api/admin/providers", router8);
 app.get("/api/profile", authenticate, async (req, res) => {
   const { data, error } = await supabaseAdmin.from("profiles").select("*, agent_profiles!agent_profiles_user_id_fkey(*)").eq("id", req.user.id).single();
   if (error) {

@@ -9,6 +9,7 @@ import {
 import { VLogoIcon } from '../ui/VLogoIcon';
 import { useAuthStore } from '../../stores/authStore';
 import { useWalletStore } from '../../stores/walletStore';
+import { useFeatureFlags } from '../../hooks/useFeatureFlags';
 import type { UserRole } from '@vpay/types';
 
 interface SidebarProps {
@@ -22,15 +23,16 @@ interface NavItem {
   to: string;
   badge?: number;
   roles?: UserRole[];
+  moduleKey?: string;
 }
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
-  { label: 'Cards', icon: CreditCard, to: '/cards' },
+  { label: 'Cards', icon: CreditCard, to: '/cards', moduleKey: 'virtual_cards' },
   { label: 'Wallet', icon: Wallet, to: '/wallet' },
-  { label: 'Banking', icon: Landmark, to: '/banking' },
-  { label: 'Bills & Top-ups', icon: Smartphone, to: '/bills' },
-  { label: 'Vouchers', icon: Ticket, to: '/vouchers' },
+  { label: 'Banking', icon: Landmark, to: '/banking', moduleKey: 'banking_iban' },
+  { label: 'Bills & Top-ups', icon: Smartphone, to: '/bills', moduleKey: 'bill_payments' },
+  { label: 'Vouchers', icon: Ticket, to: '/vouchers', moduleKey: 'vouchers' },
   { label: 'Transactions', icon: ArrowUpDown, to: '/transactions' },
   { label: 'Profile', icon: User, to: '/profile' },
 ];
@@ -50,6 +52,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const role = profile?.role ?? 'consumer';
   const isAgent = ['agent', 'super_admin', 'staff'].includes(role);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const { isEnabled } = useFeatureFlags();
+  const visibleNavItems = navItems.filter(item => !item.moduleKey || isEnabled(item.moduleKey));
 
   const handleSignOut = async () => {
     if (isSigningOut) return;
@@ -102,7 +106,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
         {/* Main nav */}
-        {navItems.map((item) => (
+        {visibleNavItems.map((item) => (
           <SidebarItem key={item.to} item={item} isCollapsed={isCollapsed}
             badge={item.label === 'Notifications' ? unreadCount : undefined} />
         ))}
