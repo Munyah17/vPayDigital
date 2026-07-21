@@ -79,6 +79,8 @@ const LeadsPage           = lazy(() => import('./pages/admin/leads/LeadsPage'));
 const InvoicingPage       = lazy(() => import('./pages/admin/invoicing/InvoicingPage'));
 const LoansPage           = lazy(() => import('./pages/admin/loans/LoansPage'));
 const PartnersPage        = lazy(() => import('./pages/admin/partners/PartnersPage'));
+const TasksPage           = lazy(() => import('./pages/admin/tasks/TasksPage'));
+const ApiManagementPage   = lazy(() => import('./pages/admin/apiManagement/ApiManagementPage'));
 const ModulePlaceholder   = lazy(() => import('./pages/admin/shared/ModulePlaceholder'));
 
 // ─── Query client ─────────────────────────────────────────────────────────────
@@ -253,12 +255,8 @@ export default function App() {
               <Route path="ai-assistant" element={<ModulePlaceholder
                 title="AI Assistant" description="AI-assisted marketing copy, analytics summaries, and operational suggestions."
                 needs="Which tasks first (marketing copy vs. analytics Q&A are very different builds) and an AI provider/budget decision." />} />
-              <Route path="tasks" element={<ModulePlaceholder
-                title="Task Manager" description="Internal task/ticket tracking for the ops team, separate from support tickets."
-                needs="Whether this should be a lightweight internal Kanban or integrate with an existing tool (Linear, Trello, etc.)." />} />
-              <Route path="api-management" element={<ModulePlaceholder
-                title="API Management" description="Issue and manage API keys/access for third parties, beyond webhook config."
-                needs="Whether ePay Smart is planning to expose its own API to external partners, and what scopes/rate limits it needs." />} />
+              <Route path="tasks" element={<TasksPage />} />
+              <Route path="api-management" element={<ApiManagementPage />} />
               <Route path="hr-payroll" element={<ModulePlaceholder
                 title="HR & Payroll" description="Internal staff records, leave, and payroll processing."
                 needs="This manages your own company's staff, not platform users — confirm it belongs in this admin at all vs. a separate internal tool." />} />
