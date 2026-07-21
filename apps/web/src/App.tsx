@@ -71,6 +71,11 @@ const AnnouncementsPage   = lazy(() => import('./pages/admin/announcements/Annou
 const ReportsPage         = lazy(() => import('./pages/admin/reports/ReportsPage'));
 const ProvidersPage       = lazy(() => import('./pages/admin/providers/ProvidersPage'));
 const ModulesPage         = lazy(() => import('./pages/admin/modules/ModulesPage'));
+const EscrowPage          = lazy(() => import('./pages/admin/escrow/EscrowPage'));
+const DisputesPage        = lazy(() => import('./pages/admin/disputes/DisputesPage'));
+const CommunicationsPage  = lazy(() => import('./pages/admin/communications/CommunicationsPage'));
+const MarketingPage       = lazy(() => import('./pages/admin/marketing/MarketingPage'));
+const LeadsPage           = lazy(() => import('./pages/admin/leads/LeadsPage'));
 const ModulePlaceholder   = lazy(() => import('./pages/admin/shared/ModulePlaceholder'));
 
 // ─── Query client ─────────────────────────────────────────────────────────────
@@ -231,27 +236,14 @@ export default function App() {
               <Route path="system-health"     element={<SystemHealthPage />} />
               <Route path="announcements"     element={<AnnouncementsPage />} />
 
-              {/* Command-center modules with no backend/data model yet —
-                  honest "needs scoping" pages rather than fake or missing
-                  routes, so the sidebar reflects the full intended shape. */}
               <Route path="reports" element={<ReportsPage />} />
               <Route path="providers" element={<ProvidersPage />} />
               <Route path="modules" element={<ModulesPage />} />
-              <Route path="escrow" element={<ModulePlaceholder
-                title="Escrow" description="Hold funds between two parties until a condition is met."
-                needs="The actual escrow product definition — release conditions, dispute handling, who initiates it." />} />
-              <Route path="disputes" element={<ModulePlaceholder
-                title="Disputes" description="Formal dispute/chargeback handling, distinct from fraud flags."
-                needs="A disputes data model and workflow (open → evidence → resolution) — currently only fraud_flags and support_tickets exist." />} />
-              <Route path="mass-communication" element={<ModulePlaceholder
-                title="Mass Communication" description="Bulk email/SMS/push to segments of users."
-                needs="An email/SMS provider integration (none configured yet) and audience segmentation rules." />} />
-              <Route path="marketing" element={<ModulePlaceholder
-                title="Marketing" description="Campaigns, promo codes, referral tracking."
-                needs="Which specific marketing mechanics you want first — promo codes, referrals, and campaigns are three different features." />} />
-              <Route path="leads" element={<ModulePlaceholder
-                title="Leads" description="Track prospective users/businesses before they sign up."
-                needs="A leads data model and where leads come from (landing page form, agent referral, manual entry)." />} />
+              <Route path="escrow" element={<EscrowPage />} />
+              <Route path="disputes" element={<DisputesPage />} />
+              <Route path="mass-communication" element={<CommunicationsPage />} />
+              <Route path="marketing" element={<MarketingPage />} />
+              <Route path="leads" element={<LeadsPage />} />
               <Route path="invoicing" element={<ModulePlaceholder
                 title="Invoicing, Quotations & Receipting" description="A full billing subsystem for business clients — quotes, invoices, proof of payment, receipts."
                 needs="This is the single biggest piece on the list — needs its own requirements discussion (numbering, tax handling, PDF generation, payment matching)." />} />

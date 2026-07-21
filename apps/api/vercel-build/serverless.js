@@ -1305,17 +1305,17 @@ var require_router = __commonJS({
     var toString3 = Object.prototype.toString;
     var proto = module2.exports = function(options) {
       var opts = options || {};
-      function router9(req, res, next) {
-        router9.handle(req, res, next);
+      function router14(req, res, next) {
+        router14.handle(req, res, next);
       }
-      setPrototypeOf(router9, proto);
-      router9.params = {};
-      router9._params = [];
-      router9.caseSensitive = opts.caseSensitive;
-      router9.mergeParams = opts.mergeParams;
-      router9.strict = opts.strict;
-      router9.stack = [];
-      return router9;
+      setPrototypeOf(router14, proto);
+      router14.params = {};
+      router14._params = [];
+      router14.caseSensitive = opts.caseSensitive;
+      router14.mergeParams = opts.mergeParams;
+      router14.strict = opts.strict;
+      router14.stack = [];
+      return router14;
     };
     proto.param = function param(name, fn) {
       if (typeof name === "function") {
@@ -21896,7 +21896,7 @@ var require_application = __commonJS({
   "../../node_modules/express/lib/application.js"(exports2, module2) {
     "use strict";
     var finalhandler = require_finalhandler();
-    var Router10 = require_router();
+    var Router15 = require_router();
     var methods = require_methods();
     var middleware = require_init();
     var query = require_query();
@@ -21961,7 +21961,7 @@ var require_application = __commonJS({
     };
     app2.lazyrouter = function lazyrouter() {
       if (!this._router) {
-        this._router = new Router10({
+        this._router = new Router15({
           caseSensitive: this.enabled("case sensitive routing"),
           strict: this.enabled("strict routing")
         });
@@ -21970,17 +21970,17 @@ var require_application = __commonJS({
       }
     };
     app2.handle = function handle(req, res, callback) {
-      var router9 = this._router;
+      var router14 = this._router;
       var done = callback || finalhandler(req, res, {
         env: this.get("env"),
         onerror: logerror.bind(this)
       });
-      if (!router9) {
+      if (!router14) {
         debug("no routes defined on app");
         done();
         return;
       }
-      router9.handle(req, res, done);
+      router14.handle(req, res, done);
     };
     app2.use = function use(fn) {
       var offset = 0;
@@ -22000,15 +22000,15 @@ var require_application = __commonJS({
         throw new TypeError("app.use() requires a middleware function");
       }
       this.lazyrouter();
-      var router9 = this._router;
+      var router14 = this._router;
       fns.forEach(function(fn2) {
         if (!fn2 || !fn2.handle || !fn2.set) {
-          return router9.use(path2, fn2);
+          return router14.use(path2, fn2);
         }
         debug(".use app under %s", path2);
         fn2.mountpath = path2;
         fn2.parent = this;
-        router9.use(path2, function mounted_app(req, res, next) {
+        router14.use(path2, function mounted_app(req, res, next) {
           var orig = req.app;
           fn2.handle(req, res, function(err) {
             setPrototypeOf(req, orig.request);
@@ -23825,7 +23825,7 @@ var require_express = __commonJS({
     var mixin = require_merge_descriptors();
     var proto = require_application();
     var Route = require_route();
-    var Router10 = require_router();
+    var Router15 = require_router();
     var req = require_request();
     var res = require_response();
     exports2 = module2.exports = createApplication;
@@ -23848,7 +23848,7 @@ var require_express = __commonJS({
     exports2.request = req;
     exports2.response = res;
     exports2.Route = Route;
-    exports2.Router = Router10;
+    exports2.Router = Router15;
     exports2.json = bodyParser.json;
     exports2.query = require_query();
     exports2.raw = bodyParser.raw;
@@ -63567,10 +63567,10 @@ var init_fetch = __esm({
         },
         env2
       );
-      const { fetch: envFetch, Request, Response: Response9 } = env2;
+      const { fetch: envFetch, Request, Response: Response14 } = env2;
       const isFetchSupported = envFetch ? isFunction2(envFetch) : typeof fetch === "function";
       const isRequestSupported = isFunction2(Request);
-      const isResponseSupported = isFunction2(Response9);
+      const isResponseSupported = isFunction2(Response14);
       if (!isFetchSupported) {
         return false;
       }
@@ -63592,7 +63592,7 @@ var init_fetch = __esm({
         }
         return duplexAccessed && !hasContentType;
       });
-      const supportsResponseStream = isResponseSupported && isReadableStreamSupported && test(() => utils_default.isReadableStream(new Response9("").body));
+      const supportsResponseStream = isResponseSupported && isReadableStreamSupported && test(() => utils_default.isReadableStream(new Response14("").body));
       const resolvers = {
         stream: supportsResponseStream && ((res) => res.body)
       };
@@ -63769,7 +63769,7 @@ var init_fetch = __esm({
               }
               onProgress && onProgress(loadedBytes);
             };
-            response = new Response9(
+            response = new Response14(
               trackStream(response.body, DEFAULT_CHUNK_SIZE, onChunkProgress, () => {
                 flush && flush();
                 unsubscribe && unsubscribe();
@@ -63843,8 +63843,8 @@ var init_fetch = __esm({
     seedCache = /* @__PURE__ */ new Map();
     getFetch = (config2) => {
       let env2 = config2 && config2.env || {};
-      const { fetch: fetch2, Request, Response: Response9 } = env2;
-      const seeds = [Request, Response9, fetch2];
+      const { fetch: fetch2, Request, Response: Response14 } = env2;
+      const seeds = [Request, Response14, fetch2];
       let len = seeds.length, i = len, seed, target, map = seedCache;
       while (i--) {
         seed = seeds[i];
@@ -65265,7 +65265,7 @@ Object.defineProperty(Layer.prototype, "handle", {
 patchRouterParam();
 
 // src/app.ts
-var import_express9 = __toESM(require_express2());
+var import_express14 = __toESM(require_express2());
 
 // ../../node_modules/helmet/index.mjs
 var dangerouslyDisableDefaultSrc = /* @__PURE__ */ Symbol("dangerouslyDisableDefaultSrc");
@@ -74286,6 +74286,360 @@ router8.get("/", authenticate, requireAdmin, async (_req, res) => {
   });
 });
 
+// src/routes/escrow.ts
+var import_express9 = __toESM(require_express2());
+init_supabase();
+var router9 = (0, import_express9.Router)();
+var createSchema = external_exports.object({
+  payer_email: external_exports.string().email(),
+  payee_email: external_exports.string().email(),
+  amount: external_exports.number().positive(),
+  currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]),
+  description: external_exports.string().min(3).max(300)
+});
+router9.get("/", authenticate, requireAdmin, async (req, res) => {
+  const { status } = req.query;
+  let query = supabaseAdmin.from("escrow_transactions").select("*, payer:payer_id(email, full_name), payee:payee_id(email, full_name)").order("created_at", { ascending: false });
+  if (status) query = query.eq("status", status);
+  const { data, error } = await query;
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router9.post("/", authenticate, requireAdmin, async (req, res) => {
+  const body = createSchema.parse(req.body);
+  const [{ data: payer }, { data: payee }] = await Promise.all([
+    supabaseAdmin.from("profiles").select("id").eq("email", body.payer_email).single(),
+    supabaseAdmin.from("profiles").select("id").eq("email", body.payee_email).single()
+  ]);
+  if (!payer) {
+    res.status(404).json({ success: false, error: `No user with email ${body.payer_email}` });
+    return;
+  }
+  if (!payee) {
+    res.status(404).json({ success: false, error: `No user with email ${body.payee_email}` });
+    return;
+  }
+  const { data: wallet } = await supabaseAdmin.from("wallets").select("id, balance").eq("user_id", payer.id).eq("currency", body.currency).eq("wallet_type", "consumer").single();
+  if (!wallet) {
+    res.status(404).json({ success: false, error: "Payer has no wallet in that currency" });
+    return;
+  }
+  if (wallet.balance < body.amount) {
+    res.status(402).json({ success: false, error: `Insufficient balance. Available: ${wallet.balance}` });
+    return;
+  }
+  const { data: escrow, error: insertErr } = await supabaseAdmin.from("escrow_transactions").insert({
+    payer_id: payer.id,
+    payee_id: payee.id,
+    payer_wallet_id: wallet.id,
+    amount: body.amount,
+    currency: body.currency,
+    description: body.description,
+    status: "pending",
+    created_by: req.user.id
+  }).select().single();
+  if (insertErr || !escrow) {
+    res.status(500).json({ success: false, error: insertErr?.message ?? "Failed to create escrow" });
+    return;
+  }
+  const { error: debitErr } = await supabaseAdmin.rpc("record_wallet_debit", {
+    p_wallet_id: wallet.id,
+    p_amount: body.amount,
+    p_type: "fee",
+    p_description: `Escrow hold: ${escrow.reference}`,
+    p_metadata: { escrow_id: escrow.id }
+  });
+  if (debitErr) {
+    await supabaseAdmin.from("escrow_transactions").update({ status: "cancelled", notes: `Funding failed: ${debitErr.message}` }).eq("id", escrow.id);
+    res.status(500).json({ success: false, error: `Failed to fund escrow: ${debitErr.message}` });
+    return;
+  }
+  const { data: funded } = await supabaseAdmin.from("escrow_transactions").update({ status: "funded", funded_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", escrow.id).select().single();
+  res.status(201).json({ success: true, data: funded });
+});
+router9.post("/:id/release", authenticate, requireAdmin, async (req, res) => {
+  const { data: escrow } = await supabaseAdmin.from("escrow_transactions").select("*").eq("id", req.params.id).single();
+  if (!escrow) {
+    res.status(404).json({ success: false, error: "Escrow not found" });
+    return;
+  }
+  if (escrow.status !== "funded") {
+    res.status(400).json({ success: false, error: `Cannot release from status ${escrow.status}` });
+    return;
+  }
+  const { data: payeeWallet } = await supabaseAdmin.from("wallets").select("id").eq("user_id", escrow.payee_id).eq("currency", escrow.currency).eq("wallet_type", "consumer").single();
+  if (!payeeWallet) {
+    res.status(404).json({ success: false, error: "Payee has no wallet in that currency" });
+    return;
+  }
+  await supabaseAdmin.rpc("record_wallet_credit", {
+    p_wallet_id: payeeWallet.id,
+    p_amount: escrow.amount,
+    p_type: "transfer",
+    p_description: `Escrow released: ${escrow.reference}`,
+    p_metadata: { escrow_id: escrow.id }
+  });
+  const { data } = await supabaseAdmin.from("escrow_transactions").update({ status: "released", released_at: (/* @__PURE__ */ new Date()).toISOString(), released_by: req.user.id }).eq("id", escrow.id).select().single();
+  res.json({ success: true, data });
+});
+router9.post("/:id/refund", authenticate, requireAdmin, async (req, res) => {
+  const { data: escrow } = await supabaseAdmin.from("escrow_transactions").select("*").eq("id", req.params.id).single();
+  if (!escrow) {
+    res.status(404).json({ success: false, error: "Escrow not found" });
+    return;
+  }
+  if (escrow.status !== "funded") {
+    res.status(400).json({ success: false, error: `Cannot refund from status ${escrow.status}` });
+    return;
+  }
+  if (!escrow.payer_wallet_id) {
+    res.status(500).json({ success: false, error: "Escrow has no payer wallet on record" });
+    return;
+  }
+  await supabaseAdmin.rpc("record_wallet_credit", {
+    p_wallet_id: escrow.payer_wallet_id,
+    p_amount: escrow.amount,
+    p_type: "refund",
+    p_description: `Escrow refunded: ${escrow.reference}`,
+    p_metadata: { escrow_id: escrow.id }
+  });
+  const { data } = await supabaseAdmin.from("escrow_transactions").update({ status: "refunded", released_at: (/* @__PURE__ */ new Date()).toISOString(), released_by: req.user.id }).eq("id", escrow.id).select().single();
+  res.json({ success: true, data });
+});
+
+// src/routes/disputes.ts
+var import_express10 = __toESM(require_express2());
+init_supabase();
+var router10 = (0, import_express10.Router)();
+var createSchema2 = external_exports.object({
+  subject: external_exports.string().min(3).max(150),
+  description: external_exports.string().min(10).max(2e3),
+  related_transaction_id: external_exports.string().uuid().optional()
+});
+var updateSchema = external_exports.object({
+  status: external_exports.enum(["open", "investigating", "resolved", "rejected"]),
+  resolution_notes: external_exports.string().max(2e3).optional()
+});
+router10.post("/", authenticate, async (req, res) => {
+  const body = createSchema2.parse(req.body);
+  const { data, error } = await supabaseAdmin.from("disputes").insert({ ...body, raised_by: req.user.id }).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.status(201).json({ success: true, data });
+});
+router10.get("/", authenticate, async (req, res) => {
+  const { data, error } = await supabaseAdmin.from("disputes").select("*").eq("raised_by", req.user.id).order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router10.get("/admin", authenticate, requireAdmin, async (req, res) => {
+  const { status } = req.query;
+  let query = supabaseAdmin.from("disputes").select("*, profiles!disputes_raised_by_fkey(email, full_name)").order("created_at", { ascending: false });
+  if (status) query = query.eq("status", status);
+  const { data, error } = await query;
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router10.patch("/admin/:id", authenticate, requireAdmin, async (req, res) => {
+  const body = updateSchema.parse(req.body);
+  const patch = { ...body };
+  if (body.status === "resolved" || body.status === "rejected") {
+    patch.resolved_by = req.user.id;
+    patch.resolved_at = (/* @__PURE__ */ new Date()).toISOString();
+  }
+  const { data, error } = await supabaseAdmin.from("disputes").update(patch).eq("id", req.params.id).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+
+// src/routes/communications.ts
+var import_express11 = __toESM(require_express2());
+init_supabase();
+init_config();
+init_logger();
+var router11 = (0, import_express11.Router)();
+var createSchema3 = external_exports.object({
+  channel: external_exports.enum(["email", "sms", "push"]).default("email"),
+  segment: external_exports.enum(["all", "consumer", "agent", "staff"]).default("all"),
+  subject: external_exports.string().max(150).optional(),
+  message: external_exports.string().min(1).max(5e3)
+});
+async function resolveRecipients(segment) {
+  let query = supabaseAdmin.from("profiles").select("email").eq("status", "active");
+  if (segment !== "all") query = query.eq("role", segment);
+  const { data } = await query;
+  return (data ?? []).filter((r) => !!r.email);
+}
+router11.get("/", authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin.from("communications").select("*").order("created_at", { ascending: false }).limit(100);
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router11.post("/", authenticate, requireAdmin, async (req, res) => {
+  const body = createSchema3.parse(req.body);
+  const recipients = await resolveRecipients(body.segment);
+  const { data: comm, error: insertErr } = await supabaseAdmin.from("communications").insert({ ...body, recipient_count: recipients.length, created_by: req.user.id }).select().single();
+  if (insertErr || !comm) {
+    res.status(500).json({ success: false, error: insertErr?.message ?? "Failed to save" });
+    return;
+  }
+  if (body.channel !== "email" || !env.RESEND_API_KEY) {
+    const reason = body.channel !== "email" ? `${body.channel} sending isn't wired to a provider yet \u2014 email is the only channel that can actually send.` : "No RESEND_API_KEY configured \u2014 saved as a draft. Add the key to actually send.";
+    await supabaseAdmin.from("communications").update({ status: "draft", error_message: reason }).eq("id", comm.id);
+    res.status(201).json({ success: true, data: { ...comm, status: "draft", error_message: reason } });
+    return;
+  }
+  await supabaseAdmin.from("communications").update({ status: "sending" }).eq("id", comm.id);
+  let sentCount = 0, failedCount = 0;
+  for (const r of recipients) {
+    try {
+      const resp = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: env.EMAIL_FROM || "noreply@epaysmart.live",
+          to: r.email,
+          subject: body.subject || "ePay Smart",
+          text: body.message
+        })
+      });
+      if (resp.ok) sentCount++;
+      else failedCount++;
+    } catch (err) {
+      failedCount++;
+      logger.warn({ err, email: r.email }, "Mass communication send failed for recipient");
+    }
+  }
+  const { data: final } = await supabaseAdmin.from("communications").update({
+    status: failedCount === recipients.length && recipients.length > 0 ? "failed" : "sent",
+    sent_count: sentCount,
+    failed_count: failedCount,
+    sent_at: (/* @__PURE__ */ new Date()).toISOString()
+  }).eq("id", comm.id).select().single();
+  res.status(201).json({ success: true, data: final });
+});
+
+// src/routes/promoCodes.ts
+var import_express12 = __toESM(require_express2());
+init_supabase();
+var router12 = (0, import_express12.Router)();
+var createSchema4 = external_exports.object({
+  code: external_exports.string().min(3).max(30).transform((s) => s.toUpperCase()),
+  description: external_exports.string().max(200).optional(),
+  discount_type: external_exports.enum(["percent", "flat"]),
+  discount_value: external_exports.number().positive(),
+  max_uses: external_exports.number().int().positive().optional(),
+  min_amount: external_exports.number().positive().optional(),
+  expires_at: external_exports.string().datetime().optional()
+});
+router12.get("/", authenticate, requireAdmin, async (_req, res) => {
+  const { data, error } = await supabaseAdmin.from("promo_codes").select("*").order("created_at", { ascending: false });
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router12.post("/", authenticate, requireAdmin, async (req, res) => {
+  const body = createSchema4.parse(req.body);
+  const { data, error } = await supabaseAdmin.from("promo_codes").insert({ ...body, created_by: req.user.id }).select().single();
+  if (error) {
+    const message2 = error.code === "23505" ? `Code "${body.code}" already exists` : error.message;
+    res.status(error.code === "23505" ? 409 : 500).json({ success: false, error: message2 });
+    return;
+  }
+  res.status(201).json({ success: true, data });
+});
+router12.patch("/:id", authenticate, requireAdmin, async (req, res) => {
+  const { active } = req.body;
+  const { data, error } = await supabaseAdmin.from("promo_codes").update({ active }).eq("id", req.params.id).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router12.get("/validate/:code", authenticate, async (req, res) => {
+  const { data: promo } = await supabaseAdmin.from("promo_codes").select("*").eq("code", String(req.params.code).toUpperCase()).eq("active", true).maybeSingle();
+  if (!promo) {
+    res.status(404).json({ success: false, error: "Invalid or inactive promo code" });
+    return;
+  }
+  if (promo.expires_at && new Date(promo.expires_at) < /* @__PURE__ */ new Date()) {
+    res.status(410).json({ success: false, error: "Promo code has expired" });
+    return;
+  }
+  if (promo.max_uses && promo.used_count >= promo.max_uses) {
+    res.status(410).json({ success: false, error: "Promo code has reached its usage limit" });
+    return;
+  }
+  res.json({ success: true, data: { code: promo.code, discount_type: promo.discount_type, discount_value: promo.discount_value, min_amount: promo.min_amount } });
+});
+
+// src/routes/leads.ts
+var import_express13 = __toESM(require_express2());
+init_supabase();
+var router13 = (0, import_express13.Router)();
+var createSchema5 = external_exports.object({
+  name: external_exports.string().min(1).max(150),
+  email: external_exports.string().email().optional(),
+  phone: external_exports.string().max(30).optional(),
+  company: external_exports.string().max(150).optional(),
+  source: external_exports.string().max(100).optional(),
+  notes: external_exports.string().max(1e3).optional()
+});
+var updateSchema2 = external_exports.object({
+  status: external_exports.enum(["new", "contacted", "qualified", "converted", "lost"]).optional(),
+  notes: external_exports.string().max(1e3).optional(),
+  assigned_to: external_exports.string().uuid().optional()
+});
+router13.get("/", authenticate, requireAdmin, async (req, res) => {
+  const { status } = req.query;
+  let query = supabaseAdmin.from("leads").select("*").order("created_at", { ascending: false });
+  if (status) query = query.eq("status", status);
+  const { data, error } = await query;
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+router13.post("/", authenticate, requireAdmin, async (req, res) => {
+  const body = createSchema5.parse(req.body);
+  const { data, error } = await supabaseAdmin.from("leads").insert({ ...body, created_by: req.user.id }).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.status(201).json({ success: true, data });
+});
+router13.patch("/:id", authenticate, requireAdmin, async (req, res) => {
+  const body = updateSchema2.parse(req.body);
+  const { data, error } = await supabaseAdmin.from("leads").update(body).eq("id", req.params.id).select().single();
+  if (error) {
+    res.status(500).json({ success: false, error: error.message });
+    return;
+  }
+  res.json({ success: true, data });
+});
+
 // src/webhooks/vitalPayWebhook.ts
 init_src3();
 init_supabase();
@@ -74426,7 +74780,7 @@ function mapVitalPayEvent(vitalPayEvent) {
 
 // src/app.ts
 init_supabase();
-var app = (0, import_express9.default)();
+var app = (0, import_express14.default)();
 app.set("trust proxy", 1);
 app.use(helmet({
   contentSecurityPolicy: {
@@ -74478,7 +74832,7 @@ app.use("/api/auth", strictLimiter);
 app.use((0, import_compression.default)());
 app.post(
   "/webhooks/vitalpay",
-  import_express9.default.raw({ type: "application/json" }),
+  import_express14.default.raw({ type: "application/json" }),
   (req, _res, next) => {
     req.rawBody = req.body.toString();
     req.body = JSON.parse(req.body.toString());
@@ -74486,8 +74840,8 @@ app.post(
   },
   handleVitalPayWebhook
 );
-app.use(import_express9.default.json({ limit: "10kb" }));
-app.use(import_express9.default.urlencoded({ extended: true, limit: "10kb" }));
+app.use(import_express14.default.json({ limit: "10kb" }));
+app.use(import_express14.default.urlencoded({ extended: true, limit: "10kb" }));
 app.use((req, _res, next) => {
   logger.info({ method: req.method, url: req.url }, "Incoming request");
   next();
@@ -74524,6 +74878,11 @@ app.use("/api/beneficiaries", router5);
 app.use("/api/vas", router6);
 app.use("/api/admin/reports", router7);
 app.use("/api/admin/providers", router8);
+app.use("/api/admin/escrow", router9);
+app.use("/api/disputes", router10);
+app.use("/api/admin/communications", router11);
+app.use("/api/promo", router12);
+app.use("/api/admin/leads", router13);
 app.get("/api/profile", authenticate, async (req, res) => {
   const { data, error } = await supabaseAdmin.from("profiles").select("*, agent_profiles!agent_profiles_user_id_fkey(*)").eq("id", req.user.id).single();
   if (error) {

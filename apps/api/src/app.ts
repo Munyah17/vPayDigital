@@ -19,6 +19,11 @@ import { beneficiaryRouter } from './routes/beneficiaries.js';
 import { vasRouter } from './routes/vas.js';
 import { reportsRouter } from './routes/reports.js';
 import { providersRouter } from './routes/providers.js';
+import { escrowRouter } from './routes/escrow.js';
+import { disputesRouter } from './routes/disputes.js';
+import { communicationsRouter } from './routes/communications.js';
+import { promoCodesRouter } from './routes/promoCodes.js';
+import { leadsRouter } from './routes/leads.js';
 import { handleVitalPayWebhook } from './webhooks/vitalPayWebhook.js';
 import { authenticate, requireAdmin, requireAgent, requireSuperAdmin, AuthenticatedRequest } from './middleware/auth.js';
 import { supabaseAdmin } from './utils/supabase.js';
@@ -176,6 +181,11 @@ app.use('/api/beneficiaries', beneficiaryRouter);
 app.use('/api/vas', vasRouter);
 app.use('/api/admin/reports', reportsRouter);
 app.use('/api/admin/providers', providersRouter);
+app.use('/api/admin/escrow', escrowRouter);
+app.use('/api/disputes', disputesRouter);
+app.use('/api/admin/communications', communicationsRouter);
+app.use('/api/promo', promoCodesRouter);
+app.use('/api/admin/leads', leadsRouter);
 
 // ─── Profile Routes ───────────────────────────────────────────────────────────
 app.get('/api/profile', authenticate, async (req: AuthenticatedRequest, res) => {
