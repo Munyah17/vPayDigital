@@ -8,6 +8,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Registered manually in main.tsx, gated on NOT running inside the
+      // Capacitor native shell — a service worker inside an embedded
+      // WebView fights with the native app's own update mechanism
+      // (app store releases) instead of the browser's tab-refresh model.
+      injectRegister: false,
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
         name: 'ePay Smart — Zimbabwe Payments',

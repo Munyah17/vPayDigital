@@ -95,9 +95,32 @@ secrets/
 !apps/web/public/*.jpeg
 !apps/web/public/*.webp
 
+# ...and the native app icon/splash asset catalogs Capacitor generates
+!apps/web/ios/App/App/Assets.xcassets/**/*.png
+!apps/web/android/app/src/main/res/**/*.png
+!apps/web/android/app/src/main/res/**/*.webp
+
 .vercel
 .env*
 
 # Claude Code local settings — settings.local.json can contain live tokens
 # pasted during a session (e.g. VERCEL_TOKEN permission entries)
 .claude/settings.local.json
+
+# Capacitor native projects (apps/web/ios, apps/web/android) are committed —
+# only their build output/caches are ignored, per Capacitor's own convention.
+apps/web/android/.gradle/
+apps/web/android/build/
+apps/web/android/app/build/
+apps/web/android/.idea/
+apps/web/android/local.properties
+apps/web/android/*.iml
+apps/web/android/app/*.iml
+apps/web/android/captures/
+apps/web/ios/App/Pods/
+apps/web/ios/App/build/
+apps/web/ios/App/DerivedData/
+apps/web/ios/.xcode.env.local
+*.keystore
+*.p12
+*.mobileprovision
