@@ -35151,7 +35151,7 @@ var init_config = __esm({
       REDIS_URL: optional("REDIS_URL", "redis://localhost:6379"),
       ENCRYPTION_KEY: required("ENCRYPTION_KEY"),
       RESEND_API_KEY: optional("RESEND_API_KEY", ""),
-      ANTHROPIC_API_KEY: optional("ANTHROPIC_API_KEY", ""),
+      GROQ_API_KEY: optional("GROQ_API_KEY", ""),
       EMAIL_FROM: optional("EMAIL_FROM", "noreply@vpay.app"),
       TWILIO_ACCOUNT_SID: optional("TWILIO_ACCOUNT_SID", ""),
       TWILIO_AUTH_TOKEN: optional("TWILIO_AUTH_TOKEN", ""),
@@ -75111,8 +75111,8 @@ var SYSTEM_PROMPTS = {
 };
 router19.post("/ask", authenticate, requireAdmin, async (req, res) => {
   const body = askSchema.parse(req.body);
-  if (!env.ANTHROPIC_API_KEY) {
-    res.status(503).json({ success: false, error: "AI Assistant needs an ANTHROPIC_API_KEY configured on the server \u2014 nothing has been added yet." });
+  if (!env.GROQ_API_KEY) {
+    res.status(503).json({ success: false, error: "AI Assistant needs a GROQ_API_KEY configured on the server \u2014 nothing has been added yet." });
     return;
   }
   let context = "";
@@ -75124,30 +75124,31 @@ Current platform metrics:
 ${JSON.stringify(metrics, null, 2)}` : "";
   }
   try {
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "x-api-key": env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
+        Authorization: `Bearer ${env.GROQ_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-5",
+        model: "llama-3.3-70b-versatile",
         max_tokens: 1024,
-        system: SYSTEM_PROMPTS[body.mode] + context,
-        messages: [{ role: "user", content: body.prompt }]
+        messages: [
+          { role: "system", content: SYSTEM_PROMPTS[body.mode] + context },
+          { role: "user", content: body.prompt }
+        ]
       })
     });
     if (!resp.ok) {
       const errBody = await resp.text();
-      res.status(502).json({ success: false, error: `Anthropic API error: ${resp.status} ${errBody.slice(0, 300)}` });
+      res.status(502).json({ success: false, error: `Groq API error: ${resp.status} ${errBody.slice(0, 300)}` });
       return;
     }
     const data = await resp.json();
-    const text = data.content.find((c) => c.type === "text")?.text ?? "";
+    const text = data.choices[0]?.message?.content ?? "";
     res.json({ success: true, data: { response: text } });
   } catch (err) {
-    res.status(502).json({ success: false, error: err instanceof Error ? err.message : "Failed to reach Anthropic API" });
+    res.status(502).json({ success: false, error: err instanceof Error ? err.message : "Failed to reach Groq API" });
   }
 });
 

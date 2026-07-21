@@ -49,7 +49,7 @@ export const env = {
   ENCRYPTION_KEY: required('ENCRYPTION_KEY'),
 
   RESEND_API_KEY: optional('RESEND_API_KEY', ''),
-  ANTHROPIC_API_KEY: optional('ANTHROPIC_API_KEY', ''),
+  GROQ_API_KEY: optional('GROQ_API_KEY', ''),
   EMAIL_FROM: optional('EMAIL_FROM', 'noreply@vpay.app'),
 
   TWILIO_ACCOUNT_SID: optional('TWILIO_ACCOUNT_SID', ''),

@@ -1,6 +1,7 @@
 // =============================================================================
-// AI Assistant — marketing copy + analytics Q&A via the Anthropic API. Real
-// calls when ANTHROPIC_API_KEY is configured; a clear "not configured" error
+// AI Assistant — marketing copy + analytics Q&A via Groq (OpenAI-compatible
+// chat completions API, verified live against llama-3.3-70b-versatile). Real
+// calls when GROQ_API_KEY is configured; a clear "not configured" error
 // otherwise rather than faking a response.
 // =============================================================================
 import { Router, Response } from 'express';
@@ -25,8 +26,8 @@ const SYSTEM_PROMPTS: Record<string, string> = {
 router.post('/ask', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const body = askSchema.parse(req.body);
 
-  if (!env.ANTHROPIC_API_KEY) {
-    res.status(503).json({ success: false, error: 'AI Assistant needs an ANTHROPIC_API_KEY configured on the server — nothing has been added yet.' });
+  if (!env.GROQ_API_KEY) {
+    res.status(503).json({ success: false, error: 'AI Assistant needs a GROQ_API_KEY configured on the server — nothing has been added yet.' });
     return;
   }
 
@@ -37,32 +38,33 @@ router.post('/ask', authenticate, requireAdmin, async (req: AuthenticatedRequest
   }
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        Authorization: `Bearer ${env.GROQ_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-5',
+        model: 'llama-3.3-70b-versatile',
         max_tokens: 1024,
-        system: SYSTEM_PROMPTS[body.mode] + context,
-        messages: [{ role: 'user', content: body.prompt }],
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPTS[body.mode] + context },
+          { role: 'user', content: body.prompt },
+        ],
       }),
     });
 
     if (!resp.ok) {
       const errBody = await resp.text();
-      res.status(502).json({ success: false, error: `Anthropic API error: ${resp.status} ${errBody.slice(0, 300)}` });
+      res.status(502).json({ success: false, error: `Groq API error: ${resp.status} ${errBody.slice(0, 300)}` });
       return;
     }
 
-    const data = await resp.json() as { content: Array<{ type: string; text?: string }> };
-    const text = data.content.find(c => c.type === 'text')?.text ?? '';
+    const data = await resp.json() as { choices: Array<{ message: { content: string } }> };
+    const text = data.choices[0]?.message?.content ?? '';
     res.json({ success: true, data: { response: text } });
   } catch (err) {
-    res.status(502).json({ success: false, error: err instanceof Error ? err.message : 'Failed to reach Anthropic API' });
+    res.status(502).json({ success: false, error: err instanceof Error ? err.message : 'Failed to reach Groq API' });
   }
 });
 
