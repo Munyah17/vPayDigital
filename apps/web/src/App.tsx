@@ -77,6 +77,8 @@ const CommunicationsPage  = lazy(() => import('./pages/admin/communications/Comm
 const MarketingPage       = lazy(() => import('./pages/admin/marketing/MarketingPage'));
 const LeadsPage           = lazy(() => import('./pages/admin/leads/LeadsPage'));
 const InvoicingPage       = lazy(() => import('./pages/admin/invoicing/InvoicingPage'));
+const LoansPage           = lazy(() => import('./pages/admin/loans/LoansPage'));
+const PartnersPage        = lazy(() => import('./pages/admin/partners/PartnersPage'));
 const ModulePlaceholder   = lazy(() => import('./pages/admin/shared/ModulePlaceholder'));
 
 // ─── Query client ─────────────────────────────────────────────────────────────
@@ -246,12 +248,8 @@ export default function App() {
               <Route path="marketing" element={<MarketingPage />} />
               <Route path="leads" element={<LeadsPage />} />
               <Route path="invoicing" element={<InvoicingPage />} />
-              <Route path="loans" element={<ModulePlaceholder
-                title="Loans" description="Lending product — origination, repayment schedules, collections."
-                needs="Product definition, interest/fee model, and regulatory requirements for lending in Zimbabwe." />} />
-              <Route path="partners" element={<ModulePlaceholder
-                title="Partners" description="Manage business/integration partners distinct from regular users."
-                needs="What a 'partner' relationship means here — revenue share, API access, or something else." />} />
+              <Route path="loans" element={<LoansPage />} />
+              <Route path="partners" element={<PartnersPage />} />
               <Route path="ai-assistant" element={<ModulePlaceholder
                 title="AI Assistant" description="AI-assisted marketing copy, analytics summaries, and operational suggestions."
                 needs="Which tasks first (marketing copy vs. analytics Q&A are very different builds) and an AI provider/budget decision." />} />
