@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Bell, Search, Menu, User, Settings, LogOut } from 'lucide-react';
 import { Sidebar } from './Sidebar';
+import { AnnouncementBanner } from './AnnouncementBanner';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { useAuthStore } from '../../stores/authStore';
 import { useWalletStore } from '../../stores/walletStore';
@@ -177,6 +178,8 @@ export function Layout() {
             </DropdownMenu.Root>
           </div>
         </header>
+
+        <AnnouncementBanner />
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto">

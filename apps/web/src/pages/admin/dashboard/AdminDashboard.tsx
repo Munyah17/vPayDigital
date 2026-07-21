@@ -3,29 +3,27 @@ import { motion } from 'framer-motion';
 import {
   Users, CreditCard, Ticket, AlertTriangle,
   DollarSign, Activity, Shield, ArrowUpRight,
-  CheckCircle2, XCircle, Zap
+  CheckCircle2, XCircle, HelpCircle, Zap
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
+import { Link } from 'react-router-dom';
 import { api } from '../../../lib/adminAxios';
 import { formatCurrency } from '@vpay/utils';
 import type { PlatformMetrics } from '@vpay/types';
 
-// Mock chart data (replace with real data from API)
-const volumeData = Array.from({ length: 30 }, (_, i) => ({
-  date: new Date(Date.now() - (29 - i) * 86400000).toLocaleDateString('en', { month: 'short', day: 'numeric' }),
-  volume: Math.floor(Math.random() * 80000 + 20000),
-  cards: Math.floor(Math.random() * 200 + 50),
-  fees: Math.floor(Math.random() * 2000 + 500),
-}));
+const NETWORK_COLORS: Record<string, string> = {
+  visa: '#4f46e5',
+  mastercard: '#7c3aed',
+  amex: '#a855f7',
+  unionpay: '#c084fc',
+};
 
-const cardsByNetwork = [
-  { name: 'Visa', value: 62, color: '#4f46e5' },
-  { name: 'Mastercard', value: 35, color: '#7c3aed' },
-  { name: 'Amex', value: 3, color: '#a855f7' },
-];
+interface DailyVolumePoint { date: string; volume: number; fees: number; cards_issued: number }
+interface CardsByNetwork { network: string; count: number }
+interface HealthCheck { name: string; status: 'operational' | 'degraded' | 'down' | 'unknown'; detail: string }
 
 const stagger = {
   hidden: {},
@@ -43,81 +41,49 @@ export default function AdminDashboard() {
     refetchInterval: 30_000,
   });
 
-  const metrics = metricsData?.data?.data;
+  const { data: historyData, isLoading: historyLoading } = useQuery({
+    queryKey: ['admin-metrics-history'],
+    queryFn: () => api.get<{ success: boolean; data: { daily: DailyVolumePoint[]; cards_by_network: CardsByNetwork[] } }>('/api/admin/metrics/history'),
+    refetchInterval: 60_000,
+  });
 
+  const { data: healthData } = useQuery({
+    queryKey: ['admin-system-health'],
+    queryFn: () => api.get<{ success: boolean; data: { checks: HealthCheck[]; checked_at: string } }>('/api/admin/system-health'),
+    refetchInterval: 30_000,
+  });
+
+  const metrics = metricsData?.data?.data;
+  const daily = historyData?.data?.data?.daily ?? [];
+  const byNetwork = historyData?.data?.data?.cards_by_network ?? [];
+  const totalNetworkCards = byNetwork.reduce((sum, n) => sum + n.count, 0);
+  const healthChecks = healthData?.data?.data?.checks ?? [];
+
+  const volumeData = daily.map(d => ({
+    date: new Date(d.date).toLocaleDateString('en', { month: 'short', day: 'numeric' }),
+    volume: d.volume,
+    fees: d.fees,
+    cards: d.cards_issued,
+  }));
+
+  // Every badge below is either a raw count (no fabricated comparison) or,
+  // for Fraud Alerts, a real derived state — no invented week-over-week
+  // percentages. A fake "+12.4%" on a financial platform's own command
+  // center is worse than no badge at all.
   const statCards = [
+    { label: 'Total Users', value: metrics?.total_consumers?.toLocaleString() ?? '—', icon: Users, color: 'from-blue-600/20 to-blue-800/10', iconColor: 'text-blue-400' },
+    { label: 'Active Cards', value: metrics?.active_cards?.toLocaleString() ?? '—', icon: CreditCard, color: 'from-indigo-600/20 to-indigo-800/10', iconColor: 'text-indigo-400' },
+    { label: '24h Volume', value: metrics?.volume_24h !== undefined ? formatCurrency(metrics.volume_24h, 'USD') : '—', icon: DollarSign, color: 'from-emerald-600/20 to-emerald-800/10', iconColor: 'text-emerald-400' },
+    { label: 'Total Agents', value: metrics?.total_agents?.toLocaleString() ?? '—', icon: Zap, color: 'from-amber-600/20 to-amber-800/10', iconColor: 'text-amber-400' },
+    { label: 'New Users (24h)', value: metrics?.new_users_24h?.toLocaleString() ?? '—', icon: ArrowUpRight, color: 'from-purple-600/20 to-purple-800/10', iconColor: 'text-purple-400' },
+    { label: 'Vouchers Redeemed (24h)', value: metrics?.vouchers_redeemed_24h?.toLocaleString() ?? '—', icon: Ticket, color: 'from-pink-600/20 to-pink-800/10', iconColor: 'text-pink-400' },
     {
-      label: 'Total Users',
-      value: metrics?.total_consumers?.toLocaleString() ?? '—',
-      icon: Users,
-      color: 'from-blue-600/20 to-blue-800/10',
-      iconColor: 'text-blue-400',
-      change: '+12.4%',
-      trend: 'up',
+      label: 'Fraud Alerts', value: metrics?.critical_fraud_flags?.toLocaleString() ?? '—', icon: AlertTriangle,
+      color: 'from-red-600/20 to-red-800/10', iconColor: 'text-red-400',
+      badge: metrics?.critical_fraud_flags ? 'CRITICAL' : 'All clear',
+      badgeColor: (metrics?.critical_fraud_flags ?? 0) > 0 ? 'text-red-400' : 'text-emerald-400',
     },
-    {
-      label: 'Active Cards',
-      value: metrics?.active_cards?.toLocaleString() ?? '—',
-      icon: CreditCard,
-      color: 'from-indigo-600/20 to-indigo-800/10',
-      iconColor: 'text-indigo-400',
-      change: '+8.2%',
-      trend: 'up',
-    },
-    {
-      label: '24h Volume',
-      value: metrics?.volume_24h ? formatCurrency(metrics.volume_24h, 'USD') : '—',
-      icon: DollarSign,
-      color: 'from-emerald-600/20 to-emerald-800/10',
-      iconColor: 'text-emerald-400',
-      change: '+5.7%',
-      trend: 'up',
-    },
-    {
-      label: 'Total Agents',
-      value: metrics?.total_agents?.toLocaleString() ?? '—',
-      icon: Zap,
-      color: 'from-amber-600/20 to-amber-800/10',
-      iconColor: 'text-amber-400',
-      change: '+3.1%',
-      trend: 'up',
-    },
-    {
-      label: 'Cards Today',
-      value: metrics?.cards_issued_24h?.toLocaleString() ?? '—',
-      icon: ArrowUpRight,
-      color: 'from-purple-600/20 to-purple-800/10',
-      iconColor: 'text-purple-400',
-      change: '+22.5%',
-      trend: 'up',
-    },
-    {
-      label: 'Vouchers Redeemed',
-      value: metrics?.vouchers_redeemed_24h?.toLocaleString() ?? '—',
-      icon: Ticket,
-      color: 'from-pink-600/20 to-pink-800/10',
-      iconColor: 'text-pink-400',
-      change: '+15.3%',
-      trend: 'up',
-    },
-    {
-      label: 'Fraud Alerts',
-      value: metrics?.critical_fraud_flags?.toLocaleString() ?? '—',
-      icon: AlertTriangle,
-      color: 'from-red-600/20 to-red-800/10',
-      iconColor: 'text-red-400',
-      change: metrics?.critical_fraud_flags ? 'CRITICAL' : 'All clear',
-      trend: (metrics?.critical_fraud_flags ?? 0) > 0 ? 'down' : 'up',
-    },
-    {
-      label: 'Pool Balance',
-      value: metrics?.master_pool_balance ? formatCurrency(metrics.master_pool_balance, 'USD') : '—',
-      icon: Shield,
-      color: 'from-teal-600/20 to-teal-800/10',
-      iconColor: 'text-teal-400',
-      change: 'Healthy',
-      trend: 'up',
-    },
+    { label: 'Pool Balance', value: metrics?.master_pool_balance !== undefined ? formatCurrency(metrics.master_pool_balance, 'USD') : '—', icon: Shield, color: 'from-teal-600/20 to-teal-800/10', iconColor: 'text-teal-400' },
   ];
 
   return (
@@ -157,9 +123,9 @@ export default function AdminDashboard() {
               <div className={`p-2 rounded-xl bg-foreground/5 ${stat.iconColor}`}>
                 <stat.icon className="w-4 h-4" />
               </div>
-              <span className={`text-xs font-medium ${stat.trend === 'up' ? 'text-emerald-400' : 'text-red-400'}`}>
-                {stat.change}
-              </span>
+              {'badge' in stat && (
+                <span className={`text-xs font-medium ${stat.badgeColor}`}>{stat.badge}</span>
+              )}
             </div>
             {isLoading ? (
               <div className="w-20 h-6 rounded shimmer mb-1" />
@@ -215,31 +181,41 @@ export default function AdminDashboard() {
         {/* Cards by network pie */}
         <div className="glass-card p-5">
           <h3 className="text-foreground font-semibold text-sm mb-1">Cards by Network</h3>
-          <p className="text-foreground/30 text-xs mb-4">All time</p>
-          <div className="flex items-center justify-center">
-            <ResponsiveContainer width="100%" height={160}>
-              <PieChart>
-                <Pie data={cardsByNetwork} cx="50%" cy="50%" innerRadius={45} outerRadius={70}
-                  paddingAngle={4} dataKey="value">
-                  {cardsByNetwork.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: 12 }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="space-y-2 mt-2">
-            {cardsByNetwork.map(item => (
-              <div key={item.name} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: item.color }} />
-                  <span className="text-foreground/50 text-xs">{item.name}</span>
-                </div>
-                <span className="text-foreground text-xs font-semibold">{item.value}%</span>
+          <p className="text-foreground/30 text-xs mb-4">Active/frozen cards</p>
+          {!historyLoading && byNetwork.length === 0 ? (
+            <div className="flex items-center justify-center h-40">
+              <p className="text-foreground/20 text-xs">No cards issued yet</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-center">
+                <ResponsiveContainer width="100%" height={160}>
+                  <PieChart>
+                    <Pie data={byNetwork} cx="50%" cy="50%" innerRadius={45} outerRadius={70}
+                      paddingAngle={4} dataKey="count" nameKey="network">
+                      {byNetwork.map((entry, i) => (
+                        <Cell key={i} fill={NETWORK_COLORS[entry.network] ?? '#6b7280'} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: 12 }} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            ))}
-          </div>
+              <div className="space-y-2 mt-2">
+                {byNetwork.map(item => (
+                  <div key={item.network} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: NETWORK_COLORS[item.network] ?? '#6b7280' }} />
+                      <span className="text-foreground/50 text-xs uppercase">{item.network}</span>
+                    </div>
+                    <span className="text-foreground text-xs font-semibold">
+                      {totalNetworkCards ? Math.round((item.count / totalNetworkCards) * 100) : 0}% ({item.count})
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -261,25 +237,33 @@ export default function AdminDashboard() {
         </ResponsiveContainer>
       </div>
 
-      {/* System status */}
+      {/* System status — real checks, see /api/admin/system-health */}
       <div className="glass-card p-5">
-        <h3 className="text-foreground font-semibold text-sm mb-4">System Status</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-foreground font-semibold text-sm">System Status</h3>
+          <Link to="/admin/system-health" className="text-indigo-400 text-xs font-medium hover:text-indigo-300">
+            Full health page →
+          </Link>
+        </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: 'Payment Provider', status: 'Operational', healthy: true },
-            { label: 'Card Issuance', status: 'Operational', healthy: true },
-            { label: 'Webhook Engine', status: 'Operational', healthy: true },
-            { label: 'Fraud Detection', status: 'Active', healthy: true },
-          ].map(item => (
-            <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl bg-foreground/3 border border-foreground/5">
-              {item.healthy ? (
+          {healthChecks.length === 0 ? (
+            <p className="text-foreground/20 text-xs col-span-full">Checking system health…</p>
+          ) : healthChecks.map(item => (
+            <div key={item.name} className="flex items-center gap-3 p-3 rounded-xl bg-foreground/3 border border-foreground/5">
+              {item.status === 'operational' ? (
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              ) : item.status === 'unknown' ? (
+                <HelpCircle className="w-4 h-4 text-foreground/30 flex-shrink-0" />
               ) : (
-                <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                <XCircle className={`w-4 h-4 flex-shrink-0 ${item.status === 'degraded' ? 'text-amber-400' : 'text-red-400'}`} />
               )}
-              <div>
-                <p className="text-foreground text-xs font-medium">{item.label}</p>
-                <p className={`text-[10px] ${item.healthy ? 'text-emerald-400' : 'text-red-400'}`}>{item.status}</p>
+              <div className="min-w-0">
+                <p className="text-foreground text-xs font-medium truncate">{item.name}</p>
+                <p className={`text-[10px] truncate ${
+                  item.status === 'operational' ? 'text-emerald-400'
+                  : item.status === 'unknown' ? 'text-foreground/30'
+                  : item.status === 'degraded' ? 'text-amber-400' : 'text-red-400'
+                }`}>{item.detail}</p>
               </div>
             </div>
           ))}

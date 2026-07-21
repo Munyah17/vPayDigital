@@ -66,6 +66,9 @@ const WalletAdjustPage = lazy(() => import('./pages/admin/wallets/WalletAdjustPa
 const AuditLogsPage    = lazy(() => import('./pages/admin/audit/AuditLogsPage'));
 const AdminTransactionsPage = lazy(() => import('./pages/admin/transactions/TransactionsPage'));
 const AdminBankingPage    = lazy(() => import('./pages/admin/banking/AdminBankingPage'));
+const SystemHealthPage    = lazy(() => import('./pages/admin/health/SystemHealthPage'));
+const AnnouncementsPage   = lazy(() => import('./pages/admin/announcements/AnnouncementsPage'));
+const ModulePlaceholder   = lazy(() => import('./pages/admin/shared/ModulePlaceholder'));
 
 // ─── Query client ─────────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
@@ -222,6 +225,57 @@ export default function App() {
               <Route path="audit"             element={<AuditLogsPage />} />
               <Route path="transactions"      element={<AdminTransactionsPage />} />
               <Route path="banking"           element={<AdminBankingPage />} />
+              <Route path="system-health"     element={<SystemHealthPage />} />
+              <Route path="announcements"     element={<AnnouncementsPage />} />
+
+              {/* Command-center modules with no backend/data model yet —
+                  honest "needs scoping" pages rather than fake or missing
+                  routes, so the sidebar reflects the full intended shape. */}
+              <Route path="reports" element={<ModulePlaceholder
+                title="Reports" description="Exportable operational/financial reports beyond the dashboard's live stats."
+                needs="Which reports, what date ranges, and what export formats (CSV/PDF) matter most — the dashboard already covers live metrics." />} />
+              <Route path="providers" element={<ModulePlaceholder
+                title="Providers" description="Manage payment/service provider configuration and connection status."
+                needs="Whether this should just surface VitalPay's live status (already on the System Health page) or manage multiple providers' credentials/routing." />} />
+              <Route path="modules" element={<ModulePlaceholder
+                title="Modules Management" description="Enable/disable platform features (e.g. gift cards, bill payments) without a deploy."
+                needs="A feature-flag table and the specific modules you want toggleable." />} />
+              <Route path="escrow" element={<ModulePlaceholder
+                title="Escrow" description="Hold funds between two parties until a condition is met."
+                needs="The actual escrow product definition — release conditions, dispute handling, who initiates it." />} />
+              <Route path="disputes" element={<ModulePlaceholder
+                title="Disputes" description="Formal dispute/chargeback handling, distinct from fraud flags."
+                needs="A disputes data model and workflow (open → evidence → resolution) — currently only fraud_flags and support_tickets exist." />} />
+              <Route path="mass-communication" element={<ModulePlaceholder
+                title="Mass Communication" description="Bulk email/SMS/push to segments of users."
+                needs="An email/SMS provider integration (none configured yet) and audience segmentation rules." />} />
+              <Route path="marketing" element={<ModulePlaceholder
+                title="Marketing" description="Campaigns, promo codes, referral tracking."
+                needs="Which specific marketing mechanics you want first — promo codes, referrals, and campaigns are three different features." />} />
+              <Route path="leads" element={<ModulePlaceholder
+                title="Leads" description="Track prospective users/businesses before they sign up."
+                needs="A leads data model and where leads come from (landing page form, agent referral, manual entry)." />} />
+              <Route path="invoicing" element={<ModulePlaceholder
+                title="Invoicing, Quotations & Receipting" description="A full billing subsystem for business clients — quotes, invoices, proof of payment, receipts."
+                needs="This is the single biggest piece on the list — needs its own requirements discussion (numbering, tax handling, PDF generation, payment matching)." />} />
+              <Route path="loans" element={<ModulePlaceholder
+                title="Loans" description="Lending product — origination, repayment schedules, collections."
+                needs="Product definition, interest/fee model, and regulatory requirements for lending in Zimbabwe." />} />
+              <Route path="partners" element={<ModulePlaceholder
+                title="Partners" description="Manage business/integration partners distinct from regular users."
+                needs="What a 'partner' relationship means here — revenue share, API access, or something else." />} />
+              <Route path="ai-assistant" element={<ModulePlaceholder
+                title="AI Assistant" description="AI-assisted marketing copy, analytics summaries, and operational suggestions."
+                needs="Which tasks first (marketing copy vs. analytics Q&A are very different builds) and an AI provider/budget decision." />} />
+              <Route path="tasks" element={<ModulePlaceholder
+                title="Task Manager" description="Internal task/ticket tracking for the ops team, separate from support tickets."
+                needs="Whether this should be a lightweight internal Kanban or integrate with an existing tool (Linear, Trello, etc.)." />} />
+              <Route path="api-management" element={<ModulePlaceholder
+                title="API Management" description="Issue and manage API keys/access for third parties, beyond webhook config."
+                needs="Whether ePay Smart is planning to expose its own API to external partners, and what scopes/rate limits it needs." />} />
+              <Route path="hr-payroll" element={<ModulePlaceholder
+                title="HR & Payroll" description="Internal staff records, leave, and payroll processing."
+                needs="This manages your own company's staff, not platform users — confirm it belongs in this admin at all vs. a separate internal tool." />} />
             </Route>
           </Routes>
         </Suspense>

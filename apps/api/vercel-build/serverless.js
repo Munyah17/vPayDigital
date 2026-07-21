@@ -74374,6 +74374,15 @@ app.use(async (_req, _res, next) => {
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: (/* @__PURE__ */ new Date()).toISOString(), version: "1.0.0" });
 });
+app.get("/api/announcements/active", async (_req, res) => {
+  const { data } = await supabaseAdmin.from("system_config").select("value").eq("key", "announcement").maybeSingle();
+  const announcement = data?.value;
+  if (!announcement?.enabled) {
+    res.json({ success: true, data: null });
+    return;
+  }
+  res.json({ success: true, data: announcement });
+});
 app.use("/api/cards", router);
 app.use("/api/wallets", router2);
 app.use("/api/vouchers", router3);
@@ -74420,6 +74429,39 @@ app.get("/api/admin/metrics", authenticate, requireAdmin, async (_req, res) => {
     return;
   }
   res.json({ success: true, data });
+});
+app.get("/api/admin/metrics/history", authenticate, requireAdmin, async (_req, res) => {
+  const [{ data: daily, error: dailyErr }, { data: byNetwork, error: netErr }] = await Promise.all([
+    supabaseAdmin.from("vw_daily_volume_30d").select("*"),
+    supabaseAdmin.from("vw_cards_by_network").select("*")
+  ]);
+  if (dailyErr || netErr) {
+    res.status(500).json({ success: false, error: (dailyErr ?? netErr).message });
+    return;
+  }
+  res.json({ success: true, data: { daily, cards_by_network: byNetwork } });
+});
+app.get("/api/admin/system-health", authenticate, requireAdmin, async (_req, res) => {
+  const checks = [];
+  const dbStart = Date.now();
+  const { error: dbError } = await supabaseAdmin.from("profiles").select("id").limit(1);
+  checks.push(dbError ? { name: "Database", status: "down", detail: dbError.message } : { name: "Database", status: "operational", detail: `${Date.now() - dbStart}ms` });
+  const vpStart = Date.now();
+  try {
+    await vitalPay.getCategories();
+    checks.push({ name: "VitalPay API", status: "operational", detail: `${Date.now() - vpStart}ms` });
+  } catch (err) {
+    checks.push({ name: "VitalPay API", status: "down", detail: err instanceof Error ? err.message : "Unreachable" });
+  }
+  const { data: lastWebhook } = await supabaseAdmin.from("webhook_events").select("created_at, status").order("created_at", { ascending: false }).limit(1).maybeSingle();
+  checks.push(lastWebhook ? { name: "Webhook Engine", status: "operational", detail: `Last event: ${lastWebhook.created_at} (${lastWebhook.status})` } : { name: "Webhook Engine", status: "unknown", detail: "No webhook events recorded yet" });
+  const { count: failedWebhookCount } = await supabaseAdmin.from("webhook_events").select("id", { count: "exact", head: true }).eq("status", "failed").gte("created_at", new Date(Date.now() - 24 * 60 * 60 * 1e3).toISOString());
+  checks.push({
+    name: "Webhook Failures (24h)",
+    status: failedWebhookCount ? "degraded" : "operational",
+    detail: failedWebhookCount ? `${failedWebhookCount} failed in the last 24h` : "None in the last 24h"
+  });
+  res.json({ success: true, data: { checks, checked_at: (/* @__PURE__ */ new Date()).toISOString() } });
 });
 app.get("/api/admin/users", authenticate, requireAdmin, async (req, res) => {
   const { page = "1", limit = "20", role, status } = req.query;

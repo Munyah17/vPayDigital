@@ -21,6 +21,7 @@ import { handleVitalPayWebhook } from './webhooks/vitalPayWebhook.js';
 import { authenticate, requireAdmin, requireAgent, requireSuperAdmin, AuthenticatedRequest } from './middleware/auth.js';
 import { supabaseAdmin } from './utils/supabase.js';
 import { ensureProvidersInitialized } from './providers/registry.js';
+import { vitalPay } from './utils/vitalpay.js';
 
 const app = express();
 
@@ -130,6 +131,25 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
 });
 
+// GET /api/announcements/active — unauthenticated. The consumer/agent apps
+// poll this to show a site-wide banner; only ever reads the one
+// admin-managed key, never the rest of system_config (fee_config etc. stay
+// admin-only via /api/admin/config).
+app.get('/api/announcements/active', async (_req, res) => {
+  const { data } = await supabaseAdmin
+    .from('system_config')
+    .select('value')
+    .eq('key', 'announcement')
+    .maybeSingle();
+
+  const announcement = data?.value as { enabled?: boolean } | undefined;
+  if (!announcement?.enabled) {
+    res.json({ success: true, data: null });
+    return;
+  }
+  res.json({ success: true, data: announcement });
+});
+
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/cards', cardRouter);
 app.use('/api/wallets', walletRouter);
@@ -203,6 +223,65 @@ app.get('/api/admin/metrics', authenticate, requireAdmin, async (_req, res) => {
 
   if (error) { res.status(500).json({ success: false, error: error.message }); return; }
   res.json({ success: true, data });
+});
+
+// GET /api/admin/metrics/history — real 30-day volume/fees/cards series and
+// network breakdown for the dashboard charts (previously Math.random() mock
+// data and a hardcoded percentage split).
+app.get('/api/admin/metrics/history', authenticate, requireAdmin, async (_req, res) => {
+  const [{ data: daily, error: dailyErr }, { data: byNetwork, error: netErr }] = await Promise.all([
+    supabaseAdmin.from('vw_daily_volume_30d').select('*'),
+    supabaseAdmin.from('vw_cards_by_network').select('*'),
+  ]);
+  if (dailyErr || netErr) {
+    res.status(500).json({ success: false, error: (dailyErr ?? netErr)!.message });
+    return;
+  }
+  res.json({ success: true, data: { daily, cards_by_network: byNetwork } });
+});
+
+// GET /api/admin/system-health — real checks, not a hardcoded "all green"
+// panel. Each check reports what was actually observed; a check that
+// couldn't run reports unknown rather than being silently marked healthy.
+app.get('/api/admin/system-health', authenticate, requireAdmin, async (_req, res) => {
+  const checks: Array<{ name: string; status: 'operational' | 'degraded' | 'down' | 'unknown'; detail: string }> = [];
+
+  const dbStart = Date.now();
+  const { error: dbError } = await supabaseAdmin.from('profiles').select('id').limit(1);
+  checks.push(dbError
+    ? { name: 'Database', status: 'down', detail: dbError.message }
+    : { name: 'Database', status: 'operational', detail: `${Date.now() - dbStart}ms` });
+
+  const vpStart = Date.now();
+  try {
+    await vitalPay.getCategories();
+    checks.push({ name: 'VitalPay API', status: 'operational', detail: `${Date.now() - vpStart}ms` });
+  } catch (err) {
+    checks.push({ name: 'VitalPay API', status: 'down', detail: err instanceof Error ? err.message : 'Unreachable' });
+  }
+
+  const { data: lastWebhook } = await supabaseAdmin
+    .from('webhook_events')
+    .select('created_at, status')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  checks.push(lastWebhook
+    ? { name: 'Webhook Engine', status: 'operational', detail: `Last event: ${lastWebhook.created_at} (${lastWebhook.status})` }
+    : { name: 'Webhook Engine', status: 'unknown', detail: 'No webhook events recorded yet' });
+
+  const { count: failedWebhookCount } = await supabaseAdmin
+    .from('webhook_events')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'failed')
+    .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+  checks.push({
+    name: 'Webhook Failures (24h)',
+    status: failedWebhookCount ? 'degraded' : 'operational',
+    detail: failedWebhookCount ? `${failedWebhookCount} failed in the last 24h` : 'None in the last 24h',
+  });
+
+  res.json({ success: true, data: { checks, checked_at: new Date().toISOString() } });
 });
 
 app.get('/api/admin/users', authenticate, requireAdmin, async (req, res) => {

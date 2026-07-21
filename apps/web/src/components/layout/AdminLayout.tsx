@@ -6,7 +6,9 @@ import {
   ShieldAlert, DollarSign, Settings, LogOut, Bell, Shield,
   ChevronDown, Activity, Ticket, ShieldCheck, LifeBuoy,
   Zap, ExternalLink, UserCog, Wallet, ScrollText, ArrowLeftRight,
-  Key, Landmark, Menu
+  Key, Landmark, Menu, HeartPulse, Megaphone, FileBarChart, Plug,
+  ToggleLeft, Handshake, Gavel, Send, TrendingUp,
+  UserPlus, Receipt, Coins, Bot, ListChecks, KeySquare, Briefcase
 } from 'lucide-react';
 import { useAdminStore } from '../../stores/adminStore';
 import { ThemeToggle } from '../ui/ThemeToggle';
@@ -31,6 +33,8 @@ const NAV_CLIENT_ACCESS = [
 
 const NAV_PLATFORM = [
   { label: 'Dashboard',        icon: LayoutDashboard, to: '/admin/dashboard' },
+  { label: 'Reports',          icon: FileBarChart,    to: '/admin/reports' },
+  { label: 'System Health',    icon: HeartPulse,      to: '/admin/system-health' },
   { label: 'All Transactions', icon: ArrowLeftRight,  to: '/admin/transactions' },
   { label: 'Audit Logs',       icon: ScrollText,      to: '/admin/audit' },
 ];
@@ -39,26 +43,47 @@ const NAV_PEOPLE = [
   { label: 'Users',            icon: Users,      to: '/admin/users' },
   { label: 'Agents',           icon: UserCheck,  to: '/admin/agents' },
   { label: 'Staff',            icon: UserCog,    to: '/admin/staff' },
+  { label: 'HR & Payroll',     icon: Briefcase,  to: '/admin/hr-payroll' },
 ];
 
 const NAV_PRODUCTS = [
   { label: 'Cards',            icon: CreditCard, to: '/admin/cards' },
   { label: 'Vouchers',         icon: Ticket,     to: '/admin/vouchers' },
+  { label: 'Providers',        icon: Plug,       to: '/admin/providers' },
+  { label: 'Modules',          icon: ToggleLeft, to: '/admin/modules' },
 ];
 
 const NAV_BANKING = [
   { label: 'Banking',          icon: Landmark,   to: '/admin/banking' },
+  { label: 'Escrow',           icon: Handshake,  to: '/admin/escrow' },
 ];
 
 const NAV_COMPLIANCE = [
   { label: 'KYC Review',       icon: ShieldCheck, to: '/admin/kyc' },
   { label: 'Fraud & Risk',     icon: ShieldAlert, to: '/admin/fraud' },
+  { label: 'Disputes',         icon: Gavel,       to: '/admin/disputes' },
   { label: 'Support Tickets',  icon: LifeBuoy,    to: '/admin/support' },
+];
+
+const NAV_GROWTH = [
+  { label: 'Announcements',      icon: Megaphone,    to: '/admin/announcements' },
+  { label: 'Mass Communication', icon: Send,         to: '/admin/mass-communication' },
+  { label: 'Marketing',          icon: TrendingUp,   to: '/admin/marketing' },
+  { label: 'Leads',               icon: UserPlus,     to: '/admin/leads' },
+  { label: 'AI Assistant',        icon: Bot,          to: '/admin/ai-assistant' },
 ];
 
 const NAV_FINANCE = [
   { label: 'Finance',          icon: DollarSign,  to: '/admin/finance' },
+  { label: 'Invoicing',        icon: Receipt,     to: '/admin/invoicing' },
+  { label: 'Loans',            icon: Coins,       to: '/admin/loans' },
+  { label: 'Partners',         icon: Handshake,   to: '/admin/partners' },
   { label: 'Webhooks',         icon: Webhook,     to: '/admin/webhooks' },
+];
+
+const NAV_TOOLS = [
+  { label: 'Task Manager',     icon: ListChecks,  to: '/admin/tasks' },
+  { label: 'API Management',   icon: KeySquare,   to: '/admin/api-management' },
 ];
 
 const NAV_SYSTEM = [
@@ -164,10 +189,12 @@ function AdminSidebarPanel({ sidebarOpen, onToggle, isSuperAdmin, profile, onSig
                 in the small Client Access section at the very bottom. */}
             <NavSection label="Platform" items={NAV_PLATFORM} sidebarOpen={sidebarOpen} />
             <NavSection label="People" items={NAV_PEOPLE} sidebarOpen={sidebarOpen} />
-            <NavSection label="Products" items={NAV_PRODUCTS} sidebarOpen={sidebarOpen} />
+            <NavSection label="Products & Services" items={NAV_PRODUCTS} sidebarOpen={sidebarOpen} />
             <NavSection label="Banking" items={NAV_BANKING} sidebarOpen={sidebarOpen} />
             <NavSection label="Compliance" items={NAV_COMPLIANCE} sidebarOpen={sidebarOpen} />
+            <NavSection label="Growth & Comms" items={NAV_GROWTH} sidebarOpen={sidebarOpen} />
             <NavSection label="Finance" items={NAV_FINANCE} sidebarOpen={sidebarOpen} />
+            <NavSection label="Tools" items={NAV_TOOLS} sidebarOpen={sidebarOpen} />
             <NavSection label="System" items={NAV_SYSTEM} sidebarOpen={sidebarOpen} />
             {sidebarOpen && <div className="h-px bg-foreground/5 mx-1 my-1" />}
             <NavSection label="Manual Operations" items={NAV_SUPER_ADMIN_OPERATIONS} sidebarOpen={sidebarOpen} activeColor="purple" />
