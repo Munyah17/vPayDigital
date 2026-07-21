@@ -76,6 +76,7 @@ const DisputesPage        = lazy(() => import('./pages/admin/disputes/DisputesPa
 const CommunicationsPage  = lazy(() => import('./pages/admin/communications/CommunicationsPage'));
 const MarketingPage       = lazy(() => import('./pages/admin/marketing/MarketingPage'));
 const LeadsPage           = lazy(() => import('./pages/admin/leads/LeadsPage'));
+const InvoicingPage       = lazy(() => import('./pages/admin/invoicing/InvoicingPage'));
 const ModulePlaceholder   = lazy(() => import('./pages/admin/shared/ModulePlaceholder'));
 
 // ─── Query client ─────────────────────────────────────────────────────────────
@@ -244,9 +245,7 @@ export default function App() {
               <Route path="mass-communication" element={<CommunicationsPage />} />
               <Route path="marketing" element={<MarketingPage />} />
               <Route path="leads" element={<LeadsPage />} />
-              <Route path="invoicing" element={<ModulePlaceholder
-                title="Invoicing, Quotations & Receipting" description="A full billing subsystem for business clients — quotes, invoices, proof of payment, receipts."
-                needs="This is the single biggest piece on the list — needs its own requirements discussion (numbering, tax handling, PDF generation, payment matching)." />} />
+              <Route path="invoicing" element={<InvoicingPage />} />
               <Route path="loans" element={<ModulePlaceholder
                 title="Loans" description="Lending product — origination, repayment schedules, collections."
                 needs="Product definition, interest/fee model, and regulatory requirements for lending in Zimbabwe." />} />
