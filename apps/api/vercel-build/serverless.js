@@ -70652,7 +70652,7 @@ function errorHandler(err, req, res, _next) {
   }
   if (err instanceof Error) {
     logger.error({ err, url: req.url, method: req.method }, "Unhandled error");
-    if (err.message.includes("Insufficient balance")) {
+    if (err.message.includes("Insufficient balance") || err.message.includes("Insufficient float")) {
       res.status(402).json({ success: false, error: err.message });
       return;
     }
