@@ -20,6 +20,11 @@ const transferSchema = z.object({
 const topupSchema = z.object({
   amount: z.number().min(5),
   currency: z.enum(['USD', 'GBP', 'ZAR']),
+  // VitalPay's sandbox only accepts the literal 'mobile_money' — 'ecocash'
+  // and 'ussd' are both rejected as invalid enum values (confirmed by
+  // direct API testing). EcoCash is Zimbabwe's only mobile money rail, so
+  // it's surfaced to users as "EcoCash" while this sends 'mobile_money'.
+  payment_method: z.enum(['mobile_money']).optional(),
 });
 
 const initiatePayoutSchema = z.object({
@@ -74,7 +79,7 @@ router.get('/exchange-rates', authenticate, async (_req: AuthenticatedRequest, r
 // fund the caller's own wallet. Must be registered before /:id/transactions
 // so "topup" is never captured as a wallet id.
 router.post('/topup/initialize', authenticate, async (req: AuthenticatedRequest, res: Response) => {
-  const { amount, currency } = topupSchema.parse(req.body);
+  const { amount, currency, payment_method } = topupSchema.parse(req.body);
 
   const wallet = await walletService.ensureWallet(req.user!.id, currency);
   const reference = `TOPUP-${Date.now().toString(36).toUpperCase()}-${wallet.id.slice(0, 8)}`;
@@ -87,6 +92,7 @@ router.post('/topup/initialize', authenticate, async (req: AuthenticatedRequest,
     name: req.user!.email.split('@')[0],
     callback_url: `${env.WEB_APP_URL}/wallet?topup=complete`,
     metadata: { wallet_topup: true, user_id: req.user!.id, wallet_id: wallet.id },
+    ...(payment_method ? { payment_method } : {}),
   });
 
   // Sandbox keys resolve synchronously (status: "successful" in the
@@ -194,6 +200,37 @@ router.post('/:id/virtual-account', authenticate, async (req: AuthenticatedReque
   }, { onConflict: 'user_id,wallet_id' });
 
   res.json({ success: true, data: { account_number: vaResult.account_number, bank_name: vaResult.bank_name } });
+});
+
+// GET /api/wallets/recipients/search?q= — lets the Send Money form suggest
+// real profiles as the user types (by email, phone, or name) instead of
+// requiring an exact email, which is how mistyped-recipient transfers happen.
+// Only returns the minimum needed to disambiguate a match — never balances,
+// role, or anything beyond what's already visible on a public profile card.
+router.get('/recipients/search', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  const q = String(req.query.q ?? '').trim();
+  if (q.length < 2) { res.json({ success: true, data: [] }); return; }
+
+  const escaped = q.replace(/[%_]/g, c => `\\${c}`);
+  const { data, error } = await supabaseAdmin
+    .from('profiles')
+    .select('id, email, full_name, display_name, phone, avatar_url')
+    .or(`email.ilike.%${escaped}%,phone.ilike.%${escaped}%,full_name.ilike.%${escaped}%,display_name.ilike.%${escaped}%`)
+    .neq('id', req.user!.id)
+    .limit(8);
+
+  if (error) { res.status(500).json({ success: false, error: error.message }); return; }
+
+  const maskPhone = (p: string | null) => p && p.length > 4 ? `${p.slice(0, 3)}••••${p.slice(-2)}` : p;
+  res.json({
+    success: true,
+    data: (data ?? []).map(p => ({
+      email: p.email,
+      full_name: p.display_name || p.full_name,
+      phone_masked: maskPhone(p.phone),
+      avatar_url: p.avatar_url,
+    })),
+  });
 });
 
 // POST /api/wallets/transfer — internal transfer to another user by email

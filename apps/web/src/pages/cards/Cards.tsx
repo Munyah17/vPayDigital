@@ -9,6 +9,7 @@ import {
 import { VirtualCard, VirtualCardSkeleton } from '../../components/cards/VirtualCard';
 import { api } from '../../lib/axios';
 import { useWalletStore } from '../../stores/walletStore';
+import { useAuthStore } from '../../stores/authStore';
 import { formatCurrency, formatDate, titleCase } from '@vpay/utils';
 import type { Card, CardTransaction } from '@vpay/types';
 import toast from 'react-hot-toast';
@@ -16,6 +17,9 @@ import toast from 'react-hot-toast';
 export default function Cards() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { profile } = useAuthStore();
+  const isAgent = ['agent', 'super_admin', 'staff'].includes(profile?.role ?? '');
+  const newCardPath = isAgent ? '/cards/new' : '/cards/request';
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [showSensitive, setShowSensitive] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -78,11 +82,11 @@ export default function Cards() {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => navigate('/cards/new')}
+          onClick={() => navigate(newCardPath)}
           className="btn-brand flex items-center gap-2 py-2.5 px-4 text-sm"
         >
           <Plus className="w-4 h-4" />
-          New Card
+          {isAgent ? 'New Card' : 'Request New Card'}
         </motion.button>
       </div>
 
@@ -168,6 +172,21 @@ export default function Cards() {
                         <ArrowUpRight className="w-3.5 h-3.5" />
                         History
                       </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm('Delete this card? This terminates it permanently and cannot be undone.')) {
+                            terminateMutation.mutate(card.id);
+                          }
+                        }}
+                        disabled={terminateMutation.isPending}
+                        title="Delete card"
+                        className="flex items-center justify-center py-1.5 px-2.5 rounded-lg
+                                   bg-red-500/10 hover:bg-red-500/20 border border-red-500/20
+                                   text-red-400 text-xs transition-all"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   )}
                   {card.status === 'frozen' && (
@@ -188,9 +207,9 @@ export default function Cards() {
             <div className="glass-card p-12 text-center">
               <CreditCard className="w-12 h-12 text-foreground/10 mx-auto mb-4" />
               <p className="text-foreground/40 text-sm mb-2">No {filterStatus === 'all' ? '' : filterStatus} cards</p>
-              <button onClick={() => navigate('/cards/new')} className="btn-brand inline-flex items-center gap-1.5 text-sm py-2 px-5">
+              <button onClick={() => navigate(newCardPath)} className="btn-brand inline-flex items-center gap-1.5 text-sm py-2 px-5">
                 <Plus className="w-4 h-4" />
-                Issue Card
+                {isAgent ? 'Issue Card' : 'Request New Card'}
               </button>
             </div>
           )}

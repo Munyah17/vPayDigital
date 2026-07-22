@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Send, Download, ArrowUpRight, ArrowDownLeft, Upload, RefreshCw, WifiOff } from 'lucide-react';
+import { Plus, Send, Download, ArrowUpRight, ArrowDownLeft, Upload, RefreshCw, WifiOff, Smartphone, Building2, Loader2 } from 'lucide-react';
 import { WalletCard, WalletCardSkeleton } from '../../components/wallet/WalletCard';
 import { useWalletStore } from '../../stores/walletStore';
 import { api } from '../../lib/axios';
@@ -11,8 +11,8 @@ import toast from 'react-hot-toast';
 export default function Wallet() {
   const { wallets, activeWallet, transactions, isLoading, setActiveWallet, fetchTransactions, fetchWallets } = useWalletStore();
   const [showSend, setShowSend] = useState(false);
+  const [showTopUp, setShowTopUp] = useState(false);
   const [vaInfo, setVaInfo] = useState<{ account_number: string; bank_name: string } | null>(null);
-  const [topUpLoading, setTopUpLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [searchParams] = useSearchParams();
   const actionHandled = useRef(false);
@@ -39,20 +39,19 @@ export default function Wallet() {
       }
       return;
     }
-    setTopUpLoading(true);
+    const toastId = toast.loading('Getting deposit account…');
     try {
       const res = await api.post(`/api/wallets/${activeWallet.id}/virtual-account`);
       setVaInfo((res.data as any).data);
-      toast.success('Virtual account ready');
+      toast.success('Virtual account ready', { id: toastId });
     } catch (e: any) {
       const isNetworkError = !e.response;
       toast.error(
         isNetworkError
           ? 'Cannot reach server. Check that the API is running and VITE_API_URL is set correctly.'
-          : (e?.response?.data?.message ?? e?.response?.data?.error ?? 'Could not assign virtual account')
+          : (e?.response?.data?.message ?? e?.response?.data?.error ?? 'Could not assign virtual account'),
+        { id: toastId }
       );
-    } finally {
-      setTopUpLoading(false);
     }
   };
 
@@ -64,7 +63,7 @@ export default function Wallet() {
     if (actionHandled.current) return;
     const action = searchParams.get('action');
     if (action === 'send') { setShowSend(true); actionHandled.current = true; }
-    if (action === 'topup' && activeWallet) { requestVirtualAccount(); actionHandled.current = true; }
+    if (action === 'topup' && activeWallet) { setShowTopUp(true); actionHandled.current = true; }
   }, [searchParams, activeWallet?.id]);
 
   const hasWallets = wallets.length > 0;
@@ -76,13 +75,13 @@ export default function Wallet() {
         <h1 className="font-display font-bold text-foreground text-2xl">Wallet</h1>
         <div className="flex gap-2">
           <button
-            onClick={requestVirtualAccount}
-            disabled={topUpLoading || actionsDisabled}
-            title={actionsDisabled ? 'Wallets loading…' : 'Get deposit account'}
+            onClick={() => setShowTopUp(true)}
+            disabled={actionsDisabled}
+            title={actionsDisabled ? 'Wallets loading…' : 'Top up wallet'}
             className="btn-ghost text-sm py-2 px-3 flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <Download className={`w-4 h-4 ${topUpLoading ? 'animate-spin' : ''}`} />
-            {topUpLoading ? 'Loading…' : 'Top up'}
+            <Download className="w-4 h-4" />
+            Top up
           </button>
           <button
             onClick={() => setShowSend(true)}
@@ -173,19 +172,168 @@ export default function Wallet() {
       </section>
 
       {showSend && <SendDialog onClose={() => setShowSend(false)} onSuccess={() => { setShowSend(false); fetchWallets(); }} />}
+      {showTopUp && (
+        <TopUpDialog
+          onClose={() => setShowTopUp(false)}
+          onBankTransfer={() => { setShowTopUp(false); requestVirtualAccount(); }}
+          onEcocashSuccess={() => { setShowTopUp(false); fetchWallets(); }}
+        />
+      )}
     </div>
   );
 }
 
-function SendDialog({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+function TopUpDialog({ onClose, onBankTransfer, onEcocashSuccess }: { onClose: () => void; onBankTransfer: () => void; onEcocashSuccess: () => void }) {
   const { activeWallet } = useWalletStore();
-  const [email, setEmail] = useState('');
+  const [method, setMethod] = useState<'choose' | 'ecocash'>('choose');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Only USD/GBP/ZAR are supported by VitalPay's hosted checkout — EUR
+  // wallets fall back to bank transfer instead.
+  const ecocashSupported = activeWallet && ['USD', 'GBP', 'ZAR'].includes(activeWallet.currency);
+
+  const submitEcocash = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeWallet) return;
+    if (!(parseFloat(amount) >= 5)) {
+      toast.error('Minimum top up is 5.00');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await api.post('/api/wallets/topup/initialize', {
+        amount: parseFloat(amount),
+        currency: activeWallet.currency,
+        payment_method: 'mobile_money',
+      });
+      const status = (res.data as any)?.data?.status;
+      if (status === 'successful') {
+        toast.success('Wallet topped up instantly via EcoCash!');
+      } else {
+        toast.success('EcoCash payment initiated — check your phone to approve.');
+      }
+      onEcocashSuccess();
+    } catch (e: any) {
+      const isNetworkError = !e.response;
+      toast.error(
+        isNetworkError
+          ? 'Cannot reach server. Check API connection.'
+          : (e?.response?.data?.message ?? e?.response?.data?.error ?? 'Top up failed')
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="glass-card p-6 w-full max-w-md"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {method === 'choose' ? (
+          <>
+            <h3 className="font-display font-bold text-white text-lg mb-1">Top up wallet</h3>
+            <p className="text-white/50 text-sm mb-4">Choose how you'd like to fund your {activeWallet?.currency ?? ''} wallet</p>
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => ecocashSupported ? setMethod('ecocash') : toast.error('EcoCash isn\'t available for this currency')}
+                disabled={!ecocashSupported}
+                className="w-full flex items-center gap-3 p-4 rounded-xl bg-emerald-600/15 hover:bg-emerald-600/25 border border-emerald-500/30 text-left transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+                  <Smartphone className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-white font-medium text-sm">EcoCash</p>
+                  <p className="text-white/40 text-xs">Instant top up via mobile money USSD</p>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={onBankTransfer}
+                className="w-full flex items-center gap-3 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition-all"
+              >
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                  <Building2 className="w-5 h-5 text-white/70" />
+                </div>
+                <div>
+                  <p className="text-white font-medium text-sm">Bank transfer</p>
+                  <p className="text-white/40 text-xs">Get a deposit account number</p>
+                </div>
+              </button>
+            </div>
+            <button type="button" onClick={onClose} className="btn-ghost w-full py-2.5 text-sm mt-4 text-white/70">Cancel</button>
+          </>
+        ) : (
+          <>
+            <h3 className="font-display font-bold text-white text-lg mb-4">Top up via EcoCash</h3>
+            <form onSubmit={submitEcocash} className="space-y-4">
+              <div>
+                <label className="block text-white/70 text-sm mb-1.5">Amount ({activeWallet?.currency ?? 'USD'}) <span className="text-white/30">· 5.00 minimum</span></label>
+                <input value={amount} onChange={(e) => setAmount(e.target.value)} type="number" step="0.01" min="5" required autoFocus className="input-field text-white placeholder:text-white/30" placeholder="50.00" />
+              </div>
+              <p className="text-white/30 text-xs">You'll get an EcoCash USSD prompt on your registered number to confirm the payment.</p>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setMethod('choose')} className="btn-ghost flex-1 py-3">Back</button>
+                <button type="submit" disabled={loading} className="btn-brand flex-1 py-3 flex items-center justify-center gap-2">
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Top up'}
+                </button>
+              </div>
+            </form>
+          </>
+        )}
+      </motion.div>
+    </div>
+  );
+}
+
+interface RecipientMatch { email: string; full_name: string; phone_masked: string | null; avatar_url: string | null }
+
+function SendDialog({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const { activeWallet } = useWalletStore();
+  const [query, setQuery] = useState('');
+  const [selected, setSelected] = useState<RecipientMatch | null>(null);
+  const [matches, setMatches] = useState<RecipientMatch[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [loading, setLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (selected || query.trim().length < 2) { setMatches([]); return; }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await api.get<{ success: boolean; data: RecipientMatch[] }>('/api/wallets/recipients/search', { params: { q: query.trim() } });
+        setMatches((res.data as any)?.data ?? []);
+        setShowResults(true);
+      } catch {
+        setMatches([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [query, selected]);
+
+  const pick = (m: RecipientMatch) => {
+    setSelected(m);
+    setQuery(m.full_name ? `${m.full_name} (${m.email})` : m.email);
+    setShowResults(false);
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeWallet) return;
+    const toEmail = selected?.email ?? query.trim();
+    if (!toEmail.includes('@')) { toast.error('Search for a recipient or enter a valid email'); return; }
     if (!(parseFloat(amount) > 0)) {
       toast.error('Enter an amount greater than 0');
       return;
@@ -193,7 +341,7 @@ function SendDialog({ onClose, onSuccess }: { onClose: () => void; onSuccess: ()
     setLoading(true);
     try {
       await api.post('/api/wallets/transfer', {
-        to_email: email,
+        to_email: toEmail,
         amount: parseFloat(amount),
         currency: activeWallet.currency,
       });
@@ -226,9 +374,44 @@ function SendDialog({ onClose, onSuccess }: { onClose: () => void; onSuccess: ()
             consistently dark blurred surface. */}
         <h3 className="font-display font-bold text-white text-lg mb-4">Send money</h3>
         <form onSubmit={submit} className="space-y-4">
-          <div>
-            <label className="block text-white/70 text-sm mb-1.5">Recipient email</label>
-            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required className="input-field text-white placeholder:text-white/30" placeholder="someone@example.com" />
+          <div className="relative">
+            <label className="block text-white/70 text-sm mb-1.5">Recipient</label>
+            <input
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setSelected(null); }}
+              onFocus={() => matches.length > 0 && setShowResults(true)}
+              type="text"
+              required
+              autoComplete="off"
+              className="input-field text-white placeholder:text-white/30"
+              placeholder="Search by name, email, or phone"
+            />
+            {showResults && (query.trim().length >= 2) && !selected && (
+              <div className="absolute z-10 mt-1.5 w-full rounded-xl bg-neutral-900 border border-white/10 shadow-xl max-h-56 overflow-y-auto">
+                {searching ? (
+                  <p className="text-white/40 text-xs px-3 py-3">Searching…</p>
+                ) : matches.length === 0 ? (
+                  <p className="text-white/40 text-xs px-3 py-3">No matching users — you can still send to an exact email above.</p>
+                ) : (
+                  matches.map(m => (
+                    <button
+                      key={m.email}
+                      type="button"
+                      onClick={() => pick(m)}
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-white/10 text-left transition-colors"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-indigo-600/30 flex items-center justify-center text-indigo-300 text-xs font-semibold shrink-0">
+                        {(m.full_name || m.email).charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-white text-sm font-medium truncate">{m.full_name || m.email}</p>
+                        <p className="text-white/40 text-xs truncate">{m.email}{m.phone_masked ? ` · ${m.phone_masked}` : ''}</p>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-white/70 text-sm mb-1.5">Amount ({activeWallet?.currency ?? 'USD'})</label>

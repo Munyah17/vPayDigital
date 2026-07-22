@@ -37,24 +37,24 @@ export default function Bills() {
         <p className="text-foreground/40 text-sm">Buy airtime, data, and electricity tokens</p>
       </div>
 
-      <div className="flex gap-2 p-1 rounded-xl bg-foreground/5 w-fit">
+      <div className="flex gap-2 p-1 rounded-xl bg-foreground/5 w-full overflow-x-auto">
         <button
           onClick={() => setTab('airtime')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'airtime' ? 'bg-background text-foreground shadow-sm' : 'text-foreground/50'}`}
+          className={`shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${tab === 'airtime' ? 'bg-background text-foreground shadow-sm' : 'text-foreground/50'}`}
         >
-          <Smartphone className="w-4 h-4" /> Airtime & Data
+          <Smartphone className="w-4 h-4 shrink-0" /> Airtime & Data
         </button>
         <button
           onClick={() => setTab('electricity')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'electricity' ? 'bg-background text-foreground shadow-sm' : 'text-foreground/50'}`}
+          className={`shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${tab === 'electricity' ? 'bg-background text-foreground shadow-sm' : 'text-foreground/50'}`}
         >
-          <Zap className="w-4 h-4" /> Electricity
+          <Zap className="w-4 h-4 shrink-0" /> Electricity
         </button>
         <button
           onClick={() => setTab('bills')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'bills' ? 'bg-background text-foreground shadow-sm' : 'text-foreground/50'}`}
+          className={`shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${tab === 'bills' ? 'bg-background text-foreground shadow-sm' : 'text-foreground/50'}`}
         >
-          <Tv className="w-4 h-4" /> TV & Bills
+          <Tv className="w-4 h-4 shrink-0" /> TV & Bills
         </button>
       </div>
 
@@ -205,9 +205,9 @@ function ElectricityForm() {
       <div className="glass-card p-6 space-y-4">
         <p className="text-foreground font-semibold">Confirm electricity purchase</p>
         <div className="rounded-xl bg-foreground/5 p-4 space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-foreground/40">Meter number</span><span className="text-foreground font-mono font-medium">{meterNumber}</span></div>
-          <div className="flex justify-between"><span className="text-foreground/40">Utility</span><span className="text-foreground font-medium">ZESA / ZETDC (Zimbabwe)</span></div>
-          <div className="flex justify-between"><span className="text-foreground/40">Amount</span><span className="text-foreground font-semibold">{formatCurrency(parseFloat(amount), activeWallet?.currency ?? 'USD')}</span></div>
+          <div className="flex justify-between gap-3"><span className="text-foreground/40 shrink-0">Meter number</span><span className="text-foreground font-mono font-medium text-right break-all">{meterNumber}</span></div>
+          <div className="flex justify-between gap-3"><span className="text-foreground/40 shrink-0">Utility</span><span className="text-foreground font-medium text-right">ZESA / ZETDC (Zimbabwe)</span></div>
+          <div className="flex justify-between gap-3"><span className="text-foreground/40 shrink-0">Amount</span><span className="text-foreground font-semibold text-right">{formatCurrency(parseFloat(amount), activeWallet?.currency ?? 'USD')}</span></div>
         </div>
         <p className="text-foreground/30 text-xs leading-relaxed">
           Double-check the meter number — tokens are generated for this exact meter and cannot be transferred once issued.
@@ -325,17 +325,17 @@ function BillPayForm() {
       <div className="glass-card p-6 space-y-4">
         <p className="text-foreground font-semibold">Confirm bill payment</p>
         <div className="rounded-xl bg-foreground/5 p-4 space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-foreground/40">Biller</span><span className="text-foreground font-medium">{selectedBiller?.name}</span></div>
-          <div className="flex justify-between"><span className="text-foreground/40">Account number</span><span className="text-foreground font-mono font-medium">{accountNumber}</span></div>
+          <div className="flex justify-between gap-3"><span className="text-foreground/40 shrink-0">Biller</span><span className="text-foreground font-medium text-right">{selectedBiller?.name}</span></div>
+          <div className="flex justify-between gap-3"><span className="text-foreground/40 shrink-0">Account number</span><span className="text-foreground font-mono font-medium text-right break-all">{accountNumber}</span></div>
           {accountName ? (
-            <div className="flex justify-between items-center">
-              <span className="text-foreground/40">Registered to</span>
-              <span className="text-emerald-400 font-medium flex items-center gap-1.5"><UserCheck className="w-3.5 h-3.5" /> {accountName}</span>
+            <div className="flex justify-between items-center gap-3">
+              <span className="text-foreground/40 shrink-0">Registered to</span>
+              <span className="text-emerald-400 font-medium flex items-center gap-1.5 text-right justify-end"><UserCheck className="w-3.5 h-3.5 shrink-0" /> {accountName}</span>
             </div>
           ) : (
             <p className="text-foreground/30 text-xs pt-1">This biller doesn't return a registered name to confirm — double-check the account number is correct.</p>
           )}
-          <div className="flex justify-between pt-1 border-t border-foreground/10"><span className="text-foreground/40">Amount</span><span className="text-foreground font-semibold">{formatCurrency(parseFloat(amount), activeWallet?.currency ?? 'USD')}</span></div>
+          <div className="flex justify-between gap-3 pt-1 border-t border-foreground/10"><span className="text-foreground/40 shrink-0">Amount</span><span className="text-foreground font-semibold text-right">{formatCurrency(parseFloat(amount), activeWallet?.currency ?? 'USD')}</span></div>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setConfirming(false)} className="btn-ghost flex-1 py-2.5 text-sm">Edit details</button>

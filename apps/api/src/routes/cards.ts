@@ -118,38 +118,30 @@ const requestCardSchema = z.object({
   notes: z.string().max(200).optional(),
 });
 
-// POST /api/cards/request — consumer submits a card request (no debit, pending status)
+// POST /api/cards/request — consumer self-service card request. Instant and
+// self-funded: cardService.issueCard debits the requester's OWN 'consumer'
+// wallet (issued_by_agent is omitted) and issues the card immediately —
+// no agent approval step. Matches the buy-voucher -> redeem -> top up wallet
+// -> request card flow: the card is only ever backed by money already in
+// the consumer's wallet, never platform float.
 router.post('/request', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   if (req.user!.role !== 'consumer') {
-    res.status(403).json({ success: false, error: 'Only consumer accounts use card requests. Agents/admins issue cards directly.' });
+    res.status(403).json({ success: false, error: 'Only consumer accounts use this endpoint. Agents/admins issue cards directly.' });
     return;
   }
 
   const body = requestCardSchema.parse(req.body);
 
-  const { data: card, error } = await supabaseAdmin
-    .from('cards')
-    .insert({
-      user_id: req.user!.id,
-      cardholder_name: body.cardholder_name,
-      card_type: body.card_type,
-      network: body.network,
-      currency: body.currency,
-      initial_balance: body.requested_amount,
-      current_balance: 0,
-      status: 'pending',
-      masked_pan: '****-****-****-****',
-      metadata: { request_notes: body.notes ?? null, is_consumer_request: true },
-    })
-    .select()
-    .single();
+  const card = await cardService.issueCard({
+    user_id: req.user!.id,
+    cardholder_name: body.cardholder_name,
+    card_type: body.card_type,
+    network: body.network,
+    currency: body.currency,
+    amount: body.requested_amount,
+  });
 
-  if (error) {
-    res.status(500).json({ success: false, error: error.message });
-    return;
-  }
-
-  res.status(201).json({ success: true, data: card, message: 'Card request submitted. An agent will process it shortly.' });
+  res.status(201).json({ success: true, data: card, message: 'Card issued instantly!' });
 });
 
 // POST /api/cards/:id/freeze

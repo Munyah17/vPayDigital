@@ -15,7 +15,7 @@ import { formatCurrency, formatDate, titleCase } from '@vpay/utils';
 import type { WalletTransaction } from '@vpay/types';
 
 const CONSUMER_ACTIONS = [
-  { label: 'Request Card', icon: CreditCard, color: 'from-indigo-600/30 to-indigo-800/20', to: '/cards/request', description: 'Request a card' },
+  { label: 'Request New Card', icon: CreditCard, color: 'from-indigo-600/30 to-indigo-800/20', to: '/cards/request', description: 'Instantly get a card' },
   { label: 'Redeem', icon: Ticket, color: 'from-purple-600/30 to-purple-800/20', to: '/vouchers/redeem', description: 'Use a voucher' },
   { label: 'Send', icon: ArrowUpRight, color: 'from-pink-600/30 to-pink-800/20', to: '/wallet?action=send', description: 'Transfer funds' },
   { label: 'Top Up', icon: Plus, color: 'from-emerald-600/30 to-emerald-800/20', to: '/wallet?action=topup', description: 'Add money' },
@@ -245,9 +245,9 @@ export default function Dashboard() {
               <div className="glass-card p-8 text-center w-full">
                 <CreditCard className="w-12 h-12 text-foreground/20 mx-auto mb-3" />
                 <p className="text-foreground/40 text-sm mb-4">No active cards</p>
-                <button onClick={() => navigate('/cards/new')} className="btn-brand inline-flex items-center gap-1.5 text-sm py-2 px-5">
+                <button onClick={() => navigate(isAgent ? '/cards/new' : '/cards/request')} className="btn-brand inline-flex items-center gap-1.5 text-sm py-2 px-5">
                   <Plus className="w-4 h-4" />
-                  Issue Card
+                  {isAgent ? 'Issue Card' : 'Request New Card'}
                 </button>
               </div>
             )}

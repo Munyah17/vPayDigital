@@ -3,9 +3,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation } from '@tanstack/react-query';
-import { ArrowLeft, Loader2, CreditCard, Clock, Info } from 'lucide-react';
+import { ArrowLeft, Loader2, CreditCard, Zap } from 'lucide-react';
 import { api } from '../../lib/axios';
 import { useAuthStore } from '../../stores/authStore';
+import { useWalletStore } from '../../stores/walletStore';
+import { formatCurrency } from '@vpay/utils';
 import toast from 'react-hot-toast';
 
 const schema = z.object({
@@ -21,8 +23,9 @@ type Form = z.infer<typeof schema>;
 export default function RequestCard() {
   const navigate = useNavigate();
   const { profile } = useAuthStore();
+  const { wallets } = useWalletStore();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<Form>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<Form>({
     resolver: zodResolver(schema),
     defaultValues: {
       cardholder_name: profile?.full_name ?? '',
@@ -33,11 +36,19 @@ export default function RequestCard() {
     },
   });
 
+  const currency = watch('currency');
+  const amount = watch('requested_amount');
+  const wallet = wallets.find(w => w.currency === currency);
+  const insufficientFunds = !!wallet && Number(amount) > wallet.balance;
+
   const request = useMutation({
     mutationFn: (data: Form) => api.post('/api/cards/request', data),
-    onSuccess: () => {
-      toast.success('Card request submitted! An agent will process it shortly.');
-      navigate('/cards');
+    onSuccess: async (res) => {
+      toast.success('Card issued instantly!');
+      await useWalletStore.getState().fetchCards();
+      await useWalletStore.getState().fetchWallets();
+      const card = (res.data as any)?.data;
+      navigate(card?.id ? `/cards/${card.id}` : '/cards');
     },
     onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Request failed'),
   });
@@ -54,17 +65,17 @@ export default function RequestCard() {
             <CreditCard className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="font-display font-bold text-foreground text-xl">Request a virtual card</h1>
-            <p className="text-foreground/40 text-sm">Submit a request — an agent will issue and load your card</p>
+            <h1 className="font-display font-bold text-foreground text-xl">Request New Card</h1>
+            <p className="text-foreground/40 text-sm">Instantly generated and funded from your wallet balance</p>
           </div>
         </div>
 
         {/* How it works */}
         <div className="flex items-start gap-3 p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 mb-6 mt-4">
-          <Info className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
+          <Zap className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
           <div className="text-indigo-300 text-xs space-y-1">
-            <p className="font-medium">How it works</p>
-            <p className="text-indigo-300/70">Submit your card details below. An agent reviews and issues the card from their float. You'll see it appear in your cards once activated — typically within minutes.</p>
+            <p className="font-medium">Instant, no approval needed</p>
+            <p className="text-indigo-300/70">The load amount is deducted from your wallet balance and your card is generated immediately. No agent involved — top up your wallet first if you need more funds.</p>
           </div>
         </div>
 
@@ -104,10 +115,19 @@ export default function RequestCard() {
           </div>
 
           <div>
-            <label className="block text-foreground/60 text-sm mb-1.5">Requested load amount</label>
+            <label className="block text-foreground/60 text-sm mb-1.5">
+              Load amount
+              {wallet && <span className="text-foreground/30"> · wallet balance {formatCurrency(wallet.balance, wallet.currency)}</span>}
+            </label>
             <input {...register('requested_amount')} type="number" step="0.01" className="input-field" />
             {errors.requested_amount && <p className="text-red-400 text-xs mt-1">{errors.requested_amount.message}</p>}
-            <p className="text-foreground/30 text-xs mt-1">How much you'd like loaded on the card (agent discretion applies)</p>
+            {insufficientFunds ? (
+              <p className="text-red-400 text-xs mt-1">
+                Insufficient balance — you have {formatCurrency(wallet!.balance, wallet!.currency)}. Top up your wallet first.
+              </p>
+            ) : (
+              <p className="text-foreground/30 text-xs mt-1">This amount is deducted from your {currency} wallet immediately.</p>
+            )}
           </div>
 
           <div>
@@ -120,17 +140,12 @@ export default function RequestCard() {
             />
           </div>
 
-          <div className="flex items-center gap-2 text-foreground/30 text-xs pt-1">
-            <Clock className="w-3.5 h-3.5" />
-            <span>Processed within minutes during business hours</span>
-          </div>
-
           <button
             type="submit"
-            disabled={request.isPending}
-            className="btn-brand w-full py-3 flex items-center justify-center gap-2"
+            disabled={request.isPending || insufficientFunds}
+            className="btn-brand w-full py-3 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {request.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit request'}
+            {request.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Request New Card'}
           </button>
         </form>
       </div>

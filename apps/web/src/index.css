@@ -5,6 +5,12 @@
 /* ─── Base ──────────────────────────────────────────────────────────────────── */
 @layer base {
   :root {
+    /* Without this, native controls (<select>/<option> popups, checkboxes,
+       date pickers) ignore our .dark class and render using the browser's
+       own light/dark guess — the cause of illegible black-text-on-black
+       dropdowns reported in beneficiary/wallet <select> fields. */
+    color-scheme: light;
+
     /* Light theme (default) */
     --background: 220 25% 98%;
     --foreground: 222 47% 11%;
@@ -24,6 +30,7 @@
   }
 
   .dark {
+    color-scheme: dark;
     --background: 246 47% 6%;
     --foreground: 210 40% 98%;
     --card: 222 47% 13%;
