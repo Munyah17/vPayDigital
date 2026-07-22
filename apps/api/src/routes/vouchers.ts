@@ -3,8 +3,20 @@ import { z } from 'zod';
 import { authenticate, requireAgent, AuthenticatedRequest } from '../middleware/auth.js';
 import { voucherService } from '../services/voucherService.js';
 import { supabaseAdmin } from '../utils/supabase.js';
+import { getFeeConfig } from '../utils/feeConfig.js';
 
 const router = Router();
+
+// GET /api/vouchers/fee-info — lets the issuance form compute the exact
+// fee-inclusive cost client-side (agents pay voucherIssuancePercent on
+// top; staff/super_admin issue at cost), so the submit button can be
+// disabled the moment the total would exceed the issuer's float —
+// classic "can't overdraft" UX instead of a server error after submit.
+router.get('/fee-info', authenticate, requireAgent, async (req: AuthenticatedRequest, res: Response) => {
+  const fees = await getFeeConfig();
+  const percent = req.user!.role === 'agent' ? fees.voucherIssuancePercent : 0;
+  res.json({ success: true, data: { voucher_issuance_percent: percent } });
+});
 
 const issueVoucherSchema = z.object({
   type: z.enum(['virtual_card', 'gift_card', 'streaming', 'gaming', 'ecommerce', 'subscription', 'utility', 'travel', 'general']),

@@ -72748,6 +72748,11 @@ var voucherService = new VoucherService();
 // src/routes/vouchers.ts
 init_supabase();
 var router3 = (0, import_express3.Router)();
+router3.get("/fee-info", authenticate, requireAgent, async (req, res) => {
+  const fees = await getFeeConfig();
+  const percent = req.user.role === "agent" ? fees.voucherIssuancePercent : 0;
+  res.json({ success: true, data: { voucher_issuance_percent: percent } });
+});
 var issueVoucherSchema = external_exports.object({
   type: external_exports.enum(["virtual_card", "gift_card", "streaming", "gaming", "ecommerce", "subscription", "utility", "travel", "general"]),
   amount: external_exports.number().min(1).max(5e3),
@@ -75653,11 +75658,12 @@ app.patch("/api/admin/users/:id/status", authenticate, requireAdmin, async (req,
   res.json({ success: true, data });
 });
 app.get("/api/agent/metrics", authenticate, requireAgent, async (req, res) => {
+  const floatWalletType = req.user.role === "super_admin" ? "master_pool" : "agent_float";
   const [vouchersRes, cardsRes, commissionsRes, floatRes] = await Promise.all([
     supabaseAdmin.from("vouchers").select("id, status, amount", { count: "exact" }).eq("issuer_id", req.user.id),
     supabaseAdmin.from("cards").select("id", { count: "exact" }).eq("issued_by_agent", req.user.id),
     supabaseAdmin.from("commissions").select("amount, currency").eq("agent_id", req.user.id).eq("status", "completed"),
-    supabaseAdmin.from("wallets").select("balance, currency").eq("user_id", req.user.id).eq("wallet_type", "agent_float").single()
+    supabaseAdmin.from("wallets").select("balance, currency").eq("user_id", req.user.id).eq("wallet_type", floatWalletType).single()
   ]);
   const totalCommissions = (commissionsRes.data ?? []).reduce((s, c) => s + Number(c.amount), 0);
   const redeemed = (vouchersRes.data ?? []).filter((v) => v.status === "redeemed").length;

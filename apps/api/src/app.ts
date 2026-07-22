@@ -385,11 +385,15 @@ app.patch('/api/admin/users/:id/status', authenticate, requireAdmin, async (req:
 
 // ─── Agent Routes ─────────────────────────────────────────────────────────────
 app.get('/api/agent/metrics', authenticate, requireAgent, async (req: AuthenticatedRequest, res) => {
+  // Super Admin's usable float is the System Wallet (master_pool) itself —
+  // they don't have an agent_float wallet at all, so querying that type
+  // for them would show $0 and wrongly block issuance client-side.
+  const floatWalletType = req.user!.role === 'super_admin' ? 'master_pool' : 'agent_float';
   const [vouchersRes, cardsRes, commissionsRes, floatRes] = await Promise.all([
     supabaseAdmin.from('vouchers').select('id, status, amount', { count: 'exact' }).eq('issuer_id', req.user!.id),
     supabaseAdmin.from('cards').select('id', { count: 'exact' }).eq('issued_by_agent', req.user!.id),
     supabaseAdmin.from('commissions').select('amount, currency').eq('agent_id', req.user!.id).eq('status', 'completed'),
-    supabaseAdmin.from('wallets').select('balance, currency').eq('user_id', req.user!.id).eq('wallet_type', 'agent_float').single(),
+    supabaseAdmin.from('wallets').select('balance, currency').eq('user_id', req.user!.id).eq('wallet_type', floatWalletType).single(),
   ]);
 
   const totalCommissions = (commissionsRes.data ?? []).reduce((s: number, c: { amount: number }) => s + Number(c.amount), 0);

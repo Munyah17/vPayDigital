@@ -33,13 +33,21 @@ export default function IssueVoucherPage() {
   const [issued, setIssued] = useState<IssuedVoucher[]>([]);
   const [copied, setCopied] = useState<string | null>(null);
 
-  // Show current float balance
+  // Show current float balance — for a super_admin this is the System
+  // Wallet (master_pool); for staff it's their allocated agent_float
+  // wallet. The backend already resolves the right one per role.
   const { data: floatData } = useQuery({
     queryKey: ['admin-float'],
     queryFn: () => api.get('/api/agent/metrics'),
   });
   const floatBalance: number = (floatData?.data as any)?.data?.float_balance ?? 0;
   const floatCurrency: string = (floatData?.data as any)?.data?.currency ?? 'USD';
+
+  const { data: feeData } = useQuery({
+    queryKey: ['voucher-fee-info'],
+    queryFn: () => api.get('/api/vouchers/fee-info'),
+  });
+  const feePercent: number = (feeData?.data as any)?.data?.voucher_issuance_percent ?? 0;
 
   const issue = useMutation({
     mutationFn: () => api.post('/api/vouchers', form),
@@ -58,7 +66,11 @@ export default function IssueVoucherPage() {
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const cost = (form.amount * 1.015 * form.quantity).toFixed(2);
+  // Mirrors the backend's exact cost calc — no overdraft: classic UX is
+  // disabling submit the moment the total would exceed available float,
+  // rather than letting the request fail server-side after the fact.
+  const cost = form.amount * (1 + feePercent) * form.quantity;
+  const exceedsFloat = form.currency === floatCurrency && cost > floatBalance;
 
   return (
     <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
@@ -174,14 +186,17 @@ export default function IssueVoucherPage() {
           </div>
 
           {/* Cost summary */}
-          <div className="rounded-xl bg-foreground/3 border border-foreground/5 p-3 flex items-center justify-between">
-            <span className="text-foreground/40 text-sm">Total cost (incl. 1.5% fee)</span>
-            <span className="text-foreground font-bold">{form.currency} {cost}</span>
+          <div className={`rounded-xl border p-3 flex items-center justify-between ${exceedsFloat ? 'bg-red-500/5 border-red-500/20' : 'bg-foreground/3 border-foreground/5'}`}>
+            <span className="text-foreground/40 text-sm">{feePercent > 0 ? `Total cost (incl. ${(feePercent * 100).toFixed(1)}% fee)` : 'Total cost'}</span>
+            <span className={`font-bold ${exceedsFloat ? 'text-red-400' : 'text-foreground'}`}>{form.currency} {cost.toFixed(2)}</span>
           </div>
+          {exceedsFloat && (
+            <p className="text-red-400 text-xs -mt-2">Exceeds available float ({floatCurrency} {floatBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}). Lower the amount or quantity.</p>
+          )}
 
           <button
             onClick={() => issue.mutate()}
-            disabled={issue.isPending || (form.type === 'gift_card' && !form.gift_card_brand)}
+            disabled={issue.isPending || exceedsFloat || (form.type === 'gift_card' && !form.gift_card_brand)}
             className="btn-primary w-full flex items-center justify-center gap-2 py-3"
           >
             {issue.isPending ? (

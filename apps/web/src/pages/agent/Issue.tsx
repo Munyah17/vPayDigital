@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Zap, Loader2, Copy } from 'lucide-react';
 import { api } from '../../lib/axios';
 import { titleCase, formatCurrency } from '@vpay/utils';
@@ -14,6 +14,18 @@ export default function Issue() {
     gift_card_brand: '', quantity: 1,
   });
   const [issued, setIssued] = useState<any[]>([]);
+
+  const { data: floatData } = useQuery({ queryKey: ['agent-float'], queryFn: () => api.get('/api/agent/metrics') });
+  const floatBalance: number = (floatData?.data as any)?.data?.float_balance ?? 0;
+  const floatCurrency: string = (floatData?.data as any)?.data?.currency ?? 'USD';
+
+  const { data: feeData } = useQuery({ queryKey: ['voucher-fee-info'], queryFn: () => api.get('/api/vouchers/fee-info') });
+  const feePercent: number = (feeData?.data as any)?.data?.voucher_issuance_percent ?? 0;
+
+  // No-overdraft UX: disable submit the instant the total would exceed
+  // available float, instead of letting it fail server-side after submit.
+  const cost = form.amount * (1 + feePercent) * form.quantity;
+  const exceedsFloat = form.currency === floatCurrency && cost > floatBalance;
 
   const issue = useMutation({
     mutationFn: () => api.post('/api/vouchers', form),
@@ -31,9 +43,13 @@ export default function Issue() {
         <div className="w-12 h-12 rounded-2xl bg-brand-gradient flex items-center justify-center shadow-glow">
           <Zap className="w-5 h-5 text-white" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="font-display font-bold text-foreground text-2xl">Issue vouchers</h1>
           <p className="text-foreground/40 text-sm">Generate bulk voucher codes to sell or distribute</p>
+        </div>
+        <div className="text-right">
+          <p className="text-foreground/30 text-xs">Available float</p>
+          <p className="text-foreground font-bold">{floatCurrency} {floatBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
         </div>
       </div>
 
@@ -78,7 +94,15 @@ export default function Issue() {
               <input type="number" value={form.expires_in_days} onChange={(e) => setForm({ ...form, expires_in_days: parseInt(e.target.value) })} className="input-field" />
             </div>
           </div>
-          <button type="submit" disabled={issue.isPending} className="btn-brand w-full py-3 flex items-center justify-center gap-2">
+          <div className={`rounded-xl border p-3 flex items-center justify-between ${exceedsFloat ? 'bg-red-500/5 border-red-500/20' : 'bg-foreground/3 border-foreground/5'}`}>
+            <span className="text-foreground/40 text-sm">{feePercent > 0 ? `Total cost (incl. ${(feePercent * 100).toFixed(1)}% fee)` : 'Total cost'}</span>
+            <span className={`font-bold ${exceedsFloat ? 'text-red-400' : 'text-foreground'}`}>{form.currency} {cost.toFixed(2)}</span>
+          </div>
+          {exceedsFloat && (
+            <p className="text-red-400 text-xs">Exceeds your available float ({floatCurrency} {floatBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}). Lower the amount or quantity.</p>
+          )}
+
+          <button type="submit" disabled={issue.isPending || exceedsFloat} className="btn-brand w-full py-3 flex items-center justify-center gap-2">
             {issue.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : `Issue ${form.quantity} voucher${form.quantity > 1 ? 's' : ''}`}
           </button>
         </form>
