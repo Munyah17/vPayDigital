@@ -386,14 +386,19 @@ app.patch('/api/admin/users/:id/status', authenticate, requireAdmin, async (req:
 // ─── Agent Routes ─────────────────────────────────────────────────────────────
 app.get('/api/agent/metrics', authenticate, requireAgent, async (req: AuthenticatedRequest, res) => {
   // Super Admin's usable float is the System Wallet (master_pool) itself —
-  // they don't have an agent_float wallet at all, so querying that type
-  // for them would show $0 and wrongly block issuance client-side.
-  const floatWalletType = req.user!.role === 'super_admin' ? 'master_pool' : 'agent_float';
+  // and that wallet is PLATFORM-WIDE (any super_admin operates the same
+  // one), not owned by whichever super_admin happened to create it, so no
+  // user_id filter for that lookup. Staff/agent each have their own
+  // per-user agent_float wallet, allocated individually.
+  const isSuperAdminCaller = req.user!.role === 'super_admin';
+  const floatQuery = isSuperAdminCaller
+    ? supabaseAdmin.from('wallets').select('balance, currency').eq('wallet_type', 'master_pool').single()
+    : supabaseAdmin.from('wallets').select('balance, currency').eq('user_id', req.user!.id).eq('wallet_type', 'agent_float').single();
   const [vouchersRes, cardsRes, commissionsRes, floatRes] = await Promise.all([
     supabaseAdmin.from('vouchers').select('id, status, amount', { count: 'exact' }).eq('issuer_id', req.user!.id),
     supabaseAdmin.from('cards').select('id', { count: 'exact' }).eq('issued_by_agent', req.user!.id),
     supabaseAdmin.from('commissions').select('amount, currency').eq('agent_id', req.user!.id).eq('status', 'completed'),
-    supabaseAdmin.from('wallets').select('balance, currency').eq('user_id', req.user!.id).eq('wallet_type', floatWalletType).single(),
+    floatQuery,
   ]);
 
   const totalCommissions = (commissionsRes.data ?? []).reduce((s: number, c: { amount: number }) => s + Number(c.amount), 0);
@@ -1064,8 +1069,10 @@ app.post('/api/admin/float/allocate', authenticate, requireSuperAdmin, async (re
     res.status(400).json({ success: false, error: 'Float can only be allocated to agent or staff accounts' }); return;
   }
 
+  // Platform-wide wallet — not scoped to the calling super_admin's own
+  // user_id, since any super_admin operates the same System Wallet.
   const { data: masterPool } = await supabaseAdmin
-    .from('wallets').select('id, balance').eq('user_id', req.user!.id).eq('currency', currency).eq('wallet_type', 'master_pool').single();
+    .from('wallets').select('id, balance').eq('currency', currency).eq('wallet_type', 'master_pool').single();
   if (!masterPool) { res.status(404).json({ success: false, error: `No System Wallet found for ${currency}` }); return; }
   if (masterPool.balance < amount) {
     res.status(402).json({ success: false, error: `System Wallet has insufficient balance. Available: ${masterPool.balance}` }); return;

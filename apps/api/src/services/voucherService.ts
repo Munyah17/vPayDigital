@@ -59,13 +59,15 @@ export class VoucherService {
     const fee = isAgent ? params.amount * fees.voucherIssuancePercent : 0;
     const totalCost = params.amount + fee;
 
-    const { data: wallet } = await supabaseAdmin
+    // master_pool is platform-wide — not scoped to which super_admin is
+    // issuing, since any super_admin operates the same System Wallet.
+    let walletQuery = supabaseAdmin
       .from('wallets')
       .select('id, balance, status')
-      .eq('user_id', params.issuer_id)
       .eq('currency', params.currency)
-      .eq('wallet_type', debitWalletType)
-      .single();
+      .eq('wallet_type', debitWalletType);
+    if (!isSuperAdmin) walletQuery = walletQuery.eq('user_id', params.issuer_id);
+    const { data: wallet } = await walletQuery.single();
 
     if (!wallet) {
       throw new Error(isSuperAdmin ? 'Master pool wallet not found for this currency' : 'Float wallet not found — ask a Super Admin to allocate float first');

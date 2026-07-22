@@ -72583,7 +72583,9 @@ var VoucherService = class {
     const isAgent = params.issuer_role === "agent";
     const fee = isAgent ? params.amount * fees.voucherIssuancePercent : 0;
     const totalCost = params.amount + fee;
-    const { data: wallet } = await supabaseAdmin.from("wallets").select("id, balance, status").eq("user_id", params.issuer_id).eq("currency", params.currency).eq("wallet_type", debitWalletType).single();
+    let walletQuery = supabaseAdmin.from("wallets").select("id, balance, status").eq("currency", params.currency).eq("wallet_type", debitWalletType);
+    if (!isSuperAdmin) walletQuery = walletQuery.eq("user_id", params.issuer_id);
+    const { data: wallet } = await walletQuery.single();
     if (!wallet) {
       throw new Error(isSuperAdmin ? "Master pool wallet not found for this currency" : "Float wallet not found \u2014 ask a Super Admin to allocate float first");
     }
@@ -75658,12 +75660,13 @@ app.patch("/api/admin/users/:id/status", authenticate, requireAdmin, async (req,
   res.json({ success: true, data });
 });
 app.get("/api/agent/metrics", authenticate, requireAgent, async (req, res) => {
-  const floatWalletType = req.user.role === "super_admin" ? "master_pool" : "agent_float";
+  const isSuperAdminCaller = req.user.role === "super_admin";
+  const floatQuery = isSuperAdminCaller ? supabaseAdmin.from("wallets").select("balance, currency").eq("wallet_type", "master_pool").single() : supabaseAdmin.from("wallets").select("balance, currency").eq("user_id", req.user.id).eq("wallet_type", "agent_float").single();
   const [vouchersRes, cardsRes, commissionsRes, floatRes] = await Promise.all([
     supabaseAdmin.from("vouchers").select("id, status, amount", { count: "exact" }).eq("issuer_id", req.user.id),
     supabaseAdmin.from("cards").select("id", { count: "exact" }).eq("issued_by_agent", req.user.id),
     supabaseAdmin.from("commissions").select("amount, currency").eq("agent_id", req.user.id).eq("status", "completed"),
-    supabaseAdmin.from("wallets").select("balance, currency").eq("user_id", req.user.id).eq("wallet_type", floatWalletType).single()
+    floatQuery
   ]);
   const totalCommissions = (commissionsRes.data ?? []).reduce((s, c) => s + Number(c.amount), 0);
   const redeemed = (vouchersRes.data ?? []).filter((v) => v.status === "redeemed").length;
@@ -76210,7 +76213,7 @@ app.post("/api/admin/float/allocate", authenticate, requireSuperAdmin, async (re
     res.status(400).json({ success: false, error: "Float can only be allocated to agent or staff accounts" });
     return;
   }
-  const { data: masterPool } = await supabaseAdmin.from("wallets").select("id, balance").eq("user_id", req.user.id).eq("currency", currency).eq("wallet_type", "master_pool").single();
+  const { data: masterPool } = await supabaseAdmin.from("wallets").select("id, balance").eq("currency", currency).eq("wallet_type", "master_pool").single();
   if (!masterPool) {
     res.status(404).json({ success: false, error: `No System Wallet found for ${currency}` });
     return;
