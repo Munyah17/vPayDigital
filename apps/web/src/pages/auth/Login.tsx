@@ -38,11 +38,34 @@ export default function Login() {
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
       if (error) throw error;
+
+      // Staff and super_admin have their own dedicated portals (/admin,
+      // /private) with separate role checks — this login page is
+      // consumer/agent only. Signing them back out here (rather than just
+      // hiding admin UI post-login) means those credentials only ever work
+      // at the portal built for them, which is the whole point of having
+      // separate authentication pages.
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profile && ['staff', 'super_admin'].includes(profile.role)) {
+        await supabase.auth.signOut();
+        toast.error(
+          profile.role === 'super_admin'
+            ? 'Super admin accounts sign in at /private.'
+            : 'Staff accounts sign in at /admin.'
+        );
+        return;
+      }
+
       await refreshProfile();
       navigate('/dashboard');
       toast.success('Welcome back!');
