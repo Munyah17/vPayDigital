@@ -72577,25 +72577,26 @@ var BRAND_SEARCH_TERMS = {
 };
 var VoucherService = class {
   async issueVoucher(params) {
-    const isAdmin = ["super_admin", "staff"].includes(params.issuer_role ?? "");
+    const isSuperAdmin = params.issuer_role === "super_admin";
+    const debitWalletType = isSuperAdmin ? "master_pool" : "agent_float";
     const fees = await getFeeConfig();
-    const fee = isAdmin ? 0 : params.amount * fees.voucherIssuancePercent;
+    const isAgent = params.issuer_role === "agent";
+    const fee = isAgent ? params.amount * fees.voucherIssuancePercent : 0;
     const totalCost = params.amount + fee;
-    let walletId = null;
-    if (!isAdmin) {
-      const { data: wallet } = await supabaseAdmin.from("wallets").select("id, balance, status").eq("user_id", params.issuer_id).eq("currency", params.currency).eq("wallet_type", "agent_float").single();
-      if (!wallet) throw new Error("Agent float wallet not found");
-      if (wallet.balance < totalCost) {
-        throw new Error(`Insufficient float. Available: ${wallet.balance}, Required: ${totalCost}`);
-      }
-      walletId = wallet.id;
+    const { data: wallet } = await supabaseAdmin.from("wallets").select("id, balance, status").eq("user_id", params.issuer_id).eq("currency", params.currency).eq("wallet_type", debitWalletType).single();
+    if (!wallet) {
+      throw new Error(isSuperAdmin ? "Master pool wallet not found for this currency" : "Float wallet not found \u2014 ask a Super Admin to allocate float first");
     }
+    if (wallet.balance < totalCost) {
+      throw new Error(`Insufficient float. Available: ${wallet.balance}, Required: ${totalCost}`);
+    }
+    const walletId = wallet.id;
     const { data: codeResult } = await supabaseAdmin.rpc("generate_voucher_code", { prefix: "VP" });
     const code = codeResult;
     const encodedData = this.buildEncodedData(params);
     const expiresAt = /* @__PURE__ */ new Date();
     expiresAt.setDate(expiresAt.getDate() + (params.expires_in_days ?? 30));
-    if (!isAdmin && walletId) {
+    {
       const { error: debitErr } = await supabaseAdmin.rpc("record_wallet_debit", {
         p_wallet_id: walletId,
         p_amount: totalCost,
@@ -75424,6 +75425,7 @@ function mapVitalPayEvent(vitalPayEvent) {
 
 // src/app.ts
 init_supabase();
+init_walletService();
 var app = (0, import_express21.default)();
 app.set("trust proxy", 1);
 app.use(helmet({
@@ -76182,6 +76184,73 @@ app.post("/api/admin/wallets/adjust", authenticate, requireSuperAdmin, async (re
     p_changes: { direction, amount, reason, balance_before: wallet.balance }
   });
   res.json({ success: true, message: `${direction === "credit" ? "Credited" : "Debited"} ${wallet.currency} ${amount} \u2014 ${reason}` });
+});
+app.post("/api/admin/float/allocate", authenticate, requireSuperAdmin, async (req, res) => {
+  const { target_email, amount, currency } = req.body;
+  if (!target_email || !amount || !currency) {
+    res.status(400).json({ success: false, error: "target_email, amount and currency are required" });
+    return;
+  }
+  if (amount <= 0) {
+    res.status(400).json({ success: false, error: "Amount must be positive" });
+    return;
+  }
+  const { data: target } = await supabaseAdmin.from("profiles").select("id, role").eq("email", target_email).single();
+  if (!target) {
+    res.status(404).json({ success: false, error: `No user with email ${target_email}` });
+    return;
+  }
+  if (!["agent", "staff"].includes(target.role)) {
+    res.status(400).json({ success: false, error: "Float can only be allocated to agent or staff accounts" });
+    return;
+  }
+  const { data: masterPool } = await supabaseAdmin.from("wallets").select("id, balance").eq("user_id", req.user.id).eq("currency", currency).eq("wallet_type", "master_pool").single();
+  if (!masterPool) {
+    res.status(404).json({ success: false, error: `No System Wallet found for ${currency}` });
+    return;
+  }
+  if (masterPool.balance < amount) {
+    res.status(402).json({ success: false, error: `System Wallet has insufficient balance. Available: ${masterPool.balance}` });
+    return;
+  }
+  const targetWallet = await walletService.ensureWallet(target.id, currency, "agent_float");
+  const { error: debitErr } = await supabaseAdmin.rpc("record_wallet_debit", {
+    p_wallet_id: masterPool.id,
+    p_amount: amount,
+    p_type: "float_top_up",
+    p_description: `Float allocated to ${target_email}`,
+    p_metadata: { target_user_id: target.id }
+  });
+  if (debitErr) {
+    res.status(400).json({ success: false, error: debitErr.message });
+    return;
+  }
+  const { error: creditErr } = await supabaseAdmin.rpc("record_wallet_credit", {
+    p_wallet_id: targetWallet.id,
+    p_amount: amount,
+    p_type: "float_top_up",
+    p_description: `Float from Super Admin`,
+    p_metadata: { source: "master_pool", allocated_by: req.user.id }
+  });
+  if (creditErr) {
+    await supabaseAdmin.rpc("record_wallet_credit", {
+      p_wallet_id: masterPool.id,
+      p_amount: amount,
+      p_type: "reversal",
+      p_description: `Float allocation to ${target_email} failed, reversed`,
+      p_metadata: { target_user_id: target.id }
+    });
+    res.status(500).json({ success: false, error: `Failed to credit target wallet: ${creditErr.message}` });
+    return;
+  }
+  await supabaseAdmin.rpc("create_audit_log", {
+    p_actor_id: req.user.id,
+    p_action: "float.allocate",
+    p_resource_type: "wallet",
+    p_resource_id: targetWallet.id,
+    p_changes: { target_email, amount, currency }
+  });
+  res.json({ success: true, message: `Allocated ${currency} ${amount} to ${target_email}` });
 });
 app.get("/api/admin/audit-logs", authenticate, requireAdmin, async (req, res) => {
   const { page = "1", limit = "25", action, actor_id } = req.query;

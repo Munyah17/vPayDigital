@@ -40,31 +40,40 @@ export interface RedeemVoucherParams {
 
 export class VoucherService {
   async issueVoucher(params: IssueVoucherParams): Promise<Voucher> {
-    const isAdmin = ['super_admin', 'staff'].includes(params.issuer_role ?? '');
+    // Float hierarchy: Super Admin holds the real VitalPay-sourced float in
+    // the platform's master_pool wallet and draws from it directly. Staff
+    // ("Admin") and Agent both issue against their OWN allocated float
+    // wallet (wallet_type 'agent_float', shared mechanism regardless of
+    // role name) — neither can issue more than they were parcelled out via
+    // POST /api/admin/float/allocate. Nobody gets an unconstrained,
+    // untracked free pass anymore.
+    const isSuperAdmin = params.issuer_role === 'super_admin';
+    const debitWalletType = isSuperAdmin ? 'master_pool' : 'agent_float';
 
-    // Calculate cost with fee
+    // Calculate cost with fee — staff/super_admin issue at cost (no markup,
+    // they ARE the platform); agents already paid for their float at a
+    // markup when they bought it, so voucherIssuancePercent still applies
+    // to them specifically.
     const fees = await getFeeConfig();
-    const fee = isAdmin ? 0 : params.amount * fees.voucherIssuancePercent; // Admins issue from platform pool — no fee deducted
+    const isAgent = params.issuer_role === 'agent';
+    const fee = isAgent ? params.amount * fees.voucherIssuancePercent : 0;
     const totalCost = params.amount + fee;
 
-    let walletId: string | null = null;
+    const { data: wallet } = await supabaseAdmin
+      .from('wallets')
+      .select('id, balance, status')
+      .eq('user_id', params.issuer_id)
+      .eq('currency', params.currency)
+      .eq('wallet_type', debitWalletType)
+      .single();
 
-    if (!isAdmin) {
-      // Debit agent float wallet
-      const { data: wallet } = await supabaseAdmin
-        .from('wallets')
-        .select('id, balance, status')
-        .eq('user_id', params.issuer_id)
-        .eq('currency', params.currency)
-        .eq('wallet_type', 'agent_float')
-        .single();
-
-      if (!wallet) throw new Error('Agent float wallet not found');
-      if (wallet.balance < totalCost) {
-        throw new Error(`Insufficient float. Available: ${wallet.balance}, Required: ${totalCost}`);
-      }
-      walletId = wallet.id;
+    if (!wallet) {
+      throw new Error(isSuperAdmin ? 'Master pool wallet not found for this currency' : 'Float wallet not found — ask a Super Admin to allocate float first');
     }
+    if (wallet.balance < totalCost) {
+      throw new Error(`Insufficient float. Available: ${wallet.balance}, Required: ${totalCost}`);
+    }
+    const walletId = wallet.id;
 
     // Generate unique voucher code
     const { data: codeResult } = await supabaseAdmin
@@ -78,8 +87,9 @@ export class VoucherService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + (params.expires_in_days ?? 30));
 
-    // Debit wallet — agents only (admins issue from platform pool, no debit)
-    if (!isAdmin && walletId) {
+    // Debit whichever wallet was resolved above — master_pool for super_admin,
+    // the issuer's own agent_float wallet for staff/agent.
+    {
       const { error: debitErr } = await supabaseAdmin.rpc('record_wallet_debit', {
         p_wallet_id: walletId,
         p_amount: totalCost,

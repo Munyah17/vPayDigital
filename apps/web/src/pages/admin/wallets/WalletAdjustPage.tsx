@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Search, ArrowUpCircle, ArrowDownCircle, Loader2, AlertTriangle } from 'lucide-react';
+import { Search, ArrowUpCircle, ArrowDownCircle, Loader2, AlertTriangle, Send } from 'lucide-react';
 import { api } from '../../../lib/adminAxios';
 import { formatCurrency } from '@vpay/utils';
 import toast from 'react-hot-toast';
@@ -47,6 +47,8 @@ export default function WalletAdjustPage() {
           Always provide a clear reason — this is your paper trail for compliance.
         </p>
       </div>
+
+      <AllocateFloatPanel onAllocated={refetch} />
 
       {/* Filters */}
       <div className="flex gap-3">
@@ -125,6 +127,57 @@ export default function WalletAdjustPage() {
         <AdjustDialog wallet={adjustWallet} onClose={() => setAdjustWallet(null)}
           onSuccess={() => { setAdjustWallet(null); refetch(); }} />
       )}
+    </div>
+  );
+}
+
+function AllocateFloatPanel({ onAllocated }: { onAllocated: () => void }) {
+  const [targetEmail, setTargetEmail] = useState('');
+  const [amount, setAmount] = useState('');
+  const [currency, setCurrency] = useState('USD');
+
+  const allocate = useMutation({
+    mutationFn: () => api.post('/api/admin/float/allocate', { target_email: targetEmail, amount: parseFloat(amount), currency }),
+    onSuccess: (res: any) => {
+      toast.success(res?.data?.message ?? 'Float allocated');
+      setTargetEmail(''); setAmount('');
+      onAllocated();
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? e?.response?.data?.error ?? 'Failed to allocate float'),
+  });
+
+  return (
+    <div className="panel p-5 space-y-3">
+      <div className="flex items-center gap-2">
+        <Send className="w-4 h-4 text-indigo-400" />
+        <h2 className="text-foreground font-semibold text-sm">Allocate Float to Admin/Agent</h2>
+      </div>
+      <p className="text-foreground/30 text-xs">
+        Parcels out float from your System Wallet (sourced from VitalPay) to a staff or agent account's own float
+        wallet — a real transfer, not a free credit. They can then issue vouchers up to that balance.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+        <input
+          value={targetEmail} onChange={e => setTargetEmail(e.target.value)}
+          type="email" placeholder="agent@example.com" className="input sm:col-span-2"
+        />
+        <input
+          value={amount} onChange={e => setAmount(e.target.value)}
+          type="number" step="0.01" min="0.01" placeholder="Amount" className="input"
+        />
+        <div className="flex gap-2">
+          <select value={currency} onChange={e => setCurrency(e.target.value)} className="input flex-1">
+            {['USD', 'EUR', 'GBP', 'ZAR'].map(c => <option key={c}>{c}</option>)}
+          </select>
+          <button
+            onClick={() => allocate.mutate()}
+            disabled={allocate.isPending || !targetEmail || !amount}
+            className="btn-primary px-4 flex-shrink-0"
+          >
+            {allocate.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Allocate'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -141,6 +141,20 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// Agent tools (voucher issuance, float, customers, analytics) were only
+// ever hidden from consumers via the Sidebar nav — the routes themselves
+// had no guard, so a consumer navigating directly to e.g. /agent/issue
+// would see the full form UI before any submit failed with a 403 from the
+// backend (which was already correctly enforcing this). This closes that
+// UX gap; the backend check remains the real security boundary.
+function AgentGuard({ children }: { children: React.ReactNode }) {
+  const { isInitialized, profile } = useAuthStore();
+  if (!isInitialized) return <PageLoader />;
+  if (!profile) return <Navigate to="/" replace />;
+  if (!['agent', 'super_admin', 'staff'].includes(profile.role)) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+}
+
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const { profile, isInitialized } = useAdminStore();
   if (!isInitialized) return <AdminLoader />;
@@ -207,10 +221,10 @@ export default function App() {
               <Route path="settings" element={<Settings />} />
               <Route path="help" element={<Help />} />
 
-              <Route path="agent/issue" element={<AgentIssue />} />
-              <Route path="agent/float" element={<AgentFloat />} />
-              <Route path="agent/customers" element={<AgentCustomers />} />
-              <Route path="agent/analytics" element={<AgentAnalytics />} />
+              <Route path="agent/issue" element={<AgentGuard><AgentIssue /></AgentGuard>} />
+              <Route path="agent/float" element={<AgentGuard><AgentFloat /></AgentGuard>} />
+              <Route path="agent/customers" element={<AgentGuard><AgentCustomers /></AgentGuard>} />
+              <Route path="agent/analytics" element={<AgentGuard><AgentAnalytics /></AgentGuard>} />
 
               <Route path="*" element={<NotFound />} />
             </Route>
