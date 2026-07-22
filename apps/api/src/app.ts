@@ -907,7 +907,10 @@ app.get('/api/admin/voucher-batches', authenticate, requireAdmin, async (req, re
 });
 
 // ─── Admin: System Config ─────────────────────────────────────────────────────
-app.get('/api/admin/config', authenticate, requireAdmin, async (_req, res) => {
+// Covers fee_config, announcement, and feature_flags — all system-wide,
+// revenue- or platform-affecting settings, so super_admin only (same tier
+// as wallet-adjust/staff-management/role-changes below).
+app.get('/api/admin/config', authenticate, requireSuperAdmin, async (_req, res) => {
   const { data, error } = await supabaseAdmin
     .from('system_config')
     .select('*')
@@ -917,7 +920,7 @@ app.get('/api/admin/config', authenticate, requireAdmin, async (_req, res) => {
   res.json({ success: true, data });
 });
 
-app.patch('/api/admin/config/:key', authenticate, requireAdmin, async (req: AuthenticatedRequest, res) => {
+app.patch('/api/admin/config/:key', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res) => {
   const { value } = req.body as { value: unknown };
 
   const { data, error } = await supabaseAdmin

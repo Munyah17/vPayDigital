@@ -74298,7 +74298,7 @@ var createSchema = external_exports.object({
   currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]),
   description: external_exports.string().min(3).max(300)
 });
-router9.get("/", authenticate, requireAdmin, async (req, res) => {
+router9.get("/", authenticate, requireSuperAdmin, async (req, res) => {
   const { status } = req.query;
   let query = supabaseAdmin.from("escrow_transactions").select("*, payer:payer_id(email, full_name), payee:payee_id(email, full_name)").order("created_at", { ascending: false });
   if (status) query = query.eq("status", status);
@@ -74309,7 +74309,7 @@ router9.get("/", authenticate, requireAdmin, async (req, res) => {
   }
   res.json({ success: true, data });
 });
-router9.post("/", authenticate, requireAdmin, async (req, res) => {
+router9.post("/", authenticate, requireSuperAdmin, async (req, res) => {
   const body = createSchema.parse(req.body);
   const [{ data: payer }, { data: payee }] = await Promise.all([
     supabaseAdmin.from("profiles").select("id").eq("email", body.payer_email).single(),
@@ -74361,7 +74361,7 @@ router9.post("/", authenticate, requireAdmin, async (req, res) => {
   const { data: funded } = await supabaseAdmin.from("escrow_transactions").update({ status: "funded", funded_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", escrow.id).select().single();
   res.status(201).json({ success: true, data: funded });
 });
-router9.post("/:id/release", authenticate, requireAdmin, async (req, res) => {
+router9.post("/:id/release", authenticate, requireSuperAdmin, async (req, res) => {
   const { data: escrow } = await supabaseAdmin.from("escrow_transactions").select("*").eq("id", req.params.id).single();
   if (!escrow) {
     res.status(404).json({ success: false, error: "Escrow not found" });
@@ -74386,7 +74386,7 @@ router9.post("/:id/release", authenticate, requireAdmin, async (req, res) => {
   const { data } = await supabaseAdmin.from("escrow_transactions").update({ status: "released", released_at: (/* @__PURE__ */ new Date()).toISOString(), released_by: req.user.id }).eq("id", escrow.id).select().single();
   res.json({ success: true, data });
 });
-router9.post("/:id/refund", authenticate, requireAdmin, async (req, res) => {
+router9.post("/:id/refund", authenticate, requireSuperAdmin, async (req, res) => {
   const { data: escrow } = await supabaseAdmin.from("escrow_transactions").select("*").eq("id", req.params.id).single();
   if (!escrow) {
     res.status(404).json({ success: false, error: "Escrow not found" });
@@ -74828,7 +74828,7 @@ var createSchema6 = external_exports.object({
   currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]).default("USD"),
   notes: external_exports.string().max(1e3).optional()
 });
-router15.get("/", authenticate, requireAdmin, async (req, res) => {
+router15.get("/", authenticate, requireSuperAdmin, async (req, res) => {
   const { status } = req.query;
   let query = supabaseAdmin.from("loans").select("*, profiles!loans_borrower_id_fkey(email, full_name)").order("created_at", { ascending: false });
   if (status) query = query.eq("status", status);
@@ -74839,7 +74839,7 @@ router15.get("/", authenticate, requireAdmin, async (req, res) => {
   }
   res.json({ success: true, data });
 });
-router15.post("/", authenticate, requireAdmin, async (req, res) => {
+router15.post("/", authenticate, requireSuperAdmin, async (req, res) => {
   const body = createSchema6.parse(req.body);
   const { data: borrower } = await supabaseAdmin.from("profiles").select("id").eq("email", body.borrower_email).single();
   if (!borrower) {
@@ -74854,7 +74854,7 @@ router15.post("/", authenticate, requireAdmin, async (req, res) => {
   }
   res.status(201).json({ success: true, data });
 });
-router15.post("/:id/approve", authenticate, requireAdmin, async (req, res) => {
+router15.post("/:id/approve", authenticate, requireSuperAdmin, async (req, res) => {
   const { data: loan } = await supabaseAdmin.from("loans").select("*").eq("id", req.params.id).single();
   if (!loan) {
     res.status(404).json({ success: false, error: "Loan not found" });
@@ -74874,7 +74874,7 @@ router15.post("/:id/approve", authenticate, requireAdmin, async (req, res) => {
   }
   res.json({ success: true, data });
 });
-router15.post("/:id/reject", authenticate, requireAdmin, async (req, res) => {
+router15.post("/:id/reject", authenticate, requireSuperAdmin, async (req, res) => {
   const { data, error } = await supabaseAdmin.from("loans").update({ status: "rejected" }).eq("id", req.params.id).eq("status", "pending").select().single();
   if (error || !data) {
     res.status(400).json({ success: false, error: error?.message ?? "Cannot reject this loan" });
@@ -74882,7 +74882,7 @@ router15.post("/:id/reject", authenticate, requireAdmin, async (req, res) => {
   }
   res.json({ success: true, data });
 });
-router15.post("/:id/disburse", authenticate, requireAdmin, async (req, res) => {
+router15.post("/:id/disburse", authenticate, requireSuperAdmin, async (req, res) => {
   const { data: loan } = await supabaseAdmin.from("loans").select("*").eq("id", req.params.id).single();
   if (!loan) {
     res.status(404).json({ success: false, error: "Loan not found" });
@@ -74912,7 +74912,7 @@ router15.post("/:id/disburse", authenticate, requireAdmin, async (req, res) => {
   res.json({ success: true, data });
 });
 var repaySchema = external_exports.object({ amount: external_exports.number().positive() });
-router15.post("/:id/repay", authenticate, requireAdmin, async (req, res) => {
+router15.post("/:id/repay", authenticate, requireSuperAdmin, async (req, res) => {
   const { amount } = repaySchema.parse(req.body);
   const { data: loan } = await supabaseAdmin.from("loans").select("*").eq("id", req.params.id).single();
   if (!loan) {
@@ -74948,7 +74948,7 @@ router15.post("/:id/repay", authenticate, requireAdmin, async (req, res) => {
   }
   res.json({ success: true, data });
 });
-router15.post("/:id/default", authenticate, requireAdmin, async (req, res) => {
+router15.post("/:id/default", authenticate, requireSuperAdmin, async (req, res) => {
   const { data, error } = await supabaseAdmin.from("loans").update({ status: "defaulted" }).eq("id", req.params.id).eq("status", "active").select().single();
   if (error || !data) {
     res.status(400).json({ success: false, error: error?.message ?? "Cannot mark this loan defaulted" });
@@ -74973,7 +74973,7 @@ var updateSchema3 = external_exports.object({
   status: external_exports.enum(["active", "inactive", "pending"]).optional(),
   notes: external_exports.string().max(1e3).optional()
 });
-router16.get("/", authenticate, requireAdmin, async (_req, res) => {
+router16.get("/", authenticate, requireSuperAdmin, async (_req, res) => {
   const { data, error } = await supabaseAdmin.from("partners").select("*").order("created_at", { ascending: false });
   if (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -74981,7 +74981,7 @@ router16.get("/", authenticate, requireAdmin, async (_req, res) => {
   }
   res.json({ success: true, data });
 });
-router16.post("/", authenticate, requireAdmin, async (req, res) => {
+router16.post("/", authenticate, requireSuperAdmin, async (req, res) => {
   const body = createSchema7.parse(req.body);
   const { data, error } = await supabaseAdmin.from("partners").insert({ ...body, created_by: req.user.id }).select().single();
   if (error) {
@@ -74990,7 +74990,7 @@ router16.post("/", authenticate, requireAdmin, async (req, res) => {
   }
   res.status(201).json({ success: true, data });
 });
-router16.patch("/:id", authenticate, requireAdmin, async (req, res) => {
+router16.patch("/:id", authenticate, requireSuperAdmin, async (req, res) => {
   const body = updateSchema3.parse(req.body);
   const { data, error } = await supabaseAdmin.from("partners").update(body).eq("id", req.params.id).select().single();
   if (error) {
@@ -75068,7 +75068,7 @@ function generateApiKey() {
   const hash = (0, import_crypto4.createHash)("sha256").update(fullKey).digest("hex");
   return { fullKey, prefix, hash };
 }
-router18.get("/", authenticate, requireAdmin, async (_req, res) => {
+router18.get("/", authenticate, requireSuperAdmin, async (_req, res) => {
   const { data, error } = await supabaseAdmin.from("api_keys").select("id, name, key_prefix, partner_id, scopes, last_used_at, revoked, created_at, partners(name)").order("created_at", { ascending: false });
   if (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -75076,7 +75076,7 @@ router18.get("/", authenticate, requireAdmin, async (_req, res) => {
   }
   res.json({ success: true, data });
 });
-router18.post("/", authenticate, requireAdmin, async (req, res) => {
+router18.post("/", authenticate, requireSuperAdmin, async (req, res) => {
   const body = createSchema9.parse(req.body);
   const { fullKey, prefix, hash } = generateApiKey();
   const { data, error } = await supabaseAdmin.from("api_keys").insert({ name: body.name, partner_id: body.partner_id, scopes: body.scopes, key_prefix: prefix, key_hash: hash, created_by: req.user.id }).select("id, name, key_prefix, scopes, created_at").single();
@@ -75086,7 +75086,7 @@ router18.post("/", authenticate, requireAdmin, async (req, res) => {
   }
   res.status(201).json({ success: true, data: { ...data, full_key: fullKey } });
 });
-router18.post("/:id/revoke", authenticate, requireAdmin, async (req, res) => {
+router18.post("/:id/revoke", authenticate, requireSuperAdmin, async (req, res) => {
   const { data, error } = await supabaseAdmin.from("api_keys").update({ revoked: true }).eq("id", req.params.id).select().single();
   if (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -75165,7 +75165,7 @@ var staffSchema = external_exports.object({
   currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]).default("USD"),
   start_date: external_exports.string().optional()
 });
-router20.get("/staff", authenticate, requireAdmin, async (_req, res) => {
+router20.get("/staff", authenticate, requireSuperAdmin, async (_req, res) => {
   const { data, error } = await supabaseAdmin.from("staff_records").select("*, profiles(email, full_name)").order("created_at", { ascending: false });
   if (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -75173,7 +75173,7 @@ router20.get("/staff", authenticate, requireAdmin, async (_req, res) => {
   }
   res.json({ success: true, data });
 });
-router20.post("/staff", authenticate, requireAdmin, async (req, res) => {
+router20.post("/staff", authenticate, requireSuperAdmin, async (req, res) => {
   const body = staffSchema.parse(req.body);
   const { data: profile } = await supabaseAdmin.from("profiles").select("id").eq("email", body.profile_email).single();
   if (!profile) {
@@ -75189,7 +75189,7 @@ router20.post("/staff", authenticate, requireAdmin, async (req, res) => {
   }
   res.status(201).json({ success: true, data });
 });
-router20.patch("/staff/:id", authenticate, requireAdmin, async (req, res) => {
+router20.patch("/staff/:id", authenticate, requireSuperAdmin, async (req, res) => {
   const { active, base_salary } = req.body;
   const patch = {};
   if (active !== void 0) patch.active = active;
@@ -75206,7 +75206,7 @@ var runSchema = external_exports.object({
   period_end: external_exports.string(),
   currency: external_exports.enum(["USD", "EUR", "GBP", "ZAR"]).default("USD")
 });
-router20.get("/payroll", authenticate, requireAdmin, async (_req, res) => {
+router20.get("/payroll", authenticate, requireSuperAdmin, async (_req, res) => {
   const { data, error } = await supabaseAdmin.from("payroll_runs").select("*").order("created_at", { ascending: false });
   if (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -75214,7 +75214,7 @@ router20.get("/payroll", authenticate, requireAdmin, async (_req, res) => {
   }
   res.json({ success: true, data });
 });
-router20.get("/payroll/:id/items", authenticate, requireAdmin, async (req, res) => {
+router20.get("/payroll/:id/items", authenticate, requireSuperAdmin, async (req, res) => {
   const { data, error } = await supabaseAdmin.from("payroll_items").select("*, staff_records(job_title, profiles(email, full_name))").eq("payroll_run_id", req.params.id);
   if (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -75222,7 +75222,7 @@ router20.get("/payroll/:id/items", authenticate, requireAdmin, async (req, res) 
   }
   res.json({ success: true, data });
 });
-router20.post("/payroll", authenticate, requireAdmin, async (req, res) => {
+router20.post("/payroll", authenticate, requireSuperAdmin, async (req, res) => {
   const body = runSchema.parse(req.body);
   const { data: staff } = await supabaseAdmin.from("staff_records").select("id, base_salary, currency").eq("active", true).eq("currency", body.currency);
   if (!staff || staff.length === 0) {
@@ -75243,7 +75243,7 @@ router20.post("/payroll", authenticate, requireAdmin, async (req, res) => {
   }
   res.status(201).json({ success: true, data: run });
 });
-router20.post("/payroll/:id/process", authenticate, requireAdmin, async (req, res) => {
+router20.post("/payroll/:id/process", authenticate, requireSuperAdmin, async (req, res) => {
   const { data, error } = await supabaseAdmin.from("payroll_runs").update({ status: "processed" }).eq("id", req.params.id).eq("status", "draft").select().single();
   if (error || !data) {
     res.status(400).json({ success: false, error: error?.message ?? "Cannot process this run" });
@@ -75251,7 +75251,7 @@ router20.post("/payroll/:id/process", authenticate, requireAdmin, async (req, re
   }
   res.json({ success: true, data });
 });
-router20.post("/payroll/:id/pay", authenticate, requireAdmin, async (req, res) => {
+router20.post("/payroll/:id/pay", authenticate, requireSuperAdmin, async (req, res) => {
   const { data: run } = await supabaseAdmin.from("payroll_runs").select("*").eq("id", req.params.id).single();
   if (!run) {
     res.status(404).json({ success: false, error: "Payroll run not found" });
@@ -76026,7 +76026,7 @@ app.get("/api/admin/voucher-batches", authenticate, requireAdmin, async (req, re
   }
   res.json({ success: true, data, meta: { page: Number(page), limit: Number(limit), total: count } });
 });
-app.get("/api/admin/config", authenticate, requireAdmin, async (_req, res) => {
+app.get("/api/admin/config", authenticate, requireSuperAdmin, async (_req, res) => {
   const { data, error } = await supabaseAdmin.from("system_config").select("*").order("key");
   if (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -76034,7 +76034,7 @@ app.get("/api/admin/config", authenticate, requireAdmin, async (_req, res) => {
   }
   res.json({ success: true, data });
 });
-app.patch("/api/admin/config/:key", authenticate, requireAdmin, async (req, res) => {
+app.patch("/api/admin/config/:key", authenticate, requireSuperAdmin, async (req, res) => {
   const { value } = req.body;
   const { data, error } = await supabaseAdmin.from("system_config").upsert({ key: req.params.key, value, updated_by: req.user.id, updated_at: (/* @__PURE__ */ new Date()).toISOString() }, { onConflict: "key" }).select().single();
   if (error) {

@@ -4,7 +4,7 @@
 // =============================================================================
 import { Router, Response } from 'express';
 import { z } from 'zod';
-import { authenticate, requireAdmin, AuthenticatedRequest } from '../middleware/auth.js';
+import { authenticate, requireSuperAdmin, AuthenticatedRequest } from '../middleware/auth.js';
 import { supabaseAdmin } from '../utils/supabase.js';
 
 const router = Router();
@@ -19,13 +19,13 @@ const staffSchema = z.object({
   start_date: z.string().optional(),
 });
 
-router.get('/staff', authenticate, requireAdmin, async (_req: AuthenticatedRequest, res: Response) => {
+router.get('/staff', authenticate, requireSuperAdmin, async (_req: AuthenticatedRequest, res: Response) => {
   const { data, error } = await supabaseAdmin.from('staff_records').select('*, profiles(email, full_name)').order('created_at', { ascending: false });
   if (error) { res.status(500).json({ success: false, error: error.message }); return; }
   res.json({ success: true, data });
 });
 
-router.post('/staff', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/staff', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const body = staffSchema.parse(req.body);
   const { data: profile } = await supabaseAdmin.from('profiles').select('id').eq('email', body.profile_email).single();
   if (!profile) { res.status(404).json({ success: false, error: `No user with email ${body.profile_email}` }); return; }
@@ -40,7 +40,7 @@ router.post('/staff', authenticate, requireAdmin, async (req: AuthenticatedReque
   res.status(201).json({ success: true, data });
 });
 
-router.patch('/staff/:id', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.patch('/staff/:id', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { active, base_salary } = req.body as { active?: boolean; base_salary?: number };
   const patch: Record<string, unknown> = {};
   if (active !== undefined) patch.active = active;
@@ -57,13 +57,13 @@ const runSchema = z.object({
   currency: z.enum(['USD', 'EUR', 'GBP', 'ZAR']).default('USD'),
 });
 
-router.get('/payroll', authenticate, requireAdmin, async (_req: AuthenticatedRequest, res: Response) => {
+router.get('/payroll', authenticate, requireSuperAdmin, async (_req: AuthenticatedRequest, res: Response) => {
   const { data, error } = await supabaseAdmin.from('payroll_runs').select('*').order('created_at', { ascending: false });
   if (error) { res.status(500).json({ success: false, error: error.message }); return; }
   res.json({ success: true, data });
 });
 
-router.get('/payroll/:id/items', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/payroll/:id/items', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { data, error } = await supabaseAdmin
     .from('payroll_items')
     .select('*, staff_records(job_title, profiles(email, full_name))')
@@ -73,7 +73,7 @@ router.get('/payroll/:id/items', authenticate, requireAdmin, async (req: Authent
 });
 
 // POST /payroll — creates a run and auto-generates one line item per active staff member
-router.post('/payroll', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/payroll', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const body = runSchema.parse(req.body);
   const { data: staff } = await supabaseAdmin.from('staff_records').select('id, base_salary, currency').eq('active', true).eq('currency', body.currency);
   if (!staff || staff.length === 0) { res.status(400).json({ success: false, error: `No active staff records in ${body.currency}` }); return; }
@@ -94,14 +94,14 @@ router.post('/payroll', authenticate, requireAdmin, async (req: AuthenticatedReq
   res.status(201).json({ success: true, data: run });
 });
 
-router.post('/payroll/:id/process', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/payroll/:id/process', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { data, error } = await supabaseAdmin.from('payroll_runs').update({ status: 'processed' }).eq('id', req.params.id).eq('status', 'draft').select().single();
   if (error || !data) { res.status(400).json({ success: false, error: error?.message ?? 'Cannot process this run' }); return; }
   res.json({ success: true, data });
 });
 
 // POST /payroll/:id/pay — credits each staff member's consumer wallet with net_amount
-router.post('/payroll/:id/pay', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/payroll/:id/pay', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { data: run } = await supabaseAdmin.from('payroll_runs').select('*').eq('id', req.params.id).single();
   if (!run) { res.status(404).json({ success: false, error: 'Payroll run not found' }); return; }
   if (run.status !== 'processed') { res.status(400).json({ success: false, error: 'Run must be processed before paying' }); return; }

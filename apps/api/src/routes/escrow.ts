@@ -3,7 +3,7 @@
 // =============================================================================
 import { Router, Response } from 'express';
 import { z } from 'zod';
-import { authenticate, requireAdmin, AuthenticatedRequest } from '../middleware/auth.js';
+import { authenticate, requireSuperAdmin, AuthenticatedRequest } from '../middleware/auth.js';
 import { supabaseAdmin } from '../utils/supabase.js';
 
 const router = Router();
@@ -17,7 +17,7 @@ const createSchema = z.object({
 });
 
 // GET /api/admin/escrow — full list
-router.get('/', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { status } = req.query as { status?: string };
   let query = supabaseAdmin
     .from('escrow_transactions')
@@ -31,7 +31,7 @@ router.get('/', authenticate, requireAdmin, async (req: AuthenticatedRequest, re
 });
 
 // POST /api/admin/escrow — create + immediately fund (debits payer's wallet)
-router.post('/', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const body = createSchema.parse(req.body);
 
   const [{ data: payer }, { data: payee }] = await Promise.all([
@@ -83,7 +83,7 @@ router.post('/', authenticate, requireAdmin, async (req: AuthenticatedRequest, r
 });
 
 // POST /api/admin/escrow/:id/release — credit payee, close out
-router.post('/:id/release', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/:id/release', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { data: escrow } = await supabaseAdmin.from('escrow_transactions').select('*').eq('id', req.params.id).single();
   if (!escrow) { res.status(404).json({ success: false, error: 'Escrow not found' }); return; }
   if (escrow.status !== 'funded') { res.status(400).json({ success: false, error: `Cannot release from status ${escrow.status}` }); return; }
@@ -106,7 +106,7 @@ router.post('/:id/release', authenticate, requireAdmin, async (req: Authenticate
 });
 
 // POST /api/admin/escrow/:id/refund — credit payer back, close out
-router.post('/:id/refund', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/:id/refund', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { data: escrow } = await supabaseAdmin.from('escrow_transactions').select('*').eq('id', req.params.id).single();
   if (!escrow) { res.status(404).json({ success: false, error: 'Escrow not found' }); return; }
   if (escrow.status !== 'funded') { res.status(400).json({ success: false, error: `Cannot refund from status ${escrow.status}` }); return; }

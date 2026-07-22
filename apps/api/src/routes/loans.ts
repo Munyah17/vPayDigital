@@ -3,7 +3,9 @@
 // =============================================================================
 import { Router, Response } from 'express';
 import { z } from 'zod';
-import { authenticate, requireAdmin, AuthenticatedRequest } from '../middleware/auth.js';
+// Real credit decisions + wallet money movement — super_admin only, same
+// tier as wallet-adjust/staff-management in app.ts.
+import { authenticate, requireSuperAdmin, AuthenticatedRequest } from '../middleware/auth.js';
 import { supabaseAdmin } from '../utils/supabase.js';
 
 const router = Router();
@@ -17,7 +19,7 @@ const createSchema = z.object({
   notes: z.string().max(1000).optional(),
 });
 
-router.get('/', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { status } = req.query as { status?: string };
   let query = supabaseAdmin.from('loans').select('*, profiles!loans_borrower_id_fkey(email, full_name)').order('created_at', { ascending: false });
   if (status) query = query.eq('status', status);
@@ -26,7 +28,7 @@ router.get('/', authenticate, requireAdmin, async (req: AuthenticatedRequest, re
   res.json({ success: true, data });
 });
 
-router.post('/', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const body = createSchema.parse(req.body);
   const { data: borrower } = await supabaseAdmin.from('profiles').select('id').eq('email', body.borrower_email).single();
   if (!borrower) { res.status(404).json({ success: false, error: `No user with email ${body.borrower_email}` }); return; }
@@ -42,7 +44,7 @@ router.post('/', authenticate, requireAdmin, async (req: AuthenticatedRequest, r
 });
 
 // POST /:id/approve — computes total repayable and due date
-router.post('/:id/approve', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/:id/approve', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { data: loan } = await supabaseAdmin.from('loans').select('*').eq('id', req.params.id).single();
   if (!loan) { res.status(404).json({ success: false, error: 'Loan not found' }); return; }
   if (loan.status !== 'pending') { res.status(400).json({ success: false, error: `Cannot approve from status ${loan.status}` }); return; }
@@ -61,14 +63,14 @@ router.post('/:id/approve', authenticate, requireAdmin, async (req: Authenticate
   res.json({ success: true, data });
 });
 
-router.post('/:id/reject', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/:id/reject', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { data, error } = await supabaseAdmin.from('loans').update({ status: 'rejected' }).eq('id', req.params.id).eq('status', 'pending').select().single();
   if (error || !data) { res.status(400).json({ success: false, error: error?.message ?? 'Cannot reject this loan' }); return; }
   res.json({ success: true, data });
 });
 
 // POST /:id/disburse — credits borrower's wallet with the principal
-router.post('/:id/disburse', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/:id/disburse', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { data: loan } = await supabaseAdmin.from('loans').select('*').eq('id', req.params.id).single();
   if (!loan) { res.status(404).json({ success: false, error: 'Loan not found' }); return; }
   if (loan.status !== 'approved') { res.status(400).json({ success: false, error: `Cannot disburse from status ${loan.status}` }); return; }
@@ -92,7 +94,7 @@ router.post('/:id/disburse', authenticate, requireAdmin, async (req: Authenticat
 
 // POST /:id/repay — debits borrower's wallet for a repayment amount
 const repaySchema = z.object({ amount: z.number().positive() });
-router.post('/:id/repay', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/:id/repay', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { amount } = repaySchema.parse(req.body);
   const { data: loan } = await supabaseAdmin.from('loans').select('*').eq('id', req.params.id).single();
   if (!loan) { res.status(404).json({ success: false, error: 'Loan not found' }); return; }
@@ -119,7 +121,7 @@ router.post('/:id/repay', authenticate, requireAdmin, async (req: AuthenticatedR
   res.json({ success: true, data });
 });
 
-router.post('/:id/default', authenticate, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/:id/default', authenticate, requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { data, error } = await supabaseAdmin.from('loans').update({ status: 'defaulted' }).eq('id', req.params.id).eq('status', 'active').select().single();
   if (error || !data) { res.status(400).json({ success: false, error: error?.message ?? 'Cannot mark this loan defaulted' }); return; }
   res.json({ success: true, data });
