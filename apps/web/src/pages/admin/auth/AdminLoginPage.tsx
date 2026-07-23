@@ -16,11 +16,11 @@ interface LoginForm { email: string; password: string }
 const PORTAL_CONFIG = {
   'admin': {
     label: 'Admin Portal',
-    sublabel: 'Staff access only',
+    sublabel: 'Staff & agent access only',
     accent: 'from-indigo-600 to-indigo-800',
     glow: 'shadow-[0_0_40px_rgba(79,70,229,0.25)]',
-    allowedRoles: ['staff'],
-    denyMsg: 'This portal is for staff accounts only.',
+    allowedRoles: ['staff', 'agent'],
+    denyMsg: 'This portal is for staff and agent accounts only.',
     placeholder: 'staff@epaysmart.live',
   },
   'super-admin': {
@@ -60,7 +60,11 @@ export default function AdminLoginPage({ portal }: Props) {
       }
 
       await initialize();
-      navigate('/admin/dashboard', { replace: true });
+      // Agents don't have an AdminLayout section of their own — their
+      // tools (issue vouchers, float, customers, analytics) live inside
+      // the regular app shell at /agent/*, gated by AgentGuard rather than
+      // AdminGuard. Only staff/super_admin land on /admin/dashboard.
+      navigate(profile.role === 'agent' ? '/dashboard' : '/admin/dashboard', { replace: true });
       toast.success(`Welcome back, ${profile.full_name}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Login failed');

@@ -44,24 +44,24 @@ export default function Login() {
       });
       if (error) throw error;
 
-      // Staff and super_admin have their own dedicated portals (/admin,
-      // /private) with separate role checks — this login page is
-      // consumer/agent only. Signing them back out here (rather than just
-      // hiding admin UI post-login) means those credentials only ever work
-      // at the portal built for them, which is the whole point of having
-      // separate authentication pages.
+      // Staff/agent and super_admin have their own dedicated portals
+      // (/admin, /private) with separate role checks — this login page is
+      // consumer-only. Signing them back out here (rather than just hiding
+      // admin UI post-login) means those credentials only ever work at the
+      // portal built for them, which is the whole point of having separate
+      // authentication pages.
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', authData.user.id)
         .single();
 
-      if (profile && ['staff', 'super_admin'].includes(profile.role)) {
+      if (profile && ['staff', 'agent', 'super_admin'].includes(profile.role)) {
         await supabase.auth.signOut();
         toast.error(
           profile.role === 'super_admin'
             ? 'Super admin accounts sign in at /private.'
-            : 'Staff accounts sign in at /admin.'
+            : 'Staff and agent accounts sign in at /admin.'
         );
         return;
       }
